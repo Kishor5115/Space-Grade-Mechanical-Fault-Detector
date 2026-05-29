@@ -1,0 +1,43 @@
+# Simulation files
+
+*.vcd
+*.fst
+*.wlf
+*.log
+
+# GTKWave
+
+*.gtkw
+
+# Build outputs
+
+*.out
+*.bin
+
+# Temporary files
+
+*.tmp
+*.bak
+
+# OS files
+
+.DS_Store
+Thumbs.db
+
+# Editor
+
+.vscode/
+.idea/
+
+# Python
+
+**pycache**/
+
+# OpenLane generated runs
+
+runs/
+
+# Compiled objects
+
+*.o
+*.cf

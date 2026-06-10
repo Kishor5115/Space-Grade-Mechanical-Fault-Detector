@@ -23,28 +23,26 @@ The ASIC interfaces with an external space-grade ADC through SPI, performs auton
 ---
 
 ## Key Features
-
-* Fixed-point Goertzel DSP Core (Q8.15)
-* SPI Interface for External ADC
-* Configurable Threshold & Frequency Registers
-* Autonomous Fault Detection
-* Debounce-based Alarm Filtering
-* Radiation-Tolerant FSM Design
-* Triple Modular Redundancy (TMR)
-* Low-Power Edge Processing Architecture
+* Direct Digital MEMS Interfacing: High-efficiency hardware spi_master.v core engineered specifically to parse the STMicroelectronics IIS3DWB sensor data stream (16-bit 2's complement PCM, 26.667 kHz Output Data Rate, 6.3 kHz mechanical bandwidth).
+* Mixed-Precision Fixed-Point Datapath: * Input Vector (x[n]): Native 16-bit signed integer passed directly from the SPI shift registers with zero format-conversion latency.
+* Frequency Coefficient (C): 16-bit fixed-point format configured in Q2.14 precision (1 sign bit, 1 integer bit, 14 fractional bits) mapping dynamic target bounds between −2.0 and +2.0 (C=2⋅cos(2πf_k/f_s) 
+* State Accumulators (v_1,v_2): Dual historical state channels expanded to 32-bit signed integers to safely absorb severe bit-growth overflow across long block iteration boundaries (N=256 to 512).
+* Dynamic Mid-Flight Calibration: Host processing node loads coefficient boundaries dynamically via an SPI-to-APB hardware translation bridge, modifying baseline fault profiles across changing orbit conditions.
+* Autonomous Alarm Verification Mesh: Multi-stage TMR'd verification counter ensures that the structural anomaly limit must be breached for 5 consecutive calculation blocks before raising the primary hardware alarm, neutralizing Single Event Transient (SET) false flags.
+* SRAM-Free Design Matrix: Fully registers-only implementation. All temporary state retention maps directly to standard logic cell flip-flops, rendering the system impervious to macro-level memory corruption.
 
 ---
 
 ## Proposed RTL Modules
 
-| Module            | Description                                  |
-| ----------------- | -------------------------------------------- |
-| `spi_master.v`    | SPI interface for ADC sample acquisition     |
-| `config_regs.v`   | Runtime programmable configuration registers |
-| `goertzel_core.v` | Fixed-point spectral analysis engine         |
-| `fault_flagger.v` | Power calculation and fault decision logic   |
-| `tmr_voter.v`     | Majority voter logic for radiation hardening |
-| `top.v`           | Top-level ASIC integration                   |
+Module Name,Source File,Description
+spi_master.v,rtl/spi_master.v,"Synchronous serial master core tracking ST IIS3DWB bootup protocols, interrupt synchronization, and 16-bit sample capture."
+apb_bridge.v,rtl/apb_bridge.v,"Configuration interface translating external Command SPI packets to localized, structured APBv2 bus operations."
+config_regs.v,rtl/config_regs.v,"Structural TMR storage framework housing dynamic runtime variables (C [16-bit Q2.14], THRESHOLD [32-bit Integer], N [16-bit Integer])."
+goertzel_core.v,rtl/goertzel_core.v,Area-optimized fixed-point math execution core featuring resource-shared multipliers and parity-checked 32-bit storage arrays.
+fault_flagger.v,rtl/fault_flagger.v,"Squaring block computing magnitude limits, executing comparison boundaries, and running the TMR debounce validation state machine."
+tmr_voter.v,rtl/tmr_voter.v,Primitively synthesized combinational 2-out-of-3 majority voting element deployed across triplicated state fields.
+vibration_top.v,rtl/vibration_top.v,"High-level chip enclosure bounding the 1.8V core logic, connecting internal nodes to level-shifted physical pad ring frames."
 
 ---
 

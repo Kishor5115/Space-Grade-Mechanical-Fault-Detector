@@ -18,7 +18,7 @@ The ASIC interfaces with an external space-grade ADC through SPI, performs auton
 
 ## System Architecture
 
-![System Architecture](docs/system_architecture.png)
+![System Architecture](docs/arch.png)
 
 ---
 

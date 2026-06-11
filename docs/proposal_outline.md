@@ -19,8 +19,7 @@ This project implements an autonomous, low-power, radiation-tolerant edge proces
 The ASIC operates inside a standalone custom padring configuration (`workshop_padring_librelane`), removing any dependency on an external platform harness like Efabless Caravel.
 
 
-<add image>
-
+![System Architecture](arch.png)
 ## Key Features
 * Direct Digital MEMS Interfacing: High-efficiency hardware spi_master.v core engineered specifically to parse the STMicroelectronics IIS3DWB sensor data stream (16-bit 2's complement PCM, $26.667\text{ kHz}$ Output Data Rate, $6.3\text{ kHz}$ mechanical bandwidth).
 * Mixed-Precision Fixed-Point Datapath: * Input Vector ($x[n]$): Native 16-bit signed integer passed directly from the SPI shift registers with zero format-conversion latency.Frequency Coefficient ($C$): 16-bit fixed-point format configured in Q2.14 precision (1 sign bit, 1 integer bit, 14 fractional bits) mapping dynamic target bounds between $-2.0$ and $+2.0$ ($C = 2 \cdot \cos(2\pi \frac{f_k}{f_s})$).

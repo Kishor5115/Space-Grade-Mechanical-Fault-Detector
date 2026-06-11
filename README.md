@@ -4,6 +4,8 @@
 
 Radiation-tolerant ASIC for autonomous spacecraft vibration and mechanical fault detection using the Goertzel algorithm.
 
+Proposal: https://docs.google.com/presentation/d/1MkvMiaDgUpeBVoI5wBfiN7sYO5_Q386jxhhWM7O5BgE/edit?usp=sharing
+
 ---
 
 ## Overview

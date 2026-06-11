@@ -41,3 +41,6 @@ runs/
 
 *.o
 *.cf
+
+my_doc/
+sim/

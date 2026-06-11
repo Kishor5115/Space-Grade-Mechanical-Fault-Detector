@@ -1,0 +1,84 @@
+# ============================================================================
+# LibreLane (OpenLane 2) configuration
+# Project : Space-Grade Mechanical Fault Detector  (SSCS Chipathon 2026, Track B)
+# Top     : vibration_top
+# PDK     : GlobalFoundries GF180MCU (gf180mcuD variant)
+# Target  : 20 MHz (50 ns), 600 x 600 um die, ~60% utilization
+# ============================================================================
+meta:
+  version: 3
+  flow: Classic
+
+# --- Design identity ---------------------------------------------------------
+DESIGN_NAME: vibration_top
+
+# RTL source files, listed in dependency order (leaf modules first, top last).
+# Paths are resolved relative to this config file's directory via "dir::".
+VERILOG_FILES:
+  - dir::../rtl/spi_master.v
+  - dir::../rtl/config_regs.v
+  - dir::../rtl/goertzel_core.v
+  - dir::../rtl/fault_flagger.v
+  - dir::../rtl/vibration_top.v
+
+# --- Technology --------------------------------------------------------------
+PDK: gf180mcuD
+
+# --- Clocking ----------------------------------------------------------------
+CLOCK_PORT: clk
+CLOCK_PERIOD: 50            # ns  -> 20 MHz
+# Timing constraints (create_clock, I/O delays, async reset false path).
+FALLBACK_SDC: dir::sdc/vibration_top.sdc
+
+# --- Floorplan ---------------------------------------------------------------
+FP_SIZING: absolute
+DIE_AREA: [0.0, 0.0, 700.0, 700.0]
+
+# Placement density. TMR triples cell count; reduced from 60% after global
+# placement congestion hit 0.97 causing repair_design to crash at 600x600.
+PL_TARGET_DENSITY_PCT: 50
+
+# The repair_design post-global-placement step crashes in this OpenROAD version
+# on this large (TMR-tripled) design with ~5400 nets to repair at 0.96 congestion.
+# Disable it so the flow can proceed to detailed placement and routing.
+RUN_REPAIR_DESIGN: false
+
+# --- Power / ground ----------------------------------------------------------
+VDD_NETS:
+  - VDD
+GND_NETS:
+  - VSS
+
+# --- Routing -----------------------------------------------------------------
+# 24-bit (Q8.15) datapaths exist throughout; route up to Metal4.
+RT_MAX_LAYER: Metal4
+
+# --- Power Distribution Network (single-layer straps, low-power chip) --------
+PDN_MULTILAYER: false
+PDN_VWIDTH: 5
+PDN_HWIDTH: 5
+PDN_VSPACING: 1
+PDN_HSPACING: 1
+PDN_VPITCH: 75
+PDN_HPITCH: 75
+PDN_EXTEND_TO: boundary
+
+# --- Antenna / fanout --------------------------------------------------------
+# Insert antenna-protection diodes on input ports.
+DIODE_ON_PORTS: in
+MAX_FANOUT_CONSTRAINT: 10
+
+# --- Clock Tree Synthesis ----------------------------------------------------
+CTS_CLK_MAX_WIRE_LENGTH: 0
+CTS_DISTANCE_BETWEEN_BUFFERS: 0
+CTS_SINK_CLUSTERING_SIZE: 20
+CTS_SINK_CLUSTERING_MAX_DIAMETER: 60
+
+# --- Core margins ------------------------------------------------------------
+TOP_MARGIN_MULT: 1
+BOTTOM_MARGIN_MULT: 1
+LEFT_MARGIN_MULT: 6
+RIGHT_MARGIN_MULT: 6
+
+# --- Sign-off / streamout ----------------------------------------------------
+PRIMARY_GDSII_STREAMOUT_TOOL: klayout

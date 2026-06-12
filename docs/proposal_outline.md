@@ -15,6 +15,7 @@
 - [Radiation Hardening Strategy (RHBD)](#radiation-hardening-strategy-rhbd)
 - [Target Technology Configurations](#target-technology-configurations)
 - [Repository Structure](#repository-structure)
+- [References](#references)
 - [Team](#team)
 - [Project Status](#project-status)
 
@@ -203,6 +204,15 @@ Physical routing configuration restricts maximum cell layout capacity (`PL_TARGE
 ├── scripts/        # Synthesis run-files, compilation setups, and automated verification loops
 └── openlane/       # Custom physical design parameters and RHBD layout config files
 ```
+
+---
+
+## References
+
+1. **STMicroelectronics IIS3DWB**: Datasheet - IIS3DWB - Ultrawide bandwidth, low-noise, 3-axis digital vibration sensor.
+2. **IEEE Reference**: [https://ieeexplore.ieee.org/document/10127757](https://ieeexplore.ieee.org/document/10127757)
+3. **EE671 Goertzel ASIC**: [https://github.com/abhineet-agarwal/EE671-Goertzel-ASIC](https://github.com/abhineet-agarwal/EE671-Goertzel-ASIC)
+
 
 ---
 

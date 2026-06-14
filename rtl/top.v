@@ -1,6 +1,6 @@
 // top module
 `include "spi_master.v"
-`include "apb.v"
+// `include "apb.v"
 `include "spi_apb_interface.v"
 `include "tmr_reg_bank.v"
 `include "goertzel_core.v"
@@ -29,7 +29,11 @@ module top (
   wire psel;
   wire pready;
 
-  uut spi_master spi_master_inst (
+  //to core
+  wire [15:0] wire_data_out;
+  wire wire_data_out_valid;
+
+  spi_master spi_master_inst (
         .clk(clk),
         .sys_rst_n(rst_n),
         .sync_data_ready_trig(), // connect as needed
@@ -37,11 +41,11 @@ module top (
         .s_csn(c_csn),
         .s_clk(c_sclk),
         .s_mosi(c_mosi),
-        .s_data_out(), // connect as needed
-        .s_data_out_valid() // connect as needed
+        .s_data_out(wire_data_out), // to core
+        .s_data_out_valid(wire_data_out_valid) // to core
       );
 
-  uut spi_apb_interface spi_apb_interface_inst (
+  spi_apb_interface spi_apb_interface_inst (
         .clk(clk),
         .sys_rst_n(rst_n),
         .prdata(prdata),
@@ -62,7 +66,7 @@ module top (
   wire [31:0] wire_mag_out;
   wire wire_mag_out_valid;
 
-  uut tmr_reg_bank tmr_reg_bank_inst (
+  tmr_reg_bank tmr_reg_bank_inst (
         .clk(clk),
         .rst_n(rst_n),
         .p_addr(p_addr),
@@ -78,17 +82,19 @@ module top (
         .cfg_threshold(wire_cfg_threshold)
       );
 
-  uut goertzel_core goertzel_core_inst (
+  goertzel_core goertzel_core_inst (
         .clk(clk),
         .rst_n(rst_n),
-        .cfg_c(wire_cfg_c),
+        .data_in(wire_data_out), //SPI
+        .data_in_valid(wire_data_out_valid),
+        .cfg_c(wire_cfg_c), //TMR reg bank
         .cfg_n(wire_cfg_n),
         .cfg_start(wire_cfg_start),
-        .mag_out(wire_mag_out),
+        .mag_out(wire_mag_out), // to fault flagger
         .mag_out_valid(wire_mag_out_valid)
       );
 
-  uut fault_flagger fault_flagger_inst (
+  fault_flagger fault_flagger_inst (
         .clk(clk),
         .rst_n(rst_n),
         .cfg_threshold(wire_cfg_threshold),

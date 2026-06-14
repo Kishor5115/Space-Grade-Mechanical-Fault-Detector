@@ -4,6 +4,10 @@ module goertzel_core (
     input clk,
     input rst_n,
 
+    //from SPI
+    input [15:0] data_in,
+    input data_in_valid,
+
     //from TMR reg bank
     input [15:0] cfg_c,
     input [15:0] cfg_n,

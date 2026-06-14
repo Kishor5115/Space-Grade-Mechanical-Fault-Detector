@@ -20,13 +20,13 @@ module spi_apb_interface (
     output reg [31:0] p_addr, // to TMR regs
     output reg [31:0] pwdata,
     output reg psel,
-    output reg pready //to core
+    output reg pready, //to core
 
     //SPI output
     output reg c_miso
-);
+  );
 
-    uut apb apb_inst (
+  apb apb_inst (
         .clk(clk),
         .sys_rst_n(sys_rst_n),
         .prdata(prdata),
@@ -36,14 +36,18 @@ module spi_apb_interface (
         .pwdata(pwdata),
         .psel(psel),
         .pready(pready)
-    );
+      );
 
-    always@(posedge clk or negedge sys_rst_n) begin
-        if(!sys_rst_n) begin
-            c_miso <= 1'b0;
-        end else begin
-            // SPI-APB interface logic here
-        end
+  always@(posedge clk or negedge sys_rst_n)
+  begin
+    if(!sys_rst_n)
+    begin
+      c_miso <= 1'b0;
     end
+    else
+    begin
+      // SPI-APB interface logic here
+    end
+  end
 
 endmodule

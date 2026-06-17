@@ -1,27 +1,175 @@
-// spi master module
+// spi master module for IIS3DWB (SPI mode 3: CPOL=1, CPHA=1)
+`include "clk_divider_5.v"
+`include "ff_2_sync.v"
 
 module spi_master (
-    input clk,
-    input sys_rst_n,
-    input sync_data_ready_trig,
-    input s_miso,
+    input  clk,                    // sys clk 50 MHz
+    input  sys_rst_n,
+
+    input  sync_data_ready_trig,   // DRDY interrupt from sensor (async)
+    input  s_miso,
+
+    input core_ack,                // core acknowledges data_out_valid
+
     output reg s_csn,
-    output s_clk,
+    output reg s_clk,
     output reg s_mosi,
-    output [15:0] s_data_out,
-    output reg s_data_out_valid
-);
+    output reg [47:0] s_data_out,  // {OUTX_H,OUTX_L,OUTY_H,OUTY_L,OUTZ_H,OUTZ_L}, to core
+    output reg s_data_out_valid    // to core
+  );
 
-always@(posedge clk or negedge sys_rst_n) begin
-    if(!sys_rst_n) begin
-        s_csn <= 1'b1;
-        s_clk <= 1'b0;
-        s_mosi <= 1'b0;
-        s_data_out <= 16'd0;
-        s_data_out_valid <= 1'b0;
-    end else begin
-        // SPI master logic here
+  // ------------------------------------------------------------
+  // SPI bit clock: mode 3 idles high, data driven on falling SPC,
+  // sampled on rising SPC (per datasheet Section 3.2 / Figure 3).
+  // clk_divider_5 produces a 0/1 toggling clk_out; invert/idle-high
+  // it only while a transfer is active (CS low). While idle, hold
+  // SPC high per mode-3 requirement ("SPC ... stopped high when CS
+  // is high").
+  // ------------------------------------------------------------
+  wire spc_raw;
+  clk_divider_5 s_clk_inst (.clk_in(clk), .rst_n(sys_rst_n), .clk_out(spc_raw));
+
+  wire sync_ready_w;
+  ff_2_sync ff_sync_drdy (.clk(clk), .async_in(sync_data_ready_trig), .sync_out(sync_ready_w));
+
+  wire s_miso_sync;
+  ff_2_sync ff_s_miso (.clk(clk), .async_in(s_miso), .sync_out(s_miso_sync));
+
+  // edge detectors on the divided SPI bit clock, used to gate
+  // driving (falling edge) vs sampling (rising edge) of the bus
+  reg spc_raw_d;
+  always @(posedge clk or negedge sys_rst_n)
+  begin
+    if (!sys_rst_n)
+      spc_raw_d <= 1'b0;
+    else
+      spc_raw_d <= spc_raw;
+  end
+  wire spc_rise =  spc_raw & ~spc_raw_d;
+  wire spc_fall = ~spc_raw &  spc_raw_d;
+
+  // FSM states (thermometer-coded)
+  localparam CFG_INIT = 8'b00000001;
+  localparam IDLE      = 8'b00000011;
+  localparam START     = 8'b00000111;
+  localparam TX_ADDR   = 8'b00001111;
+  localparam RX_DATA   = 8'b00011111;
+  localparam STOP      = 8'b00111111;
+
+  reg [7:0] state;
+  reg [5:0] bit_cnt;
+  reg [7:0] cmd_byte;
+
+  // Read command for OUTX_L_A (28h), burst auto-increments through
+  // OUTX_H, OUTY_L, OUTY_H, OUTZ_L, OUTZ_H (IF_INC=1 by default in
+  // CTRL3_C). bit0 = READ(1), bits1-7 = address 010_1000 -> 0xA8.
+  localparam CMD_READ_OUTX_BURST = 8'hA8;
+
+  always @(posedge clk or negedge sys_rst_n)
+  begin
+    if (!sys_rst_n)
+    begin
+      s_csn           <= 1'b1;
+      s_clk           <= 1'b1;   // mode 3: idle high
+      s_mosi          <= 1'b0;
+      s_data_out      <= 48'd0;
+      s_data_out_valid<= 1'b0;
+      state           <= CFG_INIT;
+      bit_cnt         <= 6'd0;
+      cmd_byte        <= 8'd0;
     end
-end
+    else
+    begin
+      s_data_out_valid <= 1'b0; // default; pulsed for 1 cycle in STOP
 
-endmodule 
+      case (state)
+
+        // NOTE: accelerometer init (CTRL1_XL enable, FS select,
+        // ODR/FIFO config) must happen here over a separate
+        // write sequence before relying on DRDY. Left as a
+        // TODO hook; this fix focuses on the read-burst FSM.
+        CFG_INIT:
+        begin
+          s_csn    <= 1'b1;
+          s_clk    <= 1'b1;
+          s_mosi   <= 1'b0;
+          cmd_byte <= CMD_READ_OUTX_BURST;
+          state    <= IDLE;
+        end
+
+        IDLE:
+        begin
+          s_csn <= 1'b1;
+          s_clk <= 1'b1;          // hold SPC high while CS high
+          if (sync_ready_w)
+          begin
+            bit_cnt <= 6'd0;
+            state   <= START;
+          end
+        end
+
+        START:
+        begin
+          s_csn <= 1'b0;          // CS low: sensor selected
+          bit_cnt <= 6'd0;
+          state <= TX_ADDR;
+        end
+
+        TX_ADDR:
+        begin
+          s_clk <= spc_raw;
+          // drive MOSI on SPC falling edge, MSb first
+          if (spc_fall)
+          begin
+            s_mosi <= cmd_byte[7 - bit_cnt];
+          end
+          if (spc_rise)
+          begin
+            bit_cnt <= bit_cnt + 1'b1;
+            if (bit_cnt == 6'd7)
+            begin
+              bit_cnt <= 6'd0;
+              state   <= RX_DATA;
+            end
+          end
+        end
+
+        RX_DATA:
+        begin
+          s_clk <= spc_raw;
+          // sample MISO on SPC rising edge, MSb first, 48 bits total
+          if (spc_rise)
+          begin
+            s_data_out <= {s_data_out[46:0], s_miso_sync};
+            bit_cnt <= bit_cnt + 1'b1;
+            if (bit_cnt == 6'd47)
+            begin
+              state <= STOP;
+            end
+          end
+        end
+
+        STOP:
+        begin
+          s_csn  <= 1'b1;
+          s_data_out_valid <= 1'b1; // Pulse high
+
+          // HOLD HERE until core acknowledges
+          if (core_ack)
+          begin
+            s_data_out_valid <= 1'b0;
+            state <= IDLE;
+          end
+          else
+          begin
+            state<=STOP;
+          end
+        end
+
+        default:
+          state <= CFG_INIT;
+      endcase
+    end
+  end
+
+endmodule

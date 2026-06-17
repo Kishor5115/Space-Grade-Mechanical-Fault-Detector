@@ -6,7 +6,7 @@ module goertzel_core (
 
     //from SPI
     input [15:0] data_in,
-    input data_in_valid,
+    input data_in_valid, //to core_ack of spi_master
 
     //from TMR reg bank
     input [15:0] cfg_c,

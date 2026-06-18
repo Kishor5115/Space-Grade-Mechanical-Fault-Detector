@@ -49,6 +49,7 @@ module spi_master (
   wire spc_fall = ~spc_raw &  spc_raw_d;
 
   // FSM states (thermometer-coded)
+    localparam INIT_ZERO = 8'h00;
   localparam CFG_INIT = 8'b00000001;
   localparam IDLE      = 8'b00000011;
   localparam START     = 8'b00000111;
@@ -65,6 +66,9 @@ module spi_master (
   // CTRL3_C). bit0 = READ(1), bits1-7 = address 010_1000 -> 0xA8.
   localparam CMD_READ_OUTX_BURST = 8'hA8;
 
+    reg sub_fsm_en; //needed for config sub fsm
+    reg sub_fsm_done; 
+    
   always @(posedge clk or negedge sys_rst_n)
   begin
     if (!sys_rst_n)
@@ -74,7 +78,7 @@ module spi_master (
       s_mosi          <= 1'b0;
       s_data_out      <= 48'd0;
       s_data_out_valid<= 1'b0;
-      state           <= CFG_INIT;
+      state           <= INIT_ZERO;
       bit_cnt         <= 6'd0;
       cmd_byte        <= 8'd0;
     end
@@ -88,13 +92,26 @@ module spi_master (
         // ODR/FIFO config) must happen here over a separate
         // write sequence before relying on DRDY. Left as a
         // TODO hook; this fix focuses on the read-burst FSM.
+
+          INIT_ZERO: begin
+              s_csn           <= 1'b1;
+                s_clk           <= 1'b1;   // mode 3: idle high
+              s_mosi          <= 1'b0;
+              s_data_out      <= 48'd0;
+              s_data_out_valid<= 1'b0;
+              state           <= INIT_ZERO;
+              bit_cnt         <= 6'd0;
+              cmd_byte        <= 8'd0;
+              state<=CFG_INIT;
+          end
         CFG_INIT:
         begin
-          s_csn    <= 1'b1;
-          s_clk    <= 1'b1;
-          s_mosi   <= 1'b0;
-          cmd_byte <= CMD_READ_OUTX_BURST;
-          state    <= IDLE;
+            sub_fsm_en <= 1'b1;
+            if (sub_fsm_done) begin 
+                state <= IDLE;
+                sub_fsm_done<=1'b0;
+            end
+            else state <=CFG_INIT;
         end
 
         IDLE:
@@ -167,9 +184,64 @@ module spi_master (
         end
 
         default:
-          state <= CFG_INIT;
+            state <= INIT_ZERO; // or IDLE (i am not sure of which state)
       endcase
     end
   end
+
+    //CFG_INIT Sub FSM for configuration of registers before actual data transfer occurs
+
+    reg [3:0] sub_state;    
+    reg [7:0] config_addr;    // Targeted register
+    reg [7:0] config_data;    // Data to write
+
+    localparam RESET_SUB <=5'b00000;
+    localparam SET_ODR <=5'b00001;
+    localparam FIFO_BYPASS <=5'b00011;
+    localparam IF_INC_EN <= 5'b00111;
+    localparam INT1_EN <= 5'b01111;
+    localparam DONE <= 5'b11111;
+    
+    
+    always @(posedge clk) begin
+        if (sub_fsm_en) begin
+        case (sub_state)
+            RESET_SUB: begin
+                sub_state<=SET_ODR;
+            end
+            SET_ODR: begin // CTRL1_XL: ODR=12.5Hz
+                {config_addr, config_data} <= {8'h10, 8'h60}; 
+
+                //TODO: IS THIS THE CORRECT WAY TO PERFORM TX WRITE FOR CONFIG
+                
+              s_clk <= spc_raw;
+              // drive MOSI on SPC falling edge, MSb first
+                if (spc_fall) begin
+                    s_mosi <= cmd_byte[7 - bit_cnt];
+              end
+                if (spc_rise) begin
+                    bit_cnt <= bit_cnt + 1'b1;
+                    if (bit_cnt == 6'd7) begin
+                          bit_cnt <= 6'd0;
+                    end
+              end
+            end
+            FIFO_BYPASS: begin // FIFO_CTRL4: Bypass Mode
+                {config_addr, config_data} <= {8'h0A, 8'h00}; 
+            end
+            IF_INC_EN: begin // CTRL3_C: IF_INC enabled
+                {config_addr, config_data} <= {8'h12, 8'h04}; 
+            end
+            INT1_EN: begin // CTRL4_C: Int1 enabled
+                {config_addr, config_data} <= {8'h13, 8'h01}; 
+            end
+            DONE: begin 
+                sub_fsm_en <=1'b0;
+                sub_fsm_done <= 1'b1; 
+            end
+        endcase
+    end
+        else sub_state<=RESET_SUB;
+end
 
 endmodule

@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="100%" height="100%">
+#!/usr/bin/env python3
+import os
+
+svg_content = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="100%" height="100%">
   <defs>
     <!-- Background Gradient -->
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -341,3 +344,9 @@
   </g>
 
 </svg>
+"""
+
+with open("docs/top_modules.svg", "w") as f:
+    f.write(svg_content)
+
+print("SVG generated successfully at docs/top_modules.svg!")

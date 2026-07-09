@@ -1,7 +1,7 @@
 //============================================================================
 // fault_flagger.v
-// Owns the 512-sample block counter (counts sample_done pulses, pulses
-// block_clear every 512). Compares magnitude_compute's per-bin mag_out
+// Owns the 171-sample block counter (counts sample_done pulses, pulses
+// block_clear every 171). Compares magnitude_compute's per-bin mag_out
 // stream against cfg_threshold -- immediate trip, no debounce.
 // fault_flag is sticky until cfg_fault_clear. fault_bin_latched/
 // fault_axis_latched jointly identify which frequency bin AND which
@@ -11,7 +11,7 @@
 `default_nettype none
 
 module fault_flagger #(
-    parameter integer BLOCK_SIZE = 512
+    parameter integer BLOCK_SIZE = 171  // Reduced from 512 for 3x faster axis rotation (competition area optimization)
 )(
     input  wire        clk,
     input  wire        rst_n,

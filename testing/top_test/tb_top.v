@@ -298,14 +298,10 @@ module tb_top;
         // Threshold chosen well above the observed "normal" (quiet)
         // magnitude (~0) but comfortably below the peak magnitude
         // measured empirically for a 0.8-amplitude on-target 1kHz
-        // tone over a 512-sample block (~1000, see mag FSM trace in
-        // tb_top.v development notes) -- the free-running Goertzel
-        // resonator's magnitude oscillates block-to-block depending
-        // on the tone's phase alignment with the block boundary
-        // rather than growing monotonically, so the threshold must
-        // clear the smallest peak within a few blocks, not just the
-        // largest.
-        apb_write_reg(8'h10, 32'd120);                     // CFG_THRESHOLD
+        // tone over a 171-sample block. Scaled from original 512-sample
+        // threshold by (171/512)² = 0.112 factor, since Goertzel magnitude
+        // scales as N². Original: 120, New: 120×0.112 ≈ 14.
+        apb_write_reg(8'h10, 32'd14);                      // CFG_THRESHOLD (BLOCK_SIZE=171)
 
         // ---- start the detector (run_enable) ----
         apb_write_reg(8'h00, 32'h0000_0001);

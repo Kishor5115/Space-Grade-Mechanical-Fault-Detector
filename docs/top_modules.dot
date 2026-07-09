@@ -1,0 +1,65 @@
+digraph G {
+    rankdir=LR;
+    node [shape=record, style="filled,rounded", fontname="Helvetica", fontsize=12];
+    edge [fontname="Helvetica", fontsize=10, color="#555555"];
+
+    // IO Ports
+    node [shape=ellipse, fillcolor="#e2f0d9"];
+    sensor_drdy [label="sensor_drdy\n(Input)"];
+    c_miso [label="c_miso\n(Input)"];
+    tmr_forward_en [label="tmr_forward_en\n(Input)"];
+    
+    node [shape=ellipse, fillcolor="#fce4d6"];
+    c_csn [label="c_csn\n(Output)"];
+    c_sclk [label="c_sclk\n(Output)"];
+    c_mosi [label="c_mosi\n(Output)"];
+    fault_flag_out [label="fault_flag_out\n(Output)"];
+
+    // Modules
+    node [shape=record, fillcolor="#dae8fc"];
+    spi_apb_inst [label="{ spi_apb_interface | SPI Master + APB Mux }"];
+    
+    node [fillcolor="#e1d5e7"];
+    tmr_inst [label="{ tmr_reg_bank | Triplicated Config & Status }"];
+    
+    node [fillcolor="#ffe6cc"];
+    axseq_inst [label="{ axis_sequencer | Polls SPI, Feeds Core }"];
+    
+    node [fillcolor="#d5e8d4"];
+    goertzel_inst [label="{ goertzel_core | 3-Bin Time-Multiplexed DSP }"];
+    mag_inst [label="{ magnitude_compute | Shared Multiplier + Mag Block }"];
+    
+    node [fillcolor="#f8cecc"];
+    ff_inst [label="{ fault_flagger | Threshold Comparator }"];
+
+    // Connections - Inputs
+    sensor_drdy -> spi_apb_inst [label=" sync_drdy_trig"];
+    c_miso -> spi_apb_inst [label=" s_miso"];
+    tmr_forward_en -> spi_apb_inst [label=" tmr_forward_en"];
+    
+    // Connections - Outputs
+    spi_apb_inst -> c_csn [label=" s_csn"];
+    spi_apb_inst -> c_sclk [label=" s_clk"];
+    spi_apb_inst -> c_mosi [label=" s_mosi"];
+
+    // Inter-module connections
+    spi_apb_inst -> tmr_inst [dir=both, label=" APB Bus\n(p_addr, pwdata, prdata, psel)"];
+    spi_apb_inst -> axseq_inst [dir=both, label=" Local Req Bus\n(req, addr, wdata, rdata)"];
+
+    tmr_inst -> goertzel_inst [style=dashed, label=" cfg_c0/c1/c2\nrun_enable"];
+    tmr_inst -> mag_inst [style=dashed, label=" cfg_c0/c1/c2"];
+    tmr_inst -> axseq_inst [style=dashed, label=" run_enable"];
+    tmr_inst -> ff_inst [style=dashed, label=" cfg_threshold\ncfg_fault_clear"];
+
+    axseq_inst -> goertzel_inst [label=" core_data_ready\ncore_x_n\nblock_clear"];
+    axseq_inst -> mag_inst [label=" current_axis\nblock_clear_in"];
+    axseq_inst -> ff_inst [label=" block_clear"];
+
+    goertzel_inst -> mag_inst [dir=both, label=" Shared Mult (req, a, b, q)\nState (v1, v2)"];
+    goertzel_inst -> ff_inst [label=" sample_done"];
+
+    mag_inst -> ff_inst [label=" mag_out\nmag_bin_idx\nmag_axis_idx\nmag_out_valid"];
+
+    ff_inst -> tmr_inst [label=" fault_flag\nlatched fault data"];
+    ff_inst -> fault_flag_out [label=" fault_flag_out"];
+}

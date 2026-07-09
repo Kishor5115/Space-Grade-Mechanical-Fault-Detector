@@ -1,90 +1,92 @@
 digraph G {
-    fontname="Helvetica";
-    fontsize=18;
-    label="Space-Grade Mechanical Fault Detector (top.v)\nNode-RED Style Architecture";
+    fontname="Courier";
+    fontsize=20;
+    fontcolor="#00E5FF";
+    label="TOP MODULE CONNECTIONS (GF180 ASIC)";
     labelloc="t";
     
-    // Overall settings for a nice rectangular/16:9 aspect ratio
+    // Overall settings for aspect ratio and dark background
     ratio="fill";
-    size="12,6.75!"; // 16:9 aspect ratio (approx 1920x1080 scaled)
+    size="16,9!";
     splines=ortho;
     nodesep=0.7;
     ranksep=1.0;
     rankdir=LR;
+    bgcolor="#08101E"; // Dark blue background like system_architecture.png
 
-    node [shape=record, style="filled,rounded", fontname="Helvetica", fontsize=12];
-    edge [fontname="Helvetica", fontsize=10, color="#555555", penwidth=1.5];
+    node [shape=record, style="rounded,filled", fillcolor="#111B2D", color="#00E5FF", fontcolor="#FFFFFF", fontname="Courier", penwidth=2, fontsize=12];
+    edge [fontname="Courier", fontsize=10, color="#00E5FF", fontcolor="#A0C0FF", penwidth=2];
 
     subgraph cluster_inputs {
-        label="External Inputs";
-        style=dashed; color="#888888"; fontcolor="#555555";
+        label="EXTERNAL INPUTS";
+        color="#888888"; fontcolor="#888888"; penwidth=2; style="rounded";
         margin=20;
         
-        sensor_drdy [shape=ellipse, fillcolor="#e2f0d9", label="sensor_drdy"];
-        c_miso [shape=ellipse, fillcolor="#e2f0d9", label="c_miso"];
-        tmr_forward_en [shape=ellipse, fillcolor="#e2f0d9", label="tmr_forward_en"];
+        sensor_drdy [shape=ellipse, fillcolor="#182A40", color="#FFB000", label="sensor_drdy"];
+        c_miso [shape=ellipse, fillcolor="#182A40", color="#FFB000", label="c_miso"];
+        tmr_forward_en [shape=ellipse, fillcolor="#182A40", color="#FFB000", label="tmr_forward_en"];
     }
 
     subgraph cluster_top {
-        label="GF180 ASIC Internal Modules";
-        style="filled,solid"; fillcolor="#f4f8fa"; color="#0055aa"; penwidth=2; fontcolor="#0055aa";
+        label="GF180 ASIC - INTERNAL MODULES";
+        color="#00E5FF"; fontcolor="#00E5FF"; penwidth=2; style="rounded";
         margin=30;
         
-        // Define Modules
-        spi_apb_inst [label="{ spi_apb_interface | SPI Master + APB Mux }", fillcolor="#dae8fc", height=1.2, width=2.5];
-        tmr_inst [label="{ tmr_reg_bank | Triplicated Config & Status }", fillcolor="#e1d5e7", height=1.2, width=2.5];
+        // Modules
+        spi_apb_inst [label="{ SPI_APB_INTERFACE | SPI Master + APB Mux }", height=1.5, width=3];
+        tmr_inst [label="{ TMR_REG_BANK | Triplicated Config & Status }", height=1.5, width=3];
         
-        axseq_inst [label="{ axis_sequencer | Polls SPI, Feeds Core }", fillcolor="#ffe6cc", height=1.2, width=2.5];
-        goertzel_inst [label="{ goertzel_core | 3-Bin Time-Multiplexed DSP }", fillcolor="#d5e8d4", height=1.2, width=2.5];
+        axseq_inst [label="{ AXIS_SEQUENCER | Polls SPI, Feeds Core }", height=1.5, width=3];
+        goertzel_inst [label="{ GOERTZEL_CORE | 3-Bin Time-Multiplexed DSP }", height=1.5, width=3];
         
-        mag_inst [label="{ magnitude_compute | Shared Multiplier + Mag Block }", fillcolor="#d5e8d4", height=1.2, width=2.5];
-        ff_inst [label="{ fault_flagger | Threshold Comparator }", fillcolor="#f8cecc", height=1.2, width=2.5];
+        mag_inst [label="{ MAGNITUDE_COMPUTE | Shared Multiplier + Mag Block }", height=1.5, width=3];
+        ff_inst [label="{ FAULT_FLAGGER | Threshold Comparator }", height=1.5, width=3, color="#FF007F"];
         
-        // Force them into 3 vertical columns (since rankdir=LR, rank=same means same X column)
+        // Force layout structure
         { rank=same; spi_apb_inst; tmr_inst }
         { rank=same; axseq_inst; mag_inst }
         { rank=same; goertzel_inst; ff_inst }
     }
 
     subgraph cluster_outputs {
-        label="External Outputs";
-        style=dashed; color="#888888"; fontcolor="#555555";
+        label="EXTERNAL OUTPUTS";
+        color="#888888"; fontcolor="#888888"; penwidth=2; style="rounded";
         margin=20;
         
-        c_csn [shape=ellipse, fillcolor="#fce4d6", label="c_csn"];
-        c_sclk [shape=ellipse, fillcolor="#fce4d6", label="c_sclk"];
-        c_mosi [shape=ellipse, fillcolor="#fce4d6", label="c_mosi"];
-        fault_flag_out [shape=ellipse, fillcolor="#fce4d6", label="fault_flag_out"];
+        c_csn [shape=ellipse, fillcolor="#182A40", color="#00FF00", label="c_csn"];
+        c_sclk [shape=ellipse, fillcolor="#182A40", color="#00FF00", label="c_sclk"];
+        c_mosi [shape=ellipse, fillcolor="#182A40", color="#00FF00", label="c_mosi"];
+        fault_flag_out [shape=ellipse, fillcolor="#182A40", color="#FF007F", fontcolor="#FF007F", label="fault_flag_out"];
     }
 
-    // Connections - Inputs
-    sensor_drdy -> spi_apb_inst [label=" sync_drdy"];
-    c_miso -> spi_apb_inst [label=" miso"];
-    tmr_forward_en -> spi_apb_inst [label=" fwd_en"];
+    // Connections - Inputs (Yellow-ish edges)
+    sensor_drdy -> spi_apb_inst [color="#FFB000"];
+    c_miso -> spi_apb_inst [color="#FFB000"];
+    tmr_forward_en -> spi_apb_inst [color="#FFB000"];
     
-    // Connections - Outputs
-    spi_apb_inst -> c_csn [label=" csn"];
-    spi_apb_inst -> c_sclk [label=" sclk"];
-    spi_apb_inst -> c_mosi [label=" mosi"];
+    // Connections - Outputs (Green/Pink edges)
+    spi_apb_inst -> c_csn [color="#00FF00"];
+    spi_apb_inst -> c_sclk [color="#00FF00"];
+    spi_apb_inst -> c_mosi [color="#00FF00"];
 
     // Inter-module connections
-    spi_apb_inst -> tmr_inst [dir=both, label=" APB Bus"];
-    spi_apb_inst -> axseq_inst [dir=both, label=" Local Req Bus"];
+    spi_apb_inst -> tmr_inst [dir=both, color="#00E5FF"];
+    spi_apb_inst -> axseq_inst [dir=both, color="#00E5FF"];
 
-    tmr_inst -> goertzel_inst [style=dashed, label=" cfg_c0/1/2"];
-    tmr_inst -> mag_inst [style=dashed, label=" cfg_c0/1/2"];
-    tmr_inst -> axseq_inst [style=dashed, label=" run_enable"];
-    tmr_inst -> ff_inst [style=dashed, label=" threshold"];
+    tmr_inst -> goertzel_inst [style=dashed, color="#A0C0FF"];
+    tmr_inst -> mag_inst [style=dashed, color="#A0C0FF"];
+    tmr_inst -> axseq_inst [style=dashed, color="#A0C0FF"];
+    tmr_inst -> ff_inst [style=dashed, color="#A0C0FF"];
 
-    axseq_inst -> goertzel_inst [label=" core_data"];
-    axseq_inst -> mag_inst [label=" current_axis"];
-    axseq_inst -> ff_inst [label=" block_clear"];
+    axseq_inst -> goertzel_inst [color="#00E5FF"];
+    axseq_inst -> mag_inst [color="#00E5FF"];
+    axseq_inst -> ff_inst [color="#00E5FF"];
 
-    goertzel_inst -> mag_inst [dir=both, label=" Shared Mult"];
-    goertzel_inst -> ff_inst [label=" sample_done"];
+    goertzel_inst -> mag_inst [dir=both, color="#FFB000"];
+    goertzel_inst -> ff_inst [color="#00E5FF"];
 
-    mag_inst -> ff_inst [label=" mag_out"];
+    mag_inst -> ff_inst [color="#00FF00"];
 
-    ff_inst -> tmr_inst [label=" latched_faults"];
-    ff_inst -> fault_flag_out [label=" fault_flag_out"];
+    ff_inst -> tmr_inst [color="#FF007F"];
+    ff_inst -> fault_flag_out [color="#FF007F", penwidth=3];
 }

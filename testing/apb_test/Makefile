@@ -4,12 +4,16 @@ RTL_DIR   := ../../rtl
 TEST_DIR  := .
 
 TOP_TB    := tb_spi_apb_interface.v
-DUT1       := $(RTL_DIR)/spi_apb_interface.v
-DUT2       := $(RTL_DIR)/tmr_reg_bank.v
-# MODEL     := iis3dwb_model.v
+STUB      := tmr_slave_stub.v
 
-SRCS      := $(TOP_TB) $(DUT1) $(DUT2) 
-#$(MODEL)
+# All RTL source files needed by spi_apb_interface (no `include directives)
+RTL_SRCS  := $(RTL_DIR)/spi_apb_interface.v \
+             $(RTL_DIR)/apb.v \
+             $(RTL_DIR)/spi_master.v \
+             $(RTL_DIR)/clk_divider_5.v \
+             $(RTL_DIR)/ff_2_sync.v
+
+SRCS      := $(TOP_TB) $(RTL_SRCS) $(STUB)
 
 SIM       := sim.out
 WAVE      := waves.vcd

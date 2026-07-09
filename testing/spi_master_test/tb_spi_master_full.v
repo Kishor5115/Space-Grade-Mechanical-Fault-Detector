@@ -156,6 +156,9 @@ module tb_spi_master_full;
     reg [47:0] expected_burst;
 
     initial begin
+        $dumpfile("waves.vcd");
+        $dumpvars(0, tb_spi_master_full);
+
         wr_idx = 0;
         sys_rst_n = 0;
         drdy = 0;

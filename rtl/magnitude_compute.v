@@ -4,7 +4,11 @@
 // and computes mag_sq_k = v1_k^2 + v2_k^2 - C_k*v1_k*v2_k once per block,
 // triggered by block_clear_in (snapshotting v1/v2 before goertzel_core
 // zeros them on that same edge). Outputs one mag_out pulse per bin (3
-// per block) to fault_flagger.
+// per block) to fault_flagger, tagged with BOTH the frequency-bin index
+// (mag_bin_idx, 0-2) and the sensor axis that produced the block
+// (mag_axis_idx, 0=X/1=Y/2=Z) -- axis_sequencer already computes
+// current_axis for its own multiplexing but nothing downstream consumed
+// it before, so a fault could not be attributed to a physical axis.
 //============================================================================
 `timescale 1ns/1ps
 `default_nettype none
@@ -28,12 +32,20 @@ module magnitude_compute #(
     input  wire signed [DATA_W-1:0]   v1_2, v2_2,
     input  wire signed [DATA_W-1:0]   coeff_c0, coeff_c1, coeff_c2,
 
+    // which physical sensor axis (X=0/Y=1/Z=2) produced the block being
+    // closed out this cycle -- sampled alongside v1/v2/coeff below so the
+    // 3 mag_out pulses this block are correctly attributed even though
+    // axis_sequencer may have already advanced current_axis by the time
+    // they're computed.
+    input  wire [1:0]                 axis_in,
+
     // block boundary from fault_flagger (same cycle it drives block_clear)
     input  wire                       block_clear_in,
 
     // magnitude result stream to fault_flagger (3 pulses per block)
     output reg  [31:0]                mag_out,
     output reg  [1:0]                 mag_bin_idx,
+    output reg  [1:0]                 mag_axis_idx,
     output reg                        mag_out_valid
 );
 
@@ -55,14 +67,22 @@ module magnitude_compute #(
     wire ovf_neg = (mult_shifted < $signed({{2{MQ_MIN[DATA_W-1]}}, MQ_MIN}));
     wire signed [DATA_W-1:0] mult_sat = ovf_pos ? MQ_MAX : ovf_neg ? MQ_MIN : mult_shifted[DATA_W-1:0];
 
-    reg mult_req_d;
+    // Shared-multiplier pipeline register: goertzel_core's own mult_a/
+    // mult_b are held stable by ITS output registers for the full MUL
+    // state, but magnitude_compute's mag_mult_a/mag_mult_b are driven
+    // combinationally and fall back to 0 the very next cycle (once
+    // ms_v leaves M_SQV1/M_SQV2/M_CV1). So core_mult_q must capture
+    // mult_sat in the SAME cycle the request is asserted (mult_req_w),
+    // not one cycle later -- gating on a delayed mult_req_d would read
+    // mult_sat after the requesting FSM's operands (and thus mult_sat
+    // itself) had already fallen back to 0, silently losing every
+    // magnitude multiply (bug found via tb_top.v: mag_out was always 0
+    // despite nonzero v1/v2 state feeding the block).
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             core_mult_q <= {DATA_W{1'b0}};
-            mult_req_d  <= 1'b0;
-        end else begin
-            mult_req_d  <= mult_req_w;
-            if (mult_req_d) core_mult_q <= mult_sat;
+        end else if (mult_req_w) begin
+            core_mult_q <= mult_sat;
         end
     end
 
@@ -70,16 +90,20 @@ module magnitude_compute #(
     reg signed [DATA_W-1:0] sv1 [0:2];
     reg signed [DATA_W-1:0] sv2 [0:2];
     reg signed [DATA_W-1:0] sc  [0:2];
+    reg [1:0] saxis; // axis snapshot: single 2-bit reg, not per-bin (all
+                      // 3 bins in a block share the same axis)
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             sv1[0]<=0; sv1[1]<=0; sv1[2]<=0;
             sv2[0]<=0; sv2[1]<=0; sv2[2]<=0;
             sc[0] <=0; sc[1] <=0; sc[2] <=0;
+            saxis <=0;
         end else if (block_clear_in) begin
             sv1[0]<=v1_0; sv1[1]<=v1_1; sv1[2]<=v1_2;
             sv2[0]<=v2_0; sv2[1]<=v2_1; sv2[2]<=v2_2;
             sc[0] <=coeff_c0; sc[1]<=coeff_c1; sc[2]<=coeff_c2;
+            saxis <=axis_in;
         end
     end
 
@@ -149,7 +173,7 @@ module magnitude_compute #(
             ms_a<=M_IDLE; ms_b<=M_IDLE; ms_c<=M_IDLE;
             active_bin<=2'd0;
             sq_v1_r<=0; sq_v2_r<=0; cv1_r<=0;
-            mag_out<=0; mag_bin_idx<=0; mag_out_valid<=0;
+            mag_out<=0; mag_bin_idx<=0; mag_axis_idx<=0; mag_out_valid<=0;
         end else begin
             ms_a<=ms_next; ms_b<=ms_next; ms_c<=ms_next;
             mag_out_valid<=1'b0;
@@ -161,6 +185,7 @@ module magnitude_compute #(
                     cv1_r <= core_mult_q;
                     mag_out       <= mag_sq_u;
                     mag_bin_idx   <= active_bin;
+                    mag_axis_idx  <= saxis;
                     mag_out_valid <= 1'b1;
                     active_bin    <= active_bin + 2'd1;
                 end

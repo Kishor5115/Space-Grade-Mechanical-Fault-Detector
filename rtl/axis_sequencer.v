@@ -117,11 +117,24 @@ module axis_sequencer (
 
     reg [15:0] xn_comb;
     always @(*) begin
-        // spi_master: s_data_out = {OUTX_H,OUTX_L,OUTY_H,OUTY_L,OUTZ_H,OUTZ_L}
+        // spi_master's RX_DATA shifts bytes in via a 48-bit left
+        // shift-in register (s_data_out <= {s_data_out[46:0],bit}),
+        // MSb-of-each-byte first, burst order OUTX_L, OUTX_H, OUTY_L,
+        // OUTY_H, OUTZ_L, OUTZ_H (datasheet auto-increment burst read
+        // starting at OUTX_L_A). Tracing the shift explicitly: the
+        // EARLIEST-arriving byte (OUTX_L) is shifted the MOST times by
+        // the time all 48 bits have arrived, so it ends up at the
+        // TOP of the register, not the bottom. Final layout:
+        //   s_data_out[47:32] = {OUTX_H, OUTX_L}  (X, arrived first)
+        //   s_data_out[31:16] = {OUTY_H, OUTY_L}  (Y, arrived middle)
+        //   s_data_out[15:0]  = {OUTZ_H, OUTZ_L}  (Z, arrived last)
+        // (Verified against iis3dwb_model.v's burst_payload byte
+        // order and cross-checked live in tb_top.v against
+        // model_outx/y/z.)
         case (axis_v)
-            2'd0: xn_comb = burst_r[47:32];
-            2'd1: xn_comb = burst_r[31:16];
-            default: xn_comb = burst_r[15:0];
+            2'd0: xn_comb = burst_r[47:32]; // X
+            2'd1: xn_comb = burst_r[31:16]; // Y
+            default: xn_comb = burst_r[15:0]; // Z
         endcase
     end
 

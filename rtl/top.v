@@ -6,12 +6,7 @@
 `timescale 1ns/1ps
 `default_nettype none
 
-`include "spi_apb_interface.v"
-`include "axis_sequencer.v"
-`include "goertzel_core.v"
-`include "magnitude_compute.v"
-`include "fault_flagger.v"
-`include "tmr_reg_bank.v"
+
 
 module top (
     input  wire        clk,
@@ -88,6 +83,7 @@ module top (
     wire        fault_flag;
     wire [31:0] fault_mag_latched;
     wire [1:0]  fault_bin_latched;
+    wire [1:0]  fault_axis_latched;
 
     tmr_reg_bank tmr_inst (
         .clk               (clk),
@@ -109,7 +105,8 @@ module top (
         .run_enable        (run_enable),
         .fault_flag        (fault_flag),
         .fault_mag_latched (fault_mag_latched),
-        .fault_bin_latched (fault_bin_latched)
+        .fault_bin_latched (fault_bin_latched),
+        .fault_axis_latched(fault_axis_latched)
     );
 
     // ----------------------------------------------------------------
@@ -173,6 +170,7 @@ module top (
     // ----------------------------------------------------------------
     wire [31:0] mag_out;
     wire [1:0]  mag_bin_idx;
+    wire [1:0]  mag_axis_idx;
     wire        mag_out_valid;
 
     magnitude_compute #(.DATA_W(24)) mag_inst (
@@ -188,9 +186,11 @@ module top (
         .coeff_c0     ($signed(cfg_c0)),
         .coeff_c1     ($signed(cfg_c1)),
         .coeff_c2     ($signed(cfg_c2)),
+        .axis_in      (current_axis),
         .block_clear_in(block_clear),
         .mag_out      (mag_out),
         .mag_bin_idx  (mag_bin_idx),
+        .mag_axis_idx (mag_axis_idx),
         .mag_out_valid(mag_out_valid)
     );
 
@@ -204,12 +204,14 @@ module top (
         .block_clear      (block_clear),
         .mag_in           (mag_out),
         .mag_bin_idx      (mag_bin_idx),
+        .mag_axis_idx     (mag_axis_idx),
         .mag_in_valid     (mag_out_valid),
         .cfg_threshold    (cfg_threshold),
         .cfg_fault_clear  (cfg_fault_clear),
         .fault_flag       (fault_flag),
         .fault_mag_latched(fault_mag_latched),
-        .fault_bin_latched(fault_bin_latched)
+        .fault_bin_latched(fault_bin_latched),
+        .fault_axis_latched(fault_axis_latched)
     );
 
     assign fault_flag_out = fault_flag;

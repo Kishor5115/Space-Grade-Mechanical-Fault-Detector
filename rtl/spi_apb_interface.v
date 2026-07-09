@@ -33,8 +33,7 @@
 //   0x8 : SAMPLE1  = { 16'd0, s_data_out[47:32] }
 // A read of SAMPLE1 clears data_ready (acts as the "consume" signal).
 
-`include "apb.v"
-`include "spi_master.v"
+
 
 module spi_apb_interface (
     input clk,

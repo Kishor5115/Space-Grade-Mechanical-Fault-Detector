@@ -77,7 +77,7 @@ module top (
     // ----------------------------------------------------------------
     // tmr_reg_bank: APB slave, triplicated config + status
     // ----------------------------------------------------------------
-    wire [23:0] cfg_c0, cfg_c1, cfg_c2;
+    wire signed [23:0] cfg_c0, cfg_c1, cfg_c2;
     wire [31:0] cfg_threshold;
     wire        cfg_start, cfg_stop, cfg_fault_clear, run_enable;
     wire        fault_flag;
@@ -151,9 +151,9 @@ module top (
         .enable     (run_enable),
         .data_ready (core_data_ready),
         .x_n        (core_x_n),
-        .coeff_c0   ($signed(cfg_c0)),
-        .coeff_c1   ($signed(cfg_c1)),
-        .coeff_c2   ($signed(cfg_c2)),
+        .coeff_c0   (cfg_c0),
+        .coeff_c1   (cfg_c1),
+        .coeff_c2   (cfg_c2),
         .block_clear(block_clear),
         .mult_req   (mult_req),
         .mult_a     (mult_a),
@@ -183,9 +183,9 @@ module top (
         .v1_0(v1_0),.v2_0(v2_0),
         .v1_1(v1_1),.v2_1(v2_1),
         .v1_2(v1_2),.v2_2(v2_2),
-        .coeff_c0     ($signed(cfg_c0)),
-        .coeff_c1     ($signed(cfg_c1)),
-        .coeff_c2     ($signed(cfg_c2)),
+        .coeff_c0     (cfg_c0),
+        .coeff_c1     (cfg_c1),
+        .coeff_c2     (cfg_c2),
         .axis_in      (current_axis),
         .block_clear_in(block_clear),
         .mag_out      (mag_out),

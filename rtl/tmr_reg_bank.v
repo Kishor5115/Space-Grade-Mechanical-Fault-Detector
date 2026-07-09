@@ -27,9 +27,9 @@ module tmr_reg_bank (
     output reg         pready,
 
     // config outputs
-    output wire [23:0] cfg_c0,
-    output wire [23:0] cfg_c1,
-    output wire [23:0] cfg_c2,
+    output wire signed [23:0] cfg_c0,
+    output wire signed [23:0] cfg_c1,
+    output wire signed [23:0] cfg_c2,
     output wire [31:0] cfg_threshold,
     output reg         cfg_start,
     output reg         cfg_stop,

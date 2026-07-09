@@ -1,65 +1,90 @@
 digraph G {
+    fontname="Helvetica";
+    fontsize=18;
+    label="Space-Grade Mechanical Fault Detector (top.v)\nNode-RED Style Architecture";
+    labelloc="t";
+    
+    // Overall settings for a nice rectangular/16:9 aspect ratio
+    ratio="fill";
+    size="12,6.75!"; // 16:9 aspect ratio (approx 1920x1080 scaled)
+    splines=ortho;
+    nodesep=0.7;
+    ranksep=1.0;
     rankdir=LR;
+
     node [shape=record, style="filled,rounded", fontname="Helvetica", fontsize=12];
-    edge [fontname="Helvetica", fontsize=10, color="#555555"];
+    edge [fontname="Helvetica", fontsize=10, color="#555555", penwidth=1.5];
 
-    // IO Ports
-    node [shape=ellipse, fillcolor="#e2f0d9"];
-    sensor_drdy [label="sensor_drdy\n(Input)"];
-    c_miso [label="c_miso\n(Input)"];
-    tmr_forward_en [label="tmr_forward_en\n(Input)"];
-    
-    node [shape=ellipse, fillcolor="#fce4d6"];
-    c_csn [label="c_csn\n(Output)"];
-    c_sclk [label="c_sclk\n(Output)"];
-    c_mosi [label="c_mosi\n(Output)"];
-    fault_flag_out [label="fault_flag_out\n(Output)"];
+    subgraph cluster_inputs {
+        label="External Inputs";
+        style=dashed; color="#888888"; fontcolor="#555555";
+        margin=20;
+        
+        sensor_drdy [shape=ellipse, fillcolor="#e2f0d9", label="sensor_drdy"];
+        c_miso [shape=ellipse, fillcolor="#e2f0d9", label="c_miso"];
+        tmr_forward_en [shape=ellipse, fillcolor="#e2f0d9", label="tmr_forward_en"];
+    }
 
-    // Modules
-    node [shape=record, fillcolor="#dae8fc"];
-    spi_apb_inst [label="{ spi_apb_interface | SPI Master + APB Mux }"];
-    
-    node [fillcolor="#e1d5e7"];
-    tmr_inst [label="{ tmr_reg_bank | Triplicated Config & Status }"];
-    
-    node [fillcolor="#ffe6cc"];
-    axseq_inst [label="{ axis_sequencer | Polls SPI, Feeds Core }"];
-    
-    node [fillcolor="#d5e8d4"];
-    goertzel_inst [label="{ goertzel_core | 3-Bin Time-Multiplexed DSP }"];
-    mag_inst [label="{ magnitude_compute | Shared Multiplier + Mag Block }"];
-    
-    node [fillcolor="#f8cecc"];
-    ff_inst [label="{ fault_flagger | Threshold Comparator }"];
+    subgraph cluster_top {
+        label="GF180 ASIC Internal Modules";
+        style="filled,solid"; fillcolor="#f4f8fa"; color="#0055aa"; penwidth=2; fontcolor="#0055aa";
+        margin=30;
+        
+        // Define Modules
+        spi_apb_inst [label="{ spi_apb_interface | SPI Master + APB Mux }", fillcolor="#dae8fc", height=1.2, width=2.5];
+        tmr_inst [label="{ tmr_reg_bank | Triplicated Config & Status }", fillcolor="#e1d5e7", height=1.2, width=2.5];
+        
+        axseq_inst [label="{ axis_sequencer | Polls SPI, Feeds Core }", fillcolor="#ffe6cc", height=1.2, width=2.5];
+        goertzel_inst [label="{ goertzel_core | 3-Bin Time-Multiplexed DSP }", fillcolor="#d5e8d4", height=1.2, width=2.5];
+        
+        mag_inst [label="{ magnitude_compute | Shared Multiplier + Mag Block }", fillcolor="#d5e8d4", height=1.2, width=2.5];
+        ff_inst [label="{ fault_flagger | Threshold Comparator }", fillcolor="#f8cecc", height=1.2, width=2.5];
+        
+        // Force them into 3 vertical columns (since rankdir=LR, rank=same means same X column)
+        { rank=same; spi_apb_inst; tmr_inst }
+        { rank=same; axseq_inst; mag_inst }
+        { rank=same; goertzel_inst; ff_inst }
+    }
+
+    subgraph cluster_outputs {
+        label="External Outputs";
+        style=dashed; color="#888888"; fontcolor="#555555";
+        margin=20;
+        
+        c_csn [shape=ellipse, fillcolor="#fce4d6", label="c_csn"];
+        c_sclk [shape=ellipse, fillcolor="#fce4d6", label="c_sclk"];
+        c_mosi [shape=ellipse, fillcolor="#fce4d6", label="c_mosi"];
+        fault_flag_out [shape=ellipse, fillcolor="#fce4d6", label="fault_flag_out"];
+    }
 
     // Connections - Inputs
-    sensor_drdy -> spi_apb_inst [label=" sync_drdy_trig"];
-    c_miso -> spi_apb_inst [label=" s_miso"];
-    tmr_forward_en -> spi_apb_inst [label=" tmr_forward_en"];
+    sensor_drdy -> spi_apb_inst [label=" sync_drdy"];
+    c_miso -> spi_apb_inst [label=" miso"];
+    tmr_forward_en -> spi_apb_inst [label=" fwd_en"];
     
     // Connections - Outputs
-    spi_apb_inst -> c_csn [label=" s_csn"];
-    spi_apb_inst -> c_sclk [label=" s_clk"];
-    spi_apb_inst -> c_mosi [label=" s_mosi"];
+    spi_apb_inst -> c_csn [label=" csn"];
+    spi_apb_inst -> c_sclk [label=" sclk"];
+    spi_apb_inst -> c_mosi [label=" mosi"];
 
     // Inter-module connections
-    spi_apb_inst -> tmr_inst [dir=both, label=" APB Bus\n(p_addr, pwdata, prdata, psel)"];
-    spi_apb_inst -> axseq_inst [dir=both, label=" Local Req Bus\n(req, addr, wdata, rdata)"];
+    spi_apb_inst -> tmr_inst [dir=both, label=" APB Bus"];
+    spi_apb_inst -> axseq_inst [dir=both, label=" Local Req Bus"];
 
-    tmr_inst -> goertzel_inst [style=dashed, label=" cfg_c0/c1/c2\nrun_enable"];
-    tmr_inst -> mag_inst [style=dashed, label=" cfg_c0/c1/c2"];
+    tmr_inst -> goertzel_inst [style=dashed, label=" cfg_c0/1/2"];
+    tmr_inst -> mag_inst [style=dashed, label=" cfg_c0/1/2"];
     tmr_inst -> axseq_inst [style=dashed, label=" run_enable"];
-    tmr_inst -> ff_inst [style=dashed, label=" cfg_threshold\ncfg_fault_clear"];
+    tmr_inst -> ff_inst [style=dashed, label=" threshold"];
 
-    axseq_inst -> goertzel_inst [label=" core_data_ready\ncore_x_n\nblock_clear"];
-    axseq_inst -> mag_inst [label=" current_axis\nblock_clear_in"];
+    axseq_inst -> goertzel_inst [label=" core_data"];
+    axseq_inst -> mag_inst [label=" current_axis"];
     axseq_inst -> ff_inst [label=" block_clear"];
 
-    goertzel_inst -> mag_inst [dir=both, label=" Shared Mult (req, a, b, q)\nState (v1, v2)"];
+    goertzel_inst -> mag_inst [dir=both, label=" Shared Mult"];
     goertzel_inst -> ff_inst [label=" sample_done"];
 
-    mag_inst -> ff_inst [label=" mag_out\nmag_bin_idx\nmag_axis_idx\nmag_out_valid"];
+    mag_inst -> ff_inst [label=" mag_out"];
 
-    ff_inst -> tmr_inst [label=" fault_flag\nlatched fault data"];
+    ff_inst -> tmr_inst [label=" latched_faults"];
     ff_inst -> fault_flag_out [label=" fault_flag_out"];
 }

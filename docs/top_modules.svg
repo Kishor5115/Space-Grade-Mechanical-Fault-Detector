@@ -65,11 +65,7 @@
   <!-- Background -->
   <rect width="1200" height="700" fill="url(#bgGrad)"/>
 
-  <!-- GRID PATTERN FOR TECH FEEL -->
-  <g opacity="0.04">
-    <path d="M 0,50 L 1200,50 M 0,100 L 1200,100 M 0,150 L 1200,150 M 0,200 L 1200,200 M 0,250 L 1200,250 M 0,300 L 1200,300 M 0,350 L 1200,350 M 0,400 L 1200,400 M 0,450 L 1200,450 M 0,500 L 1200,500 M 0,550 L 1200,550 M 0,600 L 1200,600 M 0,650 L 1200,650" stroke="#FFFFFF" stroke-width="1"/>
-    <path d="M 100,0 L 100,700 M 200,0 L 200,700 M 300,0 L 300,700 M 400,0 L 400,700 M 500,0 L 500,700 M 600,0 L 600,700 M 700,0 L 700,700 M 800,0 L 800,700 M 900,0 L 900,700 M 1000,0 L 1000,700 M 1100,0 L 1100,700" stroke="#FFFFFF" stroke-width="1"/>
-  </g>
+
 
   <!-- TITLE -->
   <text x="50" y="45" class="title">GF180 ASIC - VIBRATION DETECTION SYSTEM</text>

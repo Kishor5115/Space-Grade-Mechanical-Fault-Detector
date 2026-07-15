@@ -113,9 +113,8 @@ module top (
     // axis_sequencer: polls spi_apb_interface, feeds goertzel_core
     // ----------------------------------------------------------------
     wire        core_data_ready;
-    wire [15:0] core_x_n;
+    wire [15:0] core_x_n, core_y_n, core_z_n;
     wire        block_clear;
-    wire [1:0]  current_axis;
 
     axis_sequencer axseq_inst (
         .clk               (clk),
@@ -129,8 +128,8 @@ module top (
         .resp_rdata        (seq_resp_rdata),
         .core_data_ready   (core_data_ready),
         .core_x_n          (core_x_n),
-        .block_clear_pulse (block_clear),
-        .current_axis      (current_axis)
+        .core_y_n          (core_y_n),
+        .core_z_n          (core_z_n)
     );
 
     // ----------------------------------------------------------------
@@ -138,7 +137,9 @@ module top (
     // ----------------------------------------------------------------
     wire        mult_req;
     wire signed [23:0] mult_a, mult_b, mult_q;
-    wire signed [23:0] v1_0, v2_0, v1_1, v2_1, v1_2, v2_2;
+    wire signed [23:0] v1x_0, v2x_0, v1x_1, v2x_1, v1x_2, v2x_2;
+    wire signed [23:0] v1y_0, v2y_0, v1y_1, v2y_1, v1y_2, v2y_2;
+    wire signed [23:0] v1z_0, v2z_0, v1z_1, v2z_1, v1z_2, v2z_2;
     wire        sample_done;
 
     goertzel_core #(
@@ -151,6 +152,8 @@ module top (
         .enable     (run_enable),
         .data_ready (core_data_ready),
         .x_n        (core_x_n),
+        .y_n        (core_y_n),
+        .z_n        (core_z_n),
         .coeff_c0   (cfg_c0),
         .coeff_c1   (cfg_c1),
         .coeff_c2   (cfg_c2),
@@ -159,9 +162,9 @@ module top (
         .mult_a     (mult_a),
         .mult_b     (mult_b),
         .mult_q     (mult_q),
-        .v1_0(v1_0),.v2_0(v2_0),
-        .v1_1(v1_1),.v2_1(v2_1),
-        .v1_2(v1_2),.v2_2(v2_2),
+        .v1x_0(v1x_0),.v2x_0(v2x_0),.v1x_1(v1x_1),.v2x_1(v2x_1),.v1x_2(v1x_2),.v2x_2(v2x_2),
+        .v1y_0(v1y_0),.v2y_0(v2y_0),.v1y_1(v1y_1),.v2y_1(v2y_1),.v1y_2(v1y_2),.v2y_2(v2y_2),
+        .v1z_0(v1z_0),.v2z_0(v2z_0),.v1z_1(v1z_1),.v2z_1(v2z_1),.v1z_2(v1z_2),.v2z_2(v2z_2),
         .sample_done(sample_done)
     );
 
@@ -180,13 +183,12 @@ module top (
         .core_mult_a  (mult_a),
         .core_mult_b  (mult_b),
         .core_mult_q  (mult_q),
-        .v1_0(v1_0),.v2_0(v2_0),
-        .v1_1(v1_1),.v2_1(v2_1),
-        .v1_2(v1_2),.v2_2(v2_2),
+        .v1x_0(v1x_0),.v2x_0(v2x_0),.v1x_1(v1x_1),.v2x_1(v2x_1),.v1x_2(v1x_2),.v2x_2(v2x_2),
+        .v1y_0(v1y_0),.v2y_0(v2y_0),.v1y_1(v1y_1),.v2y_1(v2y_1),.v1y_2(v1y_2),.v2y_2(v2y_2),
+        .v1z_0(v1z_0),.v2z_0(v2z_0),.v1z_1(v1z_1),.v2z_1(v2z_1),.v1z_2(v1z_2),.v2z_2(v2z_2),
         .coeff_c0     (cfg_c0),
         .coeff_c1     (cfg_c1),
         .coeff_c2     (cfg_c2),
-        .axis_in      (current_axis),
         .block_clear_in(block_clear),
         .mag_out      (mag_out),
         .mag_bin_idx  (mag_bin_idx),

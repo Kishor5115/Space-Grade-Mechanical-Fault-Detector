@@ -15,6 +15,7 @@ RTL_SRCS  := $(RTL_DIR)/top.v \
              $(RTL_DIR)/ff_2_sync.v \
              $(RTL_DIR)/axis_sequencer.v \
              $(RTL_DIR)/goertzel_core.v \
+             $(RTL_DIR)/multiplier.v \
              $(RTL_DIR)/magnitude_compute.v \
              $(RTL_DIR)/fault_flagger.v \
              $(RTL_DIR)/tmr_reg_bank.v

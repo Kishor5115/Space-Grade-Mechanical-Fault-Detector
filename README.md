@@ -1,7 +1,7 @@
 # Space-Grade Mechanical Fault Detector
 
 > **SSCS Chipathon 2026 — Track B (Sensor Circuits)**
-> Radiation-hardened-by-design (RHBD) ASIC for autonomous spacecraft vibration and mechanical fault detection, built around a 3-bin time-multiplexed Goertzel DSP core targeting the GlobalFoundries GF180MCU node via the open-source LibreLane RTL-to-GDS flow.
+> Radiation-hardened-by-design (RHBD) ASIC for autonomous spacecraft vibration and mechanical fault detection, built around a 3-bin **Interleaved Tri-Axis Goertzel (ITAG)** DSP core targeting the GlobalFoundries GF180MCU node via the open-source LibreLane RTL-to-GDS flow.
 
 ---
 
@@ -27,7 +27,7 @@
 
 Modern spacecraft and satellite systems exhibit distinct high-frequency mechanical vibration signatures prior to catastrophic mechanical failure — reaction wheel bearing degradation, cryogenic pump wear, deployment gear micro-cracks. Detecting these signatures early, at the structural edge, is critical for autonomous fault isolation and telemetry reduction.
 
-This project implements a compact, radiation-tolerant edge-processing ASIC that performs real-time spectral vibration analysis using a custom **3-bin, time-multiplexed Goertzel DSP core**, targeting the GlobalFoundries 180 nm (GF180MCU) node.
+This project implements a compact, radiation-tolerant edge-processing ASIC that performs real-time spectral vibration analysis using a custom **3-bin Interleaved Tri-Axis Goertzel (ITAG) DSP core**, targeting the GlobalFoundries 180 nm (GF180MCU) node. A single shared hardware multiplier is time-multiplexed across all three frequency bins of all three axes, plus the magnitude engine — processing X, Y and Z within every sample period rather than rotating one axis per block.
 
 The ASIC interfaces directly with an off-chip **STMicroelectronics IIS3DWB** digital MEMS vibration sensor over SPI, computes per-axis frequency-domain energy at three programmable fault frequencies, and asserts a sticky hardware fault flag when any bin/axis combination exceeds a configurable threshold. The design is entirely flip-flop based — no SRAM macros — to keep it robust against heavy-ion-induced single event upsets (SEUs) on a commercial bulk CMOS process with no inherent radiation tolerance.
 
@@ -44,20 +44,22 @@ The ASIC interfaces directly with an off-chip **STMicroelectronics IIS3DWB** dig
  sensor_drdy ───▶│  │  config-write + burst read) │  local STATUS/SAMPLE0/1 regs    │
                  │  └─ apb (master, Option B      ├─ demuxes the 48-bit XYZ burst   │
                  │     sample forwarding only)    │  into per-axis 16-bit samples   │
-                 │                                 └─ rotates X→Y→Z every block     │
-                 │                                        │                         │
+                 │                                 └─ presents X, Y, Z together    │
+                 │                                        │  (no axis rotation)     │
                  │                                        ▼                         │
                  │                                 goertzel_core                    │
-                 │                                 (3-bin shared-multiplier IIR)    │
-                 │                                        │  v1/v2 state (x6)       │
+                 │                                 (ITAG: 3 bins x 3 axes,          │
+                 │                                  shared-multiplier IIR)          │
+                 │                                        │  v1/v2 state (x18)      │
                  │                                        ▼                         │
                  │                                 magnitude_compute                │
-                 │                                 (services shared multiplier,     │
-                 │                                  computes |X(f_k)|^2 per bin)    │
+                 │                                 (owns the single multiplier.v;   │
+                 │                                  computes |X(f_k)|^2 for all      │
+                 │                                  9 axis/bin pairs per block)     │
                  │                                        │  mag_out + bin/axis tag │
                  │                                        ▼                         │
                  │                                 fault_flagger                    │
-                 │                                 (171-sample block counter,       │
+                 │                                 (512-sample block counter,       │
                  │                                  threshold compare, sticky flag) │
                  │                                        │                         │
                  │              ┌─────────────────────────┘                         │
@@ -80,10 +82,10 @@ The ASIC interfaces directly with an off-chip **STMicroelectronics IIS3DWB** dig
 
 1. **`spi_master`** (inside `spi_apb_interface`) runs the IIS3DWB bring-up sequence on reset — writing `CTRL1_XL` (26.667 kHz ODR), `FIFO_CTRL4` (bypass, no on-sensor FIFO), `CTRL3_C` (auto-increment burst reads), and `INT1_CTRL` (route `DRDY` to `INT1`) — then waits for `sensor_drdy`, asserts chip-select, and shifts in a 48-bit burst covering all three axes (`OUTX`, `OUTY`, `OUTZ`) in SPI Mode 3.
 2. **`spi_apb_interface`** latches the 48-bit sample into local registers exposed at three byte addresses (`STATUS`, `SAMPLE0`, `SAMPLE1`), readable through a simple request/done handshake. An optional second mode (`tmr_forward_en=1`) additionally forwards each raw sample into `tmr_reg_bank` over the internal APB bus for host visibility; the default mode (`tmr_forward_en=0`) keeps the sample local only.
-3. **`axis_sequencer`** polls those local registers, reconstructs the 48-bit burst, and slices out the correct 16-bit Q1.15 sample for whichever axis is currently active (X, Y, or Z), rotating to the next axis every time a processing block closes.
-4. **`goertzel_core`** runs the classic second-order IIR recursion `v[n] = x[n] + C·v[n-1] − v[n-2]` for three independent frequency bins in Q8.15 fixed-point, all three sharing a single hardware multiplier via time multiplexing (6 active clock cycles per incoming sample; the multiplier is otherwise held frozen for zero switching power).
-5. **`magnitude_compute`** snapshots each bin's `v1`/`v2` state and coefficient at the block boundary, reuses the *same* shared multiplier during otherwise-idle cycles to compute `|X(f_k)|² = v1² + v2² − C·v1·v2` for all three bins, and tags each result with both its frequency bin index and the physical axis (X/Y/Z) that produced it.
-6. **`fault_flagger`** owns the 171-sample block counter, compares every tagged magnitude against `cfg_threshold`, and latches a sticky `fault_flag` (plus the offending bin and axis) on the first magnitude that exceeds threshold. The flag stays asserted until explicitly cleared via `cfg_fault_clear`.
+3. **`axis_sequencer`** polls those local registers, reconstructs the 48-bit burst, and presents all three 16-bit Q1.15 axis slices (X, Y, Z) to the core *simultaneously* — there is no longer any per-block axis rotation or `current_axis` tracking.
+4. **`goertzel_core`** runs the classic second-order IIR recursion `v[n] = x[n] + C·v[n-1] − v[n-2]` for three independent frequency bins on all three axes (9 resonators total) in Q8.15 fixed-point, all sharing a single hardware multiplier via time multiplexing (18 active clock cycles per incoming sample — 6 per axis; the multiplier is otherwise held frozen for zero switching power). This is the **Interleaved Tri-Axis Goertzel (ITAG)** microarchitecture.
+5. **`magnitude_compute`** owns the design's single `multiplier.v` instance, snapshots each axis/bin's `v1`/`v2` state and coefficient at the block boundary, and reuses that same shared multiplier during otherwise-idle cycles to compute `|X(f_k)|² = v1² + v2² − C·v1·v2` for all **9 axis/bin pairs**, tagging each result with both its frequency bin index and the physical axis (X/Y/Z) that produced it. The `C·v1·v2` cross term also rides the shared multiplier, so exactly one multiplier exists in the whole datapath.
+6. **`fault_flagger`** owns the 512-sample block counter, compares every tagged magnitude against `cfg_threshold`, and latches a sticky `fault_flag` (plus the offending bin and axis) on the first magnitude that exceeds threshold. The flag stays asserted until explicitly cleared via `cfg_fault_clear`.
 7. **`tmr_reg_bank`** is the single APB slave in the design: it holds the triplicated, periodically-scrubbed coefficient/threshold/control registers and exposes fault status for read-back.
 
 ---
@@ -96,10 +98,11 @@ The ASIC interfaces directly with an off-chip **STMicroelectronics IIS3DWB** dig
 | `spi_apb_interface` | `rtl/spi_apb_interface.v` | Owns `spi_master`; exposes a local poll-based register interface for the current sensor sample, plus an optional forwarding path that mirrors each sample into `tmr_reg_bank` over the internal APB bus |
 | `spi_master` | `rtl/spi_master.v` | SPI Mode 3 master implementing the IIS3DWB power-on boot config sequence and the 48-bit XYZ burst-read protocol, synchronized to the async `sensor_drdy` interrupt |
 | `apb` | `rtl/apb.v` | Minimal request-driven APB master: converts a simple `req_valid`/`req_write`/`req_addr`/`req_wdata` handshake into a compliant SETUP/ACCESS APB transfer |
-| `axis_sequencer` | `rtl/axis_sequencer.v` | Polls `spi_apb_interface` for each new burst, demultiplexes the X/Y/Z slice for the currently active axis, and advances the axis round-robin on every block boundary; axis index and polling FSM are TMR-protected and periodically scrubbed |
-| `goertzel_core` | `rtl/goertzel_core.v` | 3-bin time-multiplexed Goertzel IIR engine in Q8.15 fixed-point, sharing one multiplier across all three bins; control FSM is triplicated with a self-scrubbing majority voter |
-| `magnitude_compute` | `rtl/magnitude_compute.v` | Snapshots Goertzel state at each block boundary and computes the per-bin, per-axis magnitude by reusing the same shared multiplier during its idle cycles; FSM is triplicated |
-| `fault_flagger` | `rtl/fault_flagger.v` | Owns the (currently 171-sample) block counter, compares magnitudes against a programmable threshold, and latches a sticky fault flag with bin/axis attribution |
+| `axis_sequencer` | `rtl/axis_sequencer.v` | Polls `spi_apb_interface` for each new burst and presents all three X/Y/Z slices to the core simultaneously (no axis rotation under ITAG); polling FSM is TMR-protected |
+| `goertzel_core` | `rtl/goertzel_core.v` | Interleaved Tri-Axis (ITAG) 3-bin Goertzel IIR engine in Q8.15 fixed-point: 9 resonators (3 bins × 3 axes) processed every sample via a 19-state FSM sharing one multiplier; control FSM is triplicated (5-bit `vote5`) with a self-scrubbing majority voter |
+| `multiplier` | `rtl/multiplier.v` | The single, chip-wide hardware multiplier — the only `*` operator in the synthesizable datapath, instanced exactly once inside `magnitude_compute`; combinational signed product, operand-isolated by its caller |
+| `magnitude_compute` | `rtl/magnitude_compute.v` | Owns the shared `multiplier` instance; snapshots the 18 Goertzel state values at each block boundary and computes the per-bin, per-axis magnitude (including the `C·v1·v2` cross term) for all 9 axis/bin pairs on that one multiplier; FSM is triplicated (4-bit `vote4`) |
+| `fault_flagger` | `rtl/fault_flagger.v` | Owns the 512-sample block counter, compares magnitudes against a programmable threshold, and latches a sticky fault flag with bin/axis attribution |
 | `tmr_reg_bank` | `rtl/tmr_reg_bank.v` | APB slave holding the triplicated, scrubbed configuration registers (`CTRL`, `CFG_C0/C1/C2`, `CFG_THRESHOLD`) and read-only status (`STATUS`, `FAULT_MAG`, `FAULT_BIN`) |
 | `ff_2_sync` | `rtl/ff_2_sync.v` | Generic two-stage D-flip-flop synchronizer used to bring the async `sensor_drdy` and `s_miso` lines into the core clock domain |
 | `clk_divider_5` | `rtl/clk_divider_5.v` | Divide-by-5 clock divider generating the SPI bit clock from the system clock |
@@ -112,15 +115,15 @@ The ASIC interfaces directly with an off-chip **STMicroelectronics IIS3DWB** dig
 |---|---|---|
 | Sensor sample `x_n` | 16-bit | Q1.15 signed fixed-point (as delivered by `axis_sequencer`) |
 | Goertzel coefficients `C0/C1/C2` | 24-bit | Q8.15 signed fixed-point, one per frequency bin, stored in `tmr_reg_bank` |
-| State registers `v1_k`, `v2_k` (k = 0..2) | 24-bit | Q8.15 signed fixed-point, saturating add/sub |
+| State registers `v1_k`, `v2_k` (k = 0..2, per axis X/Y/Z) | 24-bit | Q8.15 signed fixed-point, saturating add/sub — 18 registers total (3 bins × 3 axes) |
 | Shared multiplier product | 48-bit internal → 24-bit | Full product right-shifted by 15 (`>>> 15`), then saturated back to Q8.15 |
 | Magnitude `|X(f_k)|²` | 32-bit | Unsigned integer, clamped to zero on underflow |
 | Threshold `cfg_threshold` | 32-bit | Unsigned integer, host/testbench configurable |
-| Block size | 171 samples | Fixed parameter in `fault_flagger` (`BLOCK_SIZE`) |
+| Block size | 512 samples | Fixed parameter in `top.v`'s `fault_flagger` instance (`BLOCK_SIZE`) |
 
-**Recursion:** `v[n] = x[n] + C·v[n-1] - v[n-2]`, computed as a single fused three-input saturating add per active bin (no separate accumulator register — the multiplier product and the `x - v2` term are summed directly), so each bin costs exactly two active clock cycles per sample (one multiplier request, one fused update) rather than three.
+**Recursion:** `v[n] = x[n] + C·v[n-1] - v[n-2]`, computed as a single fused three-input saturating add per active bin (no separate accumulator register — the multiplier product and the `x - v2` term are summed directly), so each axis/bin costs exactly two active clock cycles per sample (one multiplier request, one fused update) — 18 active cycles per sample for all 3 bins × 3 axes.
 
-**Terminal magnitude:** `|X(f_k)|² = v1_k² + v2_k² - C_k·v1_k·v2_k`, computed by `magnitude_compute` using three extra multiplier operations per bin, scheduled into cycles the Goertzel core's own multiplier requests leave idle.
+**Terminal magnitude:** `|X(f_k)|² = v1_k² + v2_k² - C_k·v1_k·v2_k`, computed by `magnitude_compute` for all **9 axis/bin pairs** using the single shared multiplier (four multiplies per pair, including the `C·v1·v2` cross term), scheduled entirely into the idle window after the 18-cycle Goertzel burst.
 
 ---
 
@@ -128,9 +131,9 @@ The ASIC interfaces directly with an off-chip **STMicroelectronics IIS3DWB** dig
 
 GlobalFoundries 180 nm bulk CMOS has no inherent radiation tolerance, so hardening is applied at the RTL and microarchitecture level:
 
-**Triple Modular Redundancy (TMR) with self-scrubbing.** Every control FSM (`goertzel_core`, `magnitude_compute`, `axis_sequencer`) and every configuration register bank (`tmr_reg_bank`) keeps three physical copies of its state, continuously combined by a bitwise 2-of-3 majority voter (`vote2`/`vote3`/`vote32` functions). Critically, all three copies are re-written from the *voted* value every cycle rather than only from each other — so a single-bit upset in one copy is corrected on the very next clock edge instead of being allowed to persist or diverge.
+**Triple Modular Redundancy (TMR) with self-scrubbing.** Every control FSM (`goertzel_core` with a 5-bit `vote5`, `magnitude_compute` with a 4-bit `vote4`, `axis_sequencer`'s polling FSM with a 3-bit `vote3`) and the configuration register bank (`tmr_reg_bank`) keeps three physical copies of its state, continuously combined by a bitwise 2-of-3 majority voter. Critically, all three copies are re-written from the *voted* value every cycle rather than only from each other — so a single-bit upset in one copy is corrected on the very next clock edge instead of being allowed to persist or diverge. Under ITAG the `axis_sequencer` no longer carries a triplicated axis index (there is no axis rotation), which removes that state entirely as an SEU target.
 
-**Periodic background scrubbing.** `axis_sequencer`'s axis index and `tmr_reg_bank`'s configuration fields are additionally rewritten from their voted value on a fixed period (every 1024 cycles) even with no incoming write, bounding the maximum time a latent bit-flip can survive between accesses.
+**Periodic background scrubbing.** `tmr_reg_bank`'s configuration fields are rewritten from their voted value on a fixed period (every 1024 cycles) even with no incoming write, bounding the maximum time a latent bit-flip can survive between accesses.
 
 **SEU-safe default states.** Every triplicated FSM's next-state logic defaults to a safe idle/reset state (`S_IDLE`) for any unreachable/illegal state encoding, so an upset that produces an invalid code recovers automatically within one clock rather than hanging.
 
@@ -146,18 +149,21 @@ GlobalFoundries 180 nm bulk CMOS has no inherent radiation tolerance, so hardeni
 
 **Constraint:** the IIS3DWB delivers X, Y, and Z samples simultaneously every 37.5 µs, but the competition's 600×600 µm die budget does not allow three parallel Goertzel pipelines.
 
-| Option | Approach | Area Impact | Per-axis Detection Latency | Selected |
+| Option | Approach | Area Impact | Inter-axis Detection Latency | Selected |
 |--------|----------|--------------|------------------------------|----------|
-| 1 | Three parallel Goertzel cores (one per axis) | Exceeds die budget | 6.4 ms (all axes in parallel) | ❌ |
-| 2 | Buffer all three axes, process sequentially from a sample buffer | +thousands of flip-flops, violates the SRAM-free RHBD strategy | 19.2 ms | ❌ |
-| **3** | **Single shared-multiplier core, sequential axis rotation, reduced block size** | **0 additional flip-flops** | **6.4 ms per axis / 19.2 ms full 3-axis cycle** | ✅ |
+| 1 | Three parallel Goertzel cores (one per axis) | Exceeds die budget | 0 (all axes in parallel) | ❌ |
+| 2 | Buffer all three axes, process sequentially from a sample buffer | +thousands of flip-flops, violates the SRAM-free RHBD strategy | up to 19.2 ms | ❌ |
+| 3 | Single shared-multiplier core, **sequential axis rotation**, reduced block size (legacy design) | +0 flip-flops | up to 38.4 ms | ❌ |
+| **4** | **Single shared-multiplier core, Interleaved Tri-Axis (ITAG) — all 3 axes every sample** | **≈ +645 flip-flops** | **0 (all axes every block)** | ✅ |
 
-The selected design (`axis_sequencer` rotating X→Y→Z, `fault_flagger`'s `BLOCK_SIZE = 171`) accepts two explicit, documented limitations in exchange for meeting the area budget with zero added state:
+The design uses the **Interleaved Tri-Axis Goertzel (ITAG)** core (Option 4). The single hardware multiplier is time-multiplexed across all 9 (axis × bin) resonators plus the magnitude engine, so the sensor's simultaneously-delivered X/Y/Z burst is *fully* analyzed within every 375-cycle sample period (18 active cycles, ~95% idle) instead of discarding two axes per block.
 
-- **Sequential axis processing.** Only one axis is actively accumulating Goertzel state at any given time; samples from the other two axes are not analyzed during that window. Simultaneous faults on multiple axes within the same ~19.2 ms cycle are not guaranteed to be caught in the same window they occur.
-- **Coarser frequency resolution.** Reducing the block from 512 to 171 samples widens each frequency bin from ~52 Hz to ~157 Hz. This is acceptable because the target fault signatures (bearing wear, pump imbalance, gear micro-fracture tones) are narrowband and well separated in the 1–12 kHz mechanical bandwidth of interest.
+This supersedes the earlier axis-sequential design (Option 3), which processed one axis per 512-sample block and rotated X→Y→Z across blocks. That approach used zero extra flip-flops but had two documented drawbacks ITAG eliminates:
 
-This tradeoff is appropriate for the competition's area-constrained edge-processing use case, where mechanical degradation develops over hours-to-days and a 19.2 ms full-cycle latency is far faster than needed. A mission design with a larger area budget would revisit Option 1 to guarantee simultaneous multi-axis coverage.
+- **Sequential axis processing / inter-axis latency.** Under axis rotation, only one axis accumulated Goertzel state at a time, so a given axis was observed once every three blocks — up to ~38.4 ms worst-case inter-axis latency, and a simultaneous multi-axis fault could be smeared across blocks and missed. ITAG evaluates all three axes against the threshold **every** block: **zero inter-axis latency** and cycle-accurate per-axis attribution.
+- **Frequency resolution.** The legacy design shortened the block (512→171 samples) to keep the 3-axis cycle time bounded, coarsening each bin from ~52 Hz to ~157 Hz. ITAG keeps the full **512-sample** block (and its ~52 Hz resolution) because it no longer needs a shorter block to bound rotation time.
+
+The cost is ≈ 645 additional flip-flops (18 Goertzel state registers instead of 6, the 18-value magnitude snapshot, three sample-input registers, and slightly wider FSM state), roughly 1600 µm² at 180 nm — negligible against the single shared multiplier that dominates datapath area, and far below the sample-buffering alternative (Option 2). Full analysis is in [`docs/ITAG_ARCHITECTURE_ANALYSIS.md`](docs/ITAG_ARCHITECTURE_ANALYSIS.md).
 
 ---
 
@@ -169,10 +175,10 @@ Three testbench suites plus one full-chip integration testbench currently pass i
 |---|---|---|
 | `testing/spi_master_test/tb_spi_master_full.v` | `spi_master` — boot sequence, DRDY sync, SPI Mode 3 protocol, 48-bit burst read | 71/71 checks passing |
 | `testing/apb_test/tb_spi_apb_interface.v` | `spi_apb_interface` + `apb` — Option A/B sample delivery and forwarding | Passing |
-| `testing/goertzel_core/tb_goertzel_core.v` | `goertzel_core` — 3-bin recursion accuracy, Q8.15 arithmetic, `sample_done` timing (500-sample run) | Passing |
-| `testing/top_test/tb_top.v` | `top` — full sensor-to-`fault_flag_out` chain, using the `iis3dwb_model.v` bus-functional sensor model | 7/7 checks passing (normal operation + per-axis fault injection on X, Y, and Z with correct axis attribution) |
+| `testing/goertzel_core/tb_goertzel_core.v` | `goertzel_core` — ITAG tri-axis independence/routing, Q8.15 arithmetic, `sample_done` timing (500-sample run, X/Y/Z at 1.0/0.5/0.25 amplitude) | 7/7 checks passing |
+| `testing/top_test/tb_top.v` | `top` — full sensor-to-`fault_flag_out` chain, using the `iis3dwb_model.v` bus-functional sensor model | 14/14 checks passing |
 
-The top-level testbench is the only test that exercises axis attribution end-to-end; it caught and helped fix a real silent bug in the shared-multiplier capture timing in `magnitude_compute.v` (previously `mag_out` was always zero — see `CHANGELOG.md` for the full root-cause writeup) before this pass. Known verification gaps, tracked as future work rather than hidden: no testbench currently injects **simultaneous** multi-axis faults (a realistic spacecraft scenario the sequential architecture cannot resolve within a single rotation), and gate-level/post-synthesis simulation has not yet been run.
+The top-level testbench exercises axis attribution end-to-end and verifies the ITAG structural invariants: exactly **9 magnitude pulses per block** (3 axes × 3 bins) with tag order `0,0,0,1,1,1,2,2,2 / 0,1,2,…`, a **no-magnitude-compute-during-Goertzel-active** assertion (proving the single shared multiplier is never double-requested), and a `sample_done : block_clear` = **512 : 1** cadence check. It includes per-axis fault injection on X, Y and Z (correct axis attribution) **and a simultaneous 3-axis excitation** (Case 5) — the realistic spacecraft scenario the legacy axis-sequential architecture could not resolve within a single block — verifying concurrent detection plus priority attribution. The goertzel unit test independently confirms exact cross-axis amplitude² scaling (16:4:1) on the cleanly-captured bins. Remaining verification gap, tracked as future work: gate-level/post-synthesis simulation has not yet been run.
 
 ---
 
@@ -187,9 +193,9 @@ The top-level testbench is the only test that exercises axis attribution end-to-
 | Core Supply Voltage | 1.8 V |
 | Target Core Clock | 5–10 MHz |
 | Sensor ODR | 26.667 kHz (IIS3DWB, fixed by boot configuration) |
-| Block Size | 171 samples/axis |
-| Per-axis Detection Latency | ~6.4 ms |
-| Full 3-axis Cycle | ~19.2 ms |
+| Block Size | 512 samples (all three axes per block) |
+| Inter-axis Detection Latency | 0 (X/Y/Z evaluated every block) |
+| Per-block Latency | ~19.2 ms (512 samples @ 26.667 kHz) |
 
 ---
 
@@ -206,6 +212,7 @@ The top-level testbench is the only test that exercises axis attribution end-to-
 │   ├── ff_2_sync.v
 │   ├── goertzel_core.v
 │   ├── magnitude_compute.v
+│   ├── multiplier.v
 │   ├── spi_apb_interface.v
 │   ├── spi_master.v
 │   ├── tmr_reg_bank.v
@@ -233,7 +240,7 @@ All testbenches use [Icarus Verilog](http://iverilog.icarus.com/) (`iverilog`/`v
 ```bash
 make sim_spi        # spi_master standalone (IIS3DWB boot + burst read)
 make sim_apb        # spi_apb_interface + apb (Option A/B sample delivery)
-make sim_goertzel   # goertzel_core standalone (3-bin recursion + Q8.15 accuracy)
+make sim_goertzel   # goertzel_core standalone (ITAG 3-bin x 3-axis recursion + Q8.15 accuracy)
 make sim_top        # full chain: sensor SPI in -> fault_flag_out + axis attribution
 make sim_all        # run all four suites
 make clean          # remove generated sim binaries and VCD dumps
@@ -254,11 +261,12 @@ SSCS Chipathon 2026, Track B (Sensor Circuits)
 
 - [x] System architecture implemented in RTL (`top.v` integration complete)
 - [x] IIS3DWB SPI boot sequence and burst-read protocol implemented and verified
-- [x] 3-bin time-multiplexed Goertzel core with shared multiplier implemented and verified
+- [x] Interleaved Tri-Axis (ITAG) 3-bin Goertzel core with a single shared multiplier implemented and verified
+- [x] Simultaneous tri-axis processing (all X/Y/Z evaluated every block, zero inter-axis latency)
 - [x] Axis sequencing, magnitude computation, and fault flagging implemented and verified
 - [x] TMR + scrubbing applied to control FSMs and configuration registers
 - [x] Full-chain functional simulation passing (per-module + top-level integration)
-- [ ] Simultaneous multi-axis fault injection testing
+- [x] Simultaneous multi-axis fault injection testing (`tb_top.v` Case 5)
 - [ ] Gate-level / post-synthesis simulation
 - [ ] LibreLane synthesis and timing closure for the current RTL (`librelane/runs/` contains logs from earlier architecture iterations only)
 - [ ] Physical layout, DRC/LVS sign-off, and physical-level RHBD (guard rings, substrate tapping, routing density constraints)

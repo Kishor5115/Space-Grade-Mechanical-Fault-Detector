@@ -17,6 +17,137 @@ mattered as much as it did.
 
 ---
 
+# ITAG Refactor — Interleaved Tri-Axis Goertzel (2026-07-15)
+
+This is a separate architectural pass, layered on top of the verification
+pass documented further below. It replaces the **axis-sequential** design
+(one axis processed per 512-sample block, rotating X→Y→Z across blocks)
+with an **Interleaved Tri-Axis Goertzel (ITAG)** core that processes all
+three axes within every sample period. The full pre-implementation
+analysis (timing budget, area, power, latency, RHBD, backward
+compatibility) lives in `docs/ITAG_ARCHITECTURE_ANALYSIS.md`.
+
+**Motivation.** The legacy design observed a given axis only once every 3
+blocks, so a simultaneous multi-axis fault could be smeared across blocks
+and take up to ~38.4 ms (worst axis) to surface. ITAG evaluates X, Y and
+Z against the threshold *every* block → **zero inter-axis latency** and
+cycle-accurate per-axis attribution, closing the simultaneous-multi-axis
+gap the README previously listed as an unresolved limitation.
+
+## Added (ITAG)
+
+### `rtl/multiplier.v` — the single, explicit shared multiplier
+The chip's one hardware multiply is now a singly-instantiated module
+containing the **only** `*` operator in the synthesizable datapath,
+instanced exactly once inside `magnitude_compute.v`. This turns Design
+Invariant #2 ("single shared multiplier — no additional multipliers")
+into a *structural, auditable* property (grep/instance-count provable).
+
+- **This also fixed a real invariant violation.** The previous
+  `magnitude_compute.v` computed the final `C·v1·v2` cross term with a
+  *second* inline `*` (`cv1v2_full = cv1_r * sv2`), which synthesis would
+  infer as a second hardware multiplier. That term is now routed through
+  the shared unit in a dedicated `M_CV1V2` state.
+- **Pure combinational, format-agnostic:** returns the full `2*DATA_W`
+  product unshifted; each consumer applies its own Q8.15 shift/saturate.
+  No state → no TMR needed (datapath, Rule C). Operand isolation is
+  enforced by the caller, so it stays frozen in the >95% idle window.
+
+## Changed (ITAG)
+
+### `rtl/goertzel_core.v` — complete ITAG rewrite
+- **State matrix 6 → 18 registers:** `v1/v2` for 3 bins × **3 axes**
+  (`v1x_0..v2z_2`), all exposed to `magnitude_compute`.
+- **FSM 7 → 19 states (3-bit → 5-bit):** `S_IDLE` + `XB0_MUL..ZB2_UPD`,
+  interleaving X→Y→Z; 18 active cycles/sample (6 per axis), still ~95%
+  idle at 375 cycles/sample. TMR voter widened `vote3 → vote5`;
+  `default → S_IDLE` still recovers all 13 illegal 5-bit codes in one
+  clock.
+- **Ports:** added `y_n`, `z_n` (Q1.15); all three registered on
+  `data_ready` (`x/y/z_q15_r`). Coefficients (`c0/c1/c2`) are shared
+  across axes (same three fault frequencies monitored on every axis).
+- `sample_done` now pulses at `ZB2_UPD` (after all three axes) — exactly
+  once per sample, preserving the `fault_flagger` block-counter contract.
+- `block_clear` zeroes all 18 state registers as a priority override.
+
+### `rtl/axis_sequencer.v` — simplified (net RHBD-positive)
+Removed the entire axis-rotation apparatus: the triplicated `current_axis`
+index (`axis_a/b/c` + `vote2`), its 1024-cycle scrub counter, the
+`block_clear_pulse` input, and the `xn_comb` axis mux. It now presents all
+three burst slices simultaneously as `core_x_n`/`core_y_n`/`core_z_n`. The
+polling FSM (`ps_a/b/c`) remains triplicated. Removing the axis index also
+removes that SEU attack surface.
+
+### `rtl/magnitude_compute.v` — 3-axis expansion + single-multiplier consolidation
+- Now snapshots **18** `v1/v2` values (`sv1[0:2][0:2]`, `sv2[0:2][0:2]`)
+  on `block_clear_in`; the coefficient snapshot stays a 3-entry `sc[0:2]`
+  (shared across axes) to avoid +144 needless flops.
+- Magnitude FSM iterates **9 (axis,bin) pairs** (was 3 bins) via
+  `active_axis`/`active_bin`, emitting **9** `mag_out` pulses per block;
+  `mag_axis_idx` is now driven *structurally* from `active_axis` (no
+  external `axis_in` port — that input was removed).
+- Added the `M_CV1V2` state so the cross term rides the shared multiplier;
+  FSM widened to 4-bit (`vote3 → vote4`). This also **fixes a latent
+  one-bin-stale bug**: previously `mag_out` was registered on the same
+  edge `cv1_r` was updated, so the cross term used the *previous* bin's
+  `C·v1`. It was masked because the old `tb_top.v` only checked threshold
+  crossings, not exact magnitudes.
+
+### `rtl/top.v` — rewiring only
+Removed `current_axis`/`axis_in`; added `core_y_n`/`core_z_n` and `y_n`/
+`z_n`; connected all 18 `v` nets between `goertzel_core` and
+`magnitude_compute`. `fault_flagger` remains instantiated at
+`BLOCK_SIZE(512)`; `tmr_reg_bank`, `spi_apb_interface`, `apb`,
+`spi_master` are **unchanged**.
+
+### `testing/goertzel_core/tb_goertzel_core.v` — ITAG unit test
+Drives the same two-tone shape on all three axes at amplitudes 1.0/0.5/
+0.25 to prove the interleaved datapaths are independent and correctly
+routed. Bins 1 and 2 scale as amplitude² **exactly** (16:4:1) across
+axes — the definitive linearity/routing proof. (Cross-axis ordering is
+asserted on bin1, not bin0: at N=500 the 1 kHz bin0 lands at an 18.75-
+cycle spectral-leakage null where the high-Q estimate is dominated by
+Q8.15 truncation residue and is not an amplitude proxy.)
+
+### `testing/top_test/tb_top.v` — ITAG full-chain test
+Replaced the axis-rotation drain (`wait_for_axis_block`, which used the
+now-deleted `current_axis`) with a block-count drain, and added ITAG
+monitors: exactly **9 mag pulses per block**, `mag_axis_idx`/`mag_bin_idx`
+tag order `0,0,0,1,1,1,2,2,2 / 0,1,2,…`, a **no-mag-compute-during-
+goertzel-active** assertion (single-multiplier / no-contention), and a
+`sample_done : block_clear` = **512 : 1** cadence check. Added **Case 5**,
+a *simultaneous* 3-axis excitation that the legacy design could not
+resolve, verifying concurrent detection + priority attribution. Made the
+injected tone block-coherent (`Fs·20/512 ≈ 1041.7 Hz`) and tuned `CFG_C0`
+to it. Quantitative cross-axis magnitude scaling is validated in the
+goertzel unit test (leakage-free bin1), not re-asserted through the SPI
+path where high-Q bin0 magnitude is acutely quantization-sensitive.
+
+### `testing/top_test/Makefile` — added `rtl/multiplier.v` to the source list.
+
+## Verification summary (ITAG)
+
+| Suite | Command | Result |
+|---|---|---|
+| `spi_master` | `make sim_spi` | **71 / 71 PASS** |
+| `spi_apb_interface` | `make sim_apb` | **8 / 8 PASS** |
+| `goertzel_core` (ITAG) | `make sim_goertzel` | **7 / 7 PASS** |
+| Full chip (ITAG) | `make sim_top` | **14 / 14 PASS** |
+
+## Area / RHBD delta (ITAG)
+
+Net ≈ **+645 flip-flops** (goertzel +342: 12 v-regs, 2 sample regs, +2
+state bits ×3; magnitude +290: 12 snapshot regs, axis counter; sequencer
++13 net after removing axis TMR/scrub). ≈ 1600 µm² at 180 nm — negligible
+against the single shared multiplier and the 600×600 µm budget, and far
+below the sample-buffering alternative. All ten Design Invariants hold:
+Q8.15-only, single multiplier (now structural), TMR on all three FSMs
+(`vote5`/`vote3`/`vote4`), `default → IDLE`, `block_clear` priority,
+once-per-sample `sample_done`, `default_nettype none`, explicit sign
+extension, 2-guard-bit saturating sums, operand isolation.
+
+---
+
 ## Added
 
 ### `rtl/spi_master.v` — IIS3DWB boot config-write FSM

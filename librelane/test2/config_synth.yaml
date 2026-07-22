@@ -1,6 +1,6 @@
 PDK: gf180mcuD
 DESIGN_NAME: top
 VERILOG_FILES:
-  - dir::rtl/*.v
+  - dir::../../rtl/*.v
 CLOCK_PORT: clk   # confirm from rtl/top.v
 CLOCK_PERIOD: 20                       # ns

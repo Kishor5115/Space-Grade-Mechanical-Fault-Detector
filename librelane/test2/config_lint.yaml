@@ -1,0 +1,4 @@
+PDK: gf180mcuD
+DESIGN_NAME: top
+VERILOG_FILES:
+  - dir::rtl/*.v

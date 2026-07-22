@@ -1,0 +1,9 @@
+PDK: gf180mcuD
+DESIGN_NAME: top
+VERILOG_FILES:
+  - dir::rtl/*.v
+CLOCK_PORT: clk   # same as config_synth.yaml
+CLOCK_PERIOD: 20                       # ns
+FALLBACK_SDC: dir::constraints.sdc     # overrides LibreLane's default base.sdc
+FP_CORE_UTIL: 40                       # starting point; raise if area allows
+RUN_LINTER: false                      # already checked via config_lint.yaml

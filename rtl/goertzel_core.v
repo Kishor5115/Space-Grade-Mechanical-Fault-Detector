@@ -25,7 +25,7 @@
 //   all three axes every sample, giving ZERO inter-axis latency and
 //   cycle-accurate per-axis fault attribution, at the cost of 12 extra 24-bit
 //   state flops (v1/v2 x 3 bins x 2 extra axes). See
-//   docs/ITAG_ARCHITECTURE_ANALYSIS.md for the full timing/area/power/RHBD
+//   docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md for the full timing/area/power/RHBD
 //   analysis.
 //
 //----------------------------------------------------------------------------

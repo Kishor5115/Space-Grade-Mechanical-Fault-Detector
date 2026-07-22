@@ -7,6 +7,7 @@
 
 ## Table of Contents
 
+- [Reviewer Documentation](#reviewer-documentation)
 - [Overview](#overview)
 - [System Architecture](#system-architecture)
 - [Signal Chain Walkthrough](#signal-chain-walkthrough)
@@ -20,6 +21,25 @@
 - [Building and Running the Testbenches](#building-and-running-the-testbenches)
 - [Team](#team)
 - [Project Status](#project-status)
+
+---
+
+## Reviewer Documentation
+
+The following documents directly address each point of reviewer feedback. Start here for a structured evaluation of the project.
+
+| Reviewer Concern | Document |
+|---|---|
+| 📋 **Project Tracker** — progress evaluation for the circuit | [`docs/project/PROJECT_TRACKER.md`](docs/project/PROJECT_TRACKER.md) |
+| 🏗️ **System Architecture** — detailed block diagram, signal chain, module hierarchy | [`docs/specs/SYSTEM_ARCHITECTURE.md`](docs/specs/SYSTEM_ARCHITECTURE.md) |
+| ✅ **Verification Methodology** — what each simulation tests, expected behavior, how results confirm correctness | [`docs/verification/VERIFICATION_METHODOLOGY.md`](docs/verification/VERIFICATION_METHODOLOGY.md) |
+| 🧪 **Test Scenarios** — SPI input format, per-case stimulus/output tables, all 100 check assertions | [`docs/verification/TEST_SCENARIOS.md`](docs/verification/TEST_SCENARIOS.md) |
+| 🔌 **I/O Specification** — every pin, SPI protocol, output format, register map | [`docs/specs/IO_SPECIFICATION.md`](docs/specs/IO_SPECIFICATION.md) |
+| 📡 **SPI Implementation** — team-developed origin, IIS3DWB compliance, references | [`docs/specs/SPI_IMPLEMENTATION.md`](docs/specs/SPI_IMPLEMENTATION.md) |
+| ⚙️ **Goertzel Core Explanation** — ITAG architecture, FSM, fixed-point math, radiation hardening, simulation evidence | [`docs/specs/GOERTZEL_CORE_EXPLANATION.md`](docs/specs/GOERTZEL_CORE_EXPLANATION.md) |
+| 🔬 **ITAG Architecture Analysis** — pre-implementation timing, area, power, RHBD, tradeoff analysis | [`docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md`](docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md) |
+
+**Current verification result: 100/100 self-checking simulation assertions PASS** across all four testbench suites.
 
 ---
 
@@ -74,7 +94,9 @@ The ASIC interfaces directly with an off-chip **STMicroelectronics IIS3DWB** dig
 
 `top.v` is the chip-level integration module. Its **only external pins** are the sensor SPI bus (`c_miso`/`c_csn`/`c_sclk`/`c_mosi`), the sensor's `sensor_drdy` interrupt, a `tmr_forward_en` mode-select input, and the single `fault_flag_out` alarm line — there is no separate command-SPI or host-programming bus inside the current core boundary. Runtime coefficients (`cfg_c0/c1/c2`, `cfg_threshold`) and control (`cfg_start/cfg_stop/cfg_fault_clear`) live in `tmr_reg_bank`, driven over the *internal* APB bus. In the current architecture that internal bus is exercised from testbenches via direct APB transactions; a host-facing SPI-to-APB (or other bus) bridge sitting outside `top.v`'s boundary is the natural next integration step and is called out explicitly below as future work rather than claimed as already implemented.
 
-![Top-level module diagram](docs/top_modules.svg)
+> 📐 For a fully detailed signal-level block diagram with per-module port descriptions, see [`docs/specs/SYSTEM_ARCHITECTURE.md`](docs/specs/SYSTEM_ARCHITECTURE.md).
+
+![Top-level module diagram](docs/images/top_modules.svg)
 
 ---
 
@@ -117,7 +139,7 @@ The ASIC interfaces directly with an off-chip **STMicroelectronics IIS3DWB** dig
 | Goertzel coefficients `C0/C1/C2` | 24-bit | Q8.15 signed fixed-point, one per frequency bin, stored in `tmr_reg_bank` |
 | State registers `v1_k`, `v2_k` (k = 0..2, per axis X/Y/Z) | 24-bit | Q8.15 signed fixed-point, saturating add/sub — 18 registers total (3 bins × 3 axes) |
 | Shared multiplier product | 48-bit internal → 24-bit | Full product right-shifted by 15 (`>>> 15`), then saturated back to Q8.15 |
-| Magnitude `|X(f_k)|²` | 32-bit | Unsigned integer, clamped to zero on underflow |
+| Magnitude `\|X(f_k)\|²` | 32-bit | Unsigned integer, clamped to zero on underflow |
 | Threshold `cfg_threshold` | 32-bit | Unsigned integer, host/testbench configurable |
 | Block size | 512 samples | Fixed parameter in `top.v`'s `fault_flagger` instance (`BLOCK_SIZE`) |
 
@@ -163,22 +185,25 @@ This supersedes the earlier axis-sequential design (Option 3), which processed o
 - **Sequential axis processing / inter-axis latency.** Under axis rotation, only one axis accumulated Goertzel state at a time, so a given axis was observed once every three blocks — up to ~38.4 ms worst-case inter-axis latency, and a simultaneous multi-axis fault could be smeared across blocks and missed. ITAG evaluates all three axes against the threshold **every** block: **zero inter-axis latency** and cycle-accurate per-axis attribution.
 - **Frequency resolution.** The legacy design shortened the block (512→171 samples) to keep the 3-axis cycle time bounded, coarsening each bin from ~52 Hz to ~157 Hz. ITAG keeps the full **512-sample** block (and its ~52 Hz resolution) because it no longer needs a shorter block to bound rotation time.
 
-The cost is ≈ 645 additional flip-flops (18 Goertzel state registers instead of 6, the 18-value magnitude snapshot, three sample-input registers, and slightly wider FSM state), roughly 1600 µm² at 180 nm — negligible against the single shared multiplier that dominates datapath area, and far below the sample-buffering alternative (Option 2). Full analysis is in [`docs/ITAG_ARCHITECTURE_ANALYSIS.md`](docs/ITAG_ARCHITECTURE_ANALYSIS.md).
+The cost is ≈ 645 additional flip-flops (18 Goertzel state registers instead of 6, the 18-value magnitude snapshot, three sample-input registers, and slightly wider FSM state), roughly 1600 µm² at 180 nm — negligible against the single shared multiplier that dominates datapath area, and far below the sample-buffering alternative (Option 2). Full analysis is in [`docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md`](docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md).
 
 ---
 
 ## Verification Status
 
-Three testbench suites plus one full-chip integration testbench currently pass in simulation (Icarus Verilog):
+Four testbench suites pass in simulation (Icarus Verilog), covering 100/100 self-checking assertions:
 
-| Testbench | Target | Result |
+| Testbench | Target | Checks |
 |---|---|---|
-| `testing/spi_master_test/tb_spi_master_full.v` | `spi_master` — boot sequence, DRDY sync, SPI Mode 3 protocol, 48-bit burst read | 71/71 checks passing |
-| `testing/apb_test/tb_spi_apb_interface.v` | `spi_apb_interface` + `apb` — Option A/B sample delivery and forwarding | Passing |
-| `testing/goertzel_core/tb_goertzel_core.v` | `goertzel_core` — ITAG tri-axis independence/routing, Q8.15 arithmetic, `sample_done` timing (500-sample run, X/Y/Z at 1.0/0.5/0.25 amplitude) | 7/7 checks passing |
-| `testing/top_test/tb_top.v` | `top` — full sensor-to-`fault_flag_out` chain, using the `iis3dwb_model.v` bus-functional sensor model | 14/14 checks passing |
+| `testing/spi_master_test/tb_spi_master_full.v` | `spi_master` — boot sequence, DRDY sync, SPI Mode 3 protocol, 48-bit burst read | **71/71** ✅ |
+| `testing/apb_test/tb_spi_apb_interface.v` | `spi_apb_interface` + `apb` — Option A/B sample delivery and forwarding | **8/8** ✅ |
+| `testing/goertzel_core/tb_goertzel_core.v` | `goertzel_core` — ITAG tri-axis independence/routing, Q8.15 arithmetic, `sample_done` timing | **7/7** ✅ |
+| `testing/top_test/tb_top.v` | `top` — full sensor-to-`fault_flag_out` chain with `iis3dwb_model.v` bus-functional model | **14/14** ✅ |
+| **TOTAL** | | **100/100** ✅ |
 
-The top-level testbench exercises axis attribution end-to-end and verifies the ITAG structural invariants: exactly **9 magnitude pulses per block** (3 axes × 3 bins) with tag order `0,0,0,1,1,1,2,2,2 / 0,1,2,…`, a **no-magnitude-compute-during-Goertzel-active** assertion (proving the single shared multiplier is never double-requested), and a `sample_done : block_clear` = **512 : 1** cadence check. It includes per-axis fault injection on X, Y and Z (correct axis attribution) **and a simultaneous 3-axis excitation** (Case 5) — the realistic spacecraft scenario the legacy axis-sequential architecture could not resolve within a single block — verifying concurrent detection plus priority attribution. The goertzel unit test independently confirms exact cross-axis amplitude² scaling (16:4:1) on the cleanly-captured bins. Remaining verification gap, tracked as future work: gate-level/post-synthesis simulation has not yet been run.
+The top-level testbench exercises axis attribution end-to-end and verifies the ITAG structural invariants: exactly **9 magnitude pulses per block** (3 axes × 3 bins) with correct tag ordering, a **no-magnitude-compute-during-Goertzel-active** assertion (proving the single shared multiplier is never double-requested), and a `sample_done : block_clear` = **512 : 1** cadence check. It includes per-axis fault injection on X, Y and Z **and a simultaneous 3-axis excitation** (Case 5) — the realistic spacecraft scenario the legacy axis-sequential architecture could not resolve within a single block.
+
+> 📖 For detailed descriptions of each test case, stimulus format, and how results confirm correct operation, see [`docs/verification/VERIFICATION_METHODOLOGY.md`](docs/verification/VERIFICATION_METHODOLOGY.md) and [`docs/verification/TEST_SCENARIOS.md`](docs/verification/TEST_SCENARIOS.md).
 
 ---
 
@@ -203,32 +228,57 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 
 ```
 .
-├── docs/                # Architecture notes, verification reports, presentation deck
-├── rtl/                 # Synthesizable Verilog HDL source (see Module Reference)
-│   ├── apb.v
-│   ├── axis_sequencer.v
-│   ├── clk_divider_5.v
-│   ├── fault_flagger.v
-│   ├── ff_2_sync.v
-│   ├── goertzel_core.v
-│   ├── magnitude_compute.v
-│   ├── multiplier.v
-│   ├── spi_apb_interface.v
-│   ├── spi_master.v
-│   ├── tmr_reg_bank.v
-│   └── top.v
-├── testing/             # Per-module Icarus Verilog testbenches + generated waveforms
-│   ├── spi_master_test/
-│   ├── apb_test/
-│   ├── goertzel_core/
-│   └── top_test/
-├── tb/                  # (reserved for additional bus-functional models)
-├── sim/                 # (reserved for simulation configs)
-├── verification/        # (reserved for golden fixed-point reference models)
-├── librelane/runs/      # Prior LibreLane synthesis/PnR run logs and reports
-├── openlane/            # (reserved for physical design configuration)
-├── Makefile             # sim_spi / sim_apb / sim_goertzel / sim_top / sim_all / clean
-└── CHANGELOG.md          # Detailed bug-fix and verification history
+├── docs/
+│   ├── architecture/          # Design analysis and module-level documentation
+│   │   ├── ITAG_ARCHITECTURE_ANALYSIS.md   # Timing, area, power, RHBD tradeoff analysis
+│   │   ├── proposal_outline.md              # Original proposal outline
+│   │   └── top.md                           # Auto-generated top module port docs
+│   ├── images/                # All diagrams and visual assets
+│   │   ├── arch.png                         # High-level system block diagram
+│   │   ├── system_architecture.png          # Detailed architecture diagram
+│   │   ├── top_modules.png                  # Module hierarchy diagram (PNG)
+│   │   ├── top_modules.svg                  # Module hierarchy diagram (SVG)
+│   │   └── top.svg                          # Top module schematic
+│   ├── project/               # Project management and proposal documents
+│   │   ├── PROJECT_TRACKER.md               # ← Start here: reviewer progress tracker
+│   │   ├── Project_Proposal.pdf             # Original contest proposal
+│   │   ├── presentation_deck.pptx           # Presentation slides
+│   │   └── vibration_sensor.pdf             # IIS3DWB sensor reference datasheet
+│   ├── specs/                 # Technical specifications (reviewer focus area)
+│   │   ├── SYSTEM_ARCHITECTURE.md           # Full block diagram + signal chain
+│   │   ├── IO_SPECIFICATION.md              # All pins, SPI format, register map
+│   │   ├── SPI_IMPLEMENTATION.md            # SPI origin, design decisions, references
+│   │   └── GOERTZEL_CORE_EXPLANATION.md     # ITAG core: math, FSM, RHBD, simulation proof
+│   └── verification/          # Verification plans and test documentation
+│       ├── VERIFICATION_METHODOLOGY.md      # What each simulation tests and how
+│       └── TEST_SCENARIOS.md                # SPI stimulus → expected output tables
+│
+├── rtl/                       # Synthesizable Verilog HDL source
+│   ├── top.v                  # Chip-level integration (external pins)
+│   ├── spi_apb_interface.v    # SPI front-end wrapper + Option A/B sample delivery
+│   ├── spi_master.v           # IIS3DWB SPI Mode 3 master (boot + burst read)
+│   ├── apb.v                  # Minimal APB master FSM
+│   ├── axis_sequencer.v       # SPI sample demux → tri-axis simultaneous presentation
+│   ├── goertzel_core.v        # ITAG 3-bin × 3-axis Goertzel IIR engine (TMR FSM)
+│   ├── multiplier.v           # Single chip-wide hardware multiplier
+│   ├── magnitude_compute.v    # Magnitude engine (owns multiplier, 9 pulses/block)
+│   ├── fault_flagger.v        # 512-sample block counter + threshold comparator
+│   ├── tmr_reg_bank.v         # APB slave: triplicated + scrubbed config/status regs
+│   ├── ff_2_sync.v            # 2-stage D-FF synchronizer (CDC)
+│   └── clk_divider_5.v        # Divide-by-5 SPI clock generator
+│
+├── testing/                   # Self-checking Icarus Verilog testbenches
+│   ├── spi_master_test/       # tb_spi_master_full.v (71/71 checks), iis3dwb_model.v
+│   ├── apb_test/              # tb_spi_apb_interface.v (8/8 checks)
+│   ├── goertzel_core/         # tb_goertzel_core.v (7/7 checks)
+│   └── top_test/              # tb_top.v (14/14 checks) — full chip integration
+│
+├── tb/                        # (reserved for additional bus-functional models)
+├── sim/                       # (reserved for simulation configs)
+├── verification/              # (reserved for golden fixed-point reference models)
+├── librelane/runs/            # Prior LibreLane synthesis/PnR run logs
+├── Makefile                   # sim_spi / sim_apb / sim_goertzel / sim_top / sim_all
+└── CHANGELOG.md               # Detailed bug-fix and verification history
 ```
 
 ---
@@ -238,11 +288,11 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 All testbenches use [Icarus Verilog](http://iverilog.icarus.com/) (`iverilog`/`vvp`). From the repository root:
 
 ```bash
-make sim_spi        # spi_master standalone (IIS3DWB boot + burst read)
-make sim_apb        # spi_apb_interface + apb (Option A/B sample delivery)
-make sim_goertzel   # goertzel_core standalone (ITAG 3-bin x 3-axis recursion + Q8.15 accuracy)
-make sim_top        # full chain: sensor SPI in -> fault_flag_out + axis attribution
-make sim_all        # run all four suites
+make sim_spi        # spi_master standalone (IIS3DWB boot + burst read)       71/71
+make sim_apb        # spi_apb_interface + apb (Option A/B sample delivery)      8/8
+make sim_goertzel   # goertzel_core standalone (ITAG 3-bin x 3-axis + Q8.15)   7/7
+make sim_top        # full chain: sensor SPI in -> fault_flag_out + attribution 14/14
+make sim_all        # run all four suites                                      100/100
 make clean          # remove generated sim binaries and VCD dumps
 ```
 
@@ -265,8 +315,9 @@ SSCS Chipathon 2026, Track B (Sensor Circuits)
 - [x] Simultaneous tri-axis processing (all X/Y/Z evaluated every block, zero inter-axis latency)
 - [x] Axis sequencing, magnitude computation, and fault flagging implemented and verified
 - [x] TMR + scrubbing applied to control FSMs and configuration registers
-- [x] Full-chain functional simulation passing (per-module + top-level integration)
+- [x] Full-chain functional simulation passing — **100/100 checks across 4 testbench suites**
 - [x] Simultaneous multi-axis fault injection testing (`tb_top.v` Case 5)
+- [x] Reviewer documentation complete (system architecture, verification methodology, test scenarios, I/O spec, SPI origin, Goertzel core explanation, project tracker)
 - [ ] Gate-level / post-synthesis simulation
 - [ ] LibreLane synthesis and timing closure for the current RTL (`librelane/runs/` contains logs from earlier architecture iterations only)
 - [ ] Physical layout, DRC/LVS sign-off, and physical-level RHBD (guard rings, substrate tapping, routing density constraints)

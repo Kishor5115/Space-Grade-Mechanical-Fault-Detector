@@ -25,7 +25,7 @@ pass documented further below. It replaces the **axis-sequential** design
 with an **Interleaved Tri-Axis Goertzel (ITAG)** core that processes all
 three axes within every sample period. The full pre-implementation
 analysis (timing budget, area, power, latency, RHBD, backward
-compatibility) lives in `docs/ITAG_ARCHITECTURE_ANALYSIS.md`.
+compatibility) lives in `docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md`.
 
 **Motivation.** The legacy design observed a given axis only once every 3
 blocks, so a simultaneous multi-axis fault could be smeared across blocks

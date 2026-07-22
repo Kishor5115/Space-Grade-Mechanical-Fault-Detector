@@ -6,9 +6,14 @@ RTL_DIR   := ../../rtl
 TEST_DIR  := .
 
 TOP_TB    := tb_spi_master_full.v
-DUT       := $(RTL_DIR)/spi_master.v
-MODEL     := iis3dwb_model.v  
-SRCS      := $(TOP_TB) $(DUT) $(MODEL)
+MODEL     := iis3dwb_model.v
+
+# All RTL source files needed by spi_master (no `include directives)
+RTL_SRCS  := $(RTL_DIR)/spi_master.v \
+             $(RTL_DIR)/clk_divider_5.v \
+             $(RTL_DIR)/ff_2_sync.v
+
+SRCS      := $(TOP_TB) $(RTL_SRCS) $(MODEL)
 
 SIM       := sim.out
 WAVE      := waves.vcd

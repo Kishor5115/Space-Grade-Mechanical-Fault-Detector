@@ -1,123 +1,114 @@
 # Space-Grade Mechanical Fault Detector
 
-> **SSCS Chipathon 2026 — Track B (Sensor Circuits)**  
-> Radiation-hardened by design (RHBD) ASIC for autonomous spacecraft vibration and mechanical fault detection using a mixed-precision Goertzel algorithm via the LibreLane standalone `gf180mcu` digital flow.
+> **SSCS Chipathon 2026 — Track B (Sensor Circuits)**
+> Radiation-hardened-by-design (RHBD) ASIC for autonomous spacecraft vibration and mechanical fault detection, built around a 3-bin **Interleaved Tri-Axis Goertzel (ITAG)** DSP core targeting the GlobalFoundries GF180MCU node via the open-source LibreLane RTL-to-GDS flow.
 
 ---
 
 ## Table of Contents
 
+- [Reviewer Documentation](#reviewer-documentation)
 - [Overview](#overview)
 - [System Architecture](#system-architecture)
-- [Key Features](#key-features)
-- [Mixed-Precision Mathematical Datapath](#mixed-precision-mathematical-datapath)
+- [Signal Chain Walkthrough](#signal-chain-walkthrough)
 - [Module Reference](#module-reference)
+- [Fixed-Point Datapath](#fixed-point-datapath)
 - [Radiation Hardening Strategy (RHBD)](#radiation-hardening-strategy-rhbd)
-- [Target Technology Configurations](#target-technology-configurations)
+- [Area/Latency Design Tradeoff](#arealatency-design-tradeoff)
+- [Verification Status](#verification-status)
+- [Target Technology Configuration](#target-technology-configuration)
 - [Repository Structure](#repository-structure)
+- [Building and Running the Testbenches](#building-and-running-the-testbenches)
 - [Team](#team)
 - [Project Status](#project-status)
 
 ---
 
+## Reviewer Documentation
+
+The following documents directly address each point of reviewer feedback. Start here for a structured evaluation of the project.
+
+| Reviewer Concern | Document |
+|---|---|
+| 📋 **Project Tracker** — progress evaluation for the circuit | [`docs/project/PROJECT_TRACKER.md`](docs/project/PROJECT_TRACKER.md) |
+| 🏗️ **System Architecture** — detailed block diagram, signal chain, module hierarchy | [`docs/specs/SYSTEM_ARCHITECTURE.md`](docs/specs/SYSTEM_ARCHITECTURE.md) |
+| ✅ **Verification Methodology** — what each simulation tests, expected behavior, how results confirm correctness | [`docs/verification/VERIFICATION_METHODOLOGY.md`](docs/verification/VERIFICATION_METHODOLOGY.md) |
+| 🧪 **Test Scenarios** — SPI input format, per-case stimulus/output tables, all 100 check assertions | [`docs/verification/TEST_SCENARIOS.md`](docs/verification/TEST_SCENARIOS.md) |
+| 🔌 **I/O Specification** — every pin, SPI protocol, output format, register map | [`docs/specs/IO_SPECIFICATION.md`](docs/specs/IO_SPECIFICATION.md) |
+| 📡 **SPI Implementation** — team-developed origin, IIS3DWB compliance, references | [`docs/specs/SPI_IMPLEMENTATION.md`](docs/specs/SPI_IMPLEMENTATION.md) |
+| ⚙️ **Goertzel Core Explanation** — ITAG architecture, FSM, fixed-point math, radiation hardening, simulation evidence | [`docs/specs/GOERTZEL_CORE_EXPLANATION.md`](docs/specs/GOERTZEL_CORE_EXPLANATION.md) |
+| 🔬 **ITAG Architecture Analysis** — pre-implementation timing, area, power, RHBD, tradeoff analysis | [`docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md`](docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md) |
+
+**Current verification result: 100/100 self-checking simulation assertions PASS** across all four testbench suites.
+
+---
+
 ## Overview
 
-Modern spacecraft and satellite systems exhibit distinct high-frequency mechanical vibration signatures prior to catastrophic mechanical failure — reaction wheel bearing degradation, cryogenic pump wear, deployment gear micro-cracks. Detecting these signatures early at the structural edge is critical for autonomous fault isolation and telemetry reduction.
+Modern spacecraft and satellite systems exhibit distinct high-frequency mechanical vibration signatures prior to catastrophic mechanical failure — reaction wheel bearing degradation, cryogenic pump wear, deployment gear micro-cracks. Detecting these signatures early, at the structural edge, is critical for autonomous fault isolation and telemetry reduction.
 
-This project implements an autonomous, low-power, radiation-tolerant edge-processing ASIC capable of real-time spectral vibration analysis using a custom **mixed-precision Goertzel DSP core** on the GlobalFoundries 180 nm (GF180MCU) node.
+This project implements a compact, radiation-tolerant edge-processing ASIC that performs real-time spectral vibration analysis using a custom **3-bin Interleaved Tri-Axis Goertzel (ITAG) DSP core**, targeting the GlobalFoundries 180 nm (GF180MCU) node. A single shared hardware multiplier is time-multiplexed across all three frequency bins of all three axes, plus the magnitude engine — processing X, Y and Z within every sample period rather than rotating one axis per block.
 
-Bypassing vulnerable, unhardened on-chip mixed-signal design, the ASIC integrates directly with an off-chip **STMicroelectronics IIS3DWB Digital MEMS Vibration Sensor**. The design uses a strictly register-based, SRAM-free architecture to evaluate structural anomalies natively and asserts a physical hardware interrupt upon verifying a persistent fault condition.
+The ASIC interfaces directly with an off-chip **STMicroelectronics IIS3DWB** digital MEMS vibration sensor over SPI, computes per-axis frequency-domain energy at three programmable fault frequencies, and asserts a sticky hardware fault flag when any bin/axis combination exceeds a configurable threshold. The design is entirely flip-flop based — no SRAM macros — to keep it robust against heavy-ion-induced single event upsets (SEUs) on a commercial bulk CMOS process with no inherent radiation tolerance.
 
 ---
 
 ## System Architecture
 
-The ASIC operates inside a standalone custom padring configuration (`workshop_padring_librelane`), removing any dependency on an external platform harness like Efabless Caravel.
+```
+                 ┌──────────────────────────────────────────────────────────────────┐
+                 │                          rtl/top.v                               │
+                 │                                                                  │
+ IIS3DWB  ─SPI──▶│  spi_apb_interface           axis_sequencer                      │
+ (sensor)        │  ├─ spi_master (FSM: boot     ├─ polls spi_apb_interface's       │
+ sensor_drdy ───▶│  │  config-write + burst read) │  local STATUS/SAMPLE0/1 regs    │
+                 │  └─ apb (master, Option B      ├─ demuxes the 48-bit XYZ burst   │
+                 │     sample forwarding only)    │  into per-axis 16-bit samples   │
+                 │                                 └─ presents X, Y, Z together    │
+                 │                                        │  (no axis rotation)     │
+                 │                                        ▼                         │
+                 │                                 goertzel_core                    │
+                 │                                 (ITAG: 3 bins x 3 axes,          │
+                 │                                  shared-multiplier IIR)          │
+                 │                                        │  v1/v2 state (x18)      │
+                 │                                        ▼                         │
+                 │                                 magnitude_compute                │
+                 │                                 (owns the single multiplier.v;   │
+                 │                                  computes |X(f_k)|^2 for all      │
+                 │                                  9 axis/bin pairs per block)     │
+                 │                                        │  mag_out + bin/axis tag │
+                 │                                        ▼                         │
+                 │                                 fault_flagger                    │
+                 │                                 (512-sample block counter,       │
+                 │                                  threshold compare, sticky flag) │
+                 │                                        │                         │
+                 │              ┌─────────────────────────┘                         │
+                 │              ▼                                                   │
+                 │        tmr_reg_bank ◀── internal APB bus ── spi_apb_interface    │
+                 │        (triplicated, scrubbed config/status registers)           │
+                 └──────────────────────────────────────────────────────────────────┘
+                                                        │
+                                                        ▼
+                                              fault_flag_out (to host/RISC core)
+```
 
-![System Architecture Block Diagram](docs/arch.png)
+`top.v` is the chip-level integration module. Its **only external pins** are the sensor SPI bus (`c_miso`/`c_csn`/`c_sclk`/`c_mosi`), the sensor's `sensor_drdy` interrupt, a `tmr_forward_en` mode-select input, and the single `fault_flag_out` alarm line — there is no separate command-SPI or host-programming bus inside the current core boundary. Runtime coefficients (`cfg_c0/c1/c2`, `cfg_threshold`) and control (`cfg_start/cfg_stop/cfg_fault_clear`) live in `tmr_reg_bank`, driven over the *internal* APB bus. In the current architecture that internal bus is exercised from testbenches via direct APB transactions; a host-facing SPI-to-APB (or other bus) bridge sitting outside `top.v`'s boundary is the natural next integration step and is called out explicitly below as future work rather than claimed as already implemented.
 
-NOTE: Image is AI Generated
+> 📐 For a fully detailed signal-level block diagram with per-module port descriptions, see [`docs/specs/SYSTEM_ARCHITECTURE.md`](docs/specs/SYSTEM_ARCHITECTURE.md).
 
-The system boundary is divided into three zones:
-
-**Off-Chip Satellite Environs** → **ASIC Standalone Padring** → **Digital ASIC Core Boundary (`vibration_top.v`)**
-
-The physical satellite structure transmits acoustic shockwave vibrations to the **STMicroelectronics IIS3DWB** MEMS sensor. The sensor outputs 16-bit 2's complement PCM samples at a 26.667 kHz ODR over a 5-wire SPI bus (`S_CSN`, `S_SCLK`, `S_MOSI`, `S_MISO`, `S_INT1`) into the padring. A separate **Command SPI Bus** from the satellite master computer (`C_CSN`, `C_SCLK`, `C_MOSI`, `C_MISO`) programs runtime coefficients via the APB bridge. The `ALARM_IRQ` pad drives the interrupt line back to the host.
-
-Inside the core, the **Interrupt-Driven Synchronizer Mesh** (`spi_master.v`) captures raw 16-bit 2's complement PCM samples from the sensor SPI bus. Because the Goertzel engine operates in **Q8.15 fixed-point**, a dedicated **PCM-to-Q8.15 Format Converter** sign-extends and re-aligns each 16-bit integer sample into the Q8.15 representation before it enters the filter pipeline — introducing no additional pipeline stages beyond a single combinational shift-and-sign-extend operation.
-
-Sample hand-off from the SPI clock domain to the core clock domain is handled by a lightweight **two-stage flip-flop synchroniser** on the `sample_valid` strobe. No FIFO or elastic buffer is required: at a 26.667 kHz sensor ODR against a 5–10 MHz core clock, the sample arrival rate is slow enough that a simple D-FF pair eliminates metastability with zero area or latency overhead.
-
-The Command SPI bus from the satellite master computer is bridged onto the internal register fabric via the **SPI-to-APB Bridge** (`apb_bridge.v`), which translates incoming SPI command frames into structured APBv2 read/write transactions on the internal bus. This cleanly decouples the command interface clock domain from the core processing clock domain without shared-memory hazards. The computed magnitude from the **Multiplier-Shared Goertzel Filter Engine** (`goertzel_core.v`) feeds into the **Power Comparator & Fault Flagger** (`fault_flagger.v`). All dynamic configuration registers are triplicated across the **TMR Configuration Registers** (`config_regs.v`) and arbitrated by the **Internal APB Bus**.
-
----
-
-## Key Features
-
-### Direct Digital MEMS Interfacing
-High-efficiency `spi_master.v` core engineered specifically to parse the ST IIS3DWB sensor data stream:
-- 16-bit 2's complement PCM output at 26.667 kHz ODR
-- 6.3 kHz mechanical bandwidth
-- Boot protocol support including `CTRL1_XL [0x10=0xA0]`, `CTRL2_XL [0x11=0x0C]`, and `INT1_CTRL [0x0D=0x01]`
-
-### PCM-to-Q8.15 Format Converter
-The ST IIS3DWB outputs raw samples as **16-bit signed 2's complement integers**. The Goertzel core operates in **Q8.15 fixed-point** (1 sign bit, 8 integer bits, 15 fractional bits). A dedicated combinational converter sits at the boundary between `spi_master.v` and `goertzel_core.v`, performing a sign-aware shift-and-extend to map the integer sample into the Q8.15 domain with no precision loss and no additional clock cycle latency.
-
-### Flip-Flop Based Clock Domain Crossing (No FIFO)
-Sample delivery from the SPI capture clock domain to the core processing clock domain uses a **two-stage D-FF synchroniser** on the `sample_valid` strobe — no FIFO, no elastic buffer. At the IIS3DWB's 26.667 kHz ODR against a 5–10 MHz core clock, the inter-sample gap spans hundreds of core clock cycles, making a minimal synchroniser both sufficient and area-optimal for metastability elimination.
-
-### SPI-to-APB Configuration Bridge
-The satellite master computer programs runtime coefficients (`C`, `THRESHOLD`, `N`) over a dedicated **Command SPI Bus** (`C_CSN`, `C_SCLK`, `C_MOSI`, `C_MISO`). The `apb_bridge.v` module translates these incoming SPI command frames into fully compliant **APBv2 read/write transactions** on the internal register bus. This hard clock-domain boundary between the command SPI interface and the core processing clock prevents shared-bus timing hazards during mid-flight coefficient updates.
-
-### Mixed-Precision Fixed-Point Datapath
-
-| Signal | Width | Format |
-|---|---|---|
-| Sensor output `x_raw` | 16-bit | Signed 2's complement integer (native SPI capture) |
-| Converted sample `x[n]` | 16-bit | **Q8.15 fixed-point** (post PCM→Q8.15 converter) |
-| Coefficient `C` | 16-bit | Q2.14 fixed-point (`C = 2·cos(2π·fₖ/fₛ)`) |
-| State Accumulators `v₁, v₂` | 32-bit | Signed integer |
-| Magnitude `\|X(fₖ)\|²` | 32-bit | Unsigned integer |
-| Threshold | 32-bit | Integer |
-| Block Size `N` | 16-bit | Integer (256–512) |
-
-The Q8.15 format for converted samples provides 8 integer bits and 15 fractional bits, giving sufficient headroom for the accumulator growth over a 256–512 sample block while preserving sub-LSB fractional precision through the recursive IIR stages.
-
-### Dynamic Mid-Flight Calibration
-The host processing node loads coefficient boundaries dynamically via the **SPI-to-APB Bridge** (`apb_bridge.v`), which translates Command SPI frames into APBv2 register writes targeting the TMR configuration banks. This modifies baseline fault profiles across changing orbit conditions without halting or resetting the running Goertzel filter.
-
-### Autonomous Alarm Verification Mesh
-A multi-stage TMR'd debounce counter requires the structural anomaly threshold to be breached for **5 consecutive Goertzel calculation blocks** before asserting the primary `ALARM_IRQ` hardware interrupt — neutralizing Single Event Transient (SET) false flags caused by cosmic ray hits.
-
-### SRAM-Free Register Matrix
-Fully flip-flop-only implementation. All temporary state maps directly to standard logic cell D-FFs, rendering the system impervious to macro-level SRAM cell corruption from heavy-ion strikes.
+![Top-level module diagram](docs/images/top_modules.svg)
 
 ---
 
-## Mixed-Precision Mathematical Datapath
+## Signal Chain Walkthrough
 
-The core Goertzel filter maps a single second-order IIR transfer function step recursively for each incoming time-domain vibration sample.
-
-**State Recursion:**
-
-$$v[n] = x[n] + \left(C \cdot v[n-1]\right) - v[n-2]$$
-
-**Terminal Magnitude:**
-
-$$|X(f_k)|^2 = v_1^2 + v_2^2 - \left(C \cdot v_1 \cdot v_2\right)$$
-
-**Precision Grid:**
-
-| Stage | Operation | Bit Width |
-|---|---|---|
-| Raw SPI capture `x_raw` | 16-bit 2's complement integer from IIS3DWB | 16-bit signed integer |
-| PCM → Q8.15 conversion | Sign-extend + fractional-align into Q8.15 domain | 16-bit Q8.15 (combinational, zero latency) |
-| Coefficient multiply `C · v[n-1]` | Q2.14 × 32-bit integer | 48-bit raw → arithmetic right-shift `>>> 14` → 34-bit truncated to 32-bit |
-| Accumulator update | 32-bit integer add/subtract | 32-bit signed |
-| Magnitude squares `v₁², v₂²` | 32-bit × 32-bit | 64-bit → compared against 32-bit threshold |
-| Cross-term `C · v₁ · v₂` | Q2.14 × 32-bit × 32-bit | Scaled final compare |
-
-The 14-bit arithmetic right shift on every multiplier output stage maintains accumulator synchronization while preserving the maximum representable precision at each pipeline stage. The PCM-to-Q8.15 converter is purely combinational — it does not add a pipeline register and introduces no extra clock cycle on the sample path.
+1. **`spi_master`** (inside `spi_apb_interface`) runs the IIS3DWB bring-up sequence on reset — writing `CTRL1_XL` (26.667 kHz ODR), `FIFO_CTRL4` (bypass, no on-sensor FIFO), `CTRL3_C` (auto-increment burst reads), and `INT1_CTRL` (route `DRDY` to `INT1`) — then waits for `sensor_drdy`, asserts chip-select, and shifts in a 48-bit burst covering all three axes (`OUTX`, `OUTY`, `OUTZ`) in SPI Mode 3.
+2. **`spi_apb_interface`** latches the 48-bit sample into local registers exposed at three byte addresses (`STATUS`, `SAMPLE0`, `SAMPLE1`), readable through a simple request/done handshake. An optional second mode (`tmr_forward_en=1`) additionally forwards each raw sample into `tmr_reg_bank` over the internal APB bus for host visibility; the default mode (`tmr_forward_en=0`) keeps the sample local only.
+3. **`axis_sequencer`** polls those local registers, reconstructs the 48-bit burst, and presents all three 16-bit Q1.15 axis slices (X, Y, Z) to the core *simultaneously* — there is no longer any per-block axis rotation or `current_axis` tracking.
+4. **`goertzel_core`** runs the classic second-order IIR recursion `v[n] = x[n] + C·v[n-1] − v[n-2]` for three independent frequency bins on all three axes (9 resonators total) in Q8.15 fixed-point, all sharing a single hardware multiplier via time multiplexing (18 active clock cycles per incoming sample — 6 per axis; the multiplier is otherwise held frozen for zero switching power). This is the **Interleaved Tri-Axis Goertzel (ITAG)** microarchitecture.
+5. **`magnitude_compute`** owns the design's single `multiplier.v` instance, snapshots each axis/bin's `v1`/`v2` state and coefficient at the block boundary, and reuses that same shared multiplier during otherwise-idle cycles to compute `|X(f_k)|² = v1² + v2² − C·v1·v2` for all **9 axis/bin pairs**, tagging each result with both its frequency bin index and the physical axis (X/Y/Z) that produced it. The `C·v1·v2` cross term also rides the shared multiplier, so exactly one multiplier exists in the whole datapath.
+6. **`fault_flagger`** owns the 512-sample block counter, compares every tagged magnitude against `cfg_threshold`, and latches a sticky `fault_flag` (plus the offending bin and axis) on the first magnitude that exceeds threshold. The flag stays asserted until explicitly cleared via `cfg_fault_clear`.
+7. **`tmr_reg_bank`** is the single APB slave in the design: it holds the triplicated, periodically-scrubbed coefficient/threshold/control registers and exposes fault status for read-back.
 
 ---
 
@@ -125,61 +116,111 @@ The 14-bit arithmetic right shift on every multiplier output stage maintains acc
 
 | Module | Source File | Description |
 |---|---|---|
-| `spi_master` | `rtl/spi_master.v` | Synchronous serial master core tracking ST IIS3DWB bootup protocols, interrupt synchronization, and 16-bit 2's complement PCM sample capture |
-| `pcm_to_q815` | `rtl/pcm_to_q815.v` | Combinational PCM-to-Q8.15 format converter; sign-extends and fractional-aligns raw 16-bit integer samples from the sensor SPI path into the Q8.15 domain required by the Goertzel core |
-| `apb_bridge` | `rtl/apb_bridge.v` | SPI-to-APB bridge translating incoming Command SPI frames from the satellite master computer into fully compliant APBv2 read/write transactions on the internal configuration register bus |
-| `config_regs` | `rtl/config_regs.v` | Structural TMR storage framework housing dynamic runtime variables: `C` (16-bit Q2.14), `THRESHOLD` (32-bit integer), `N` (16-bit integer) |
-| `goertzel_core` | `rtl/goertzel_core.v` | Area-optimized fixed-point math execution core featuring resource-shared multipliers and parity-checked 32-bit storage arrays; operates on Q8.15 formatted samples |
-| `fault_flagger` | `rtl/fault_flagger.v` | Squaring block computing magnitude limits, executing comparison boundaries, and running the TMR debounce validation state machine |
-| `tmr_voter` | `rtl/tmr_voter.v` | Primitively synthesized combinational 2-out-of-3 majority voting element deployed across all triplicated state fields |
-| `vibration_top` | `rtl/vibration_top.v` | High-level chip enclosure bounding the 1.8 V core logic, connecting internal nodes to level-shifted physical pad ring frames |
+| `top` | `rtl/top.v` | Chip-level integration: wires the sensor SPI front end, axis sequencer, Goertzel core, magnitude engine, fault flagger, and register bank together; the only hierarchy level with external pins |
+| `spi_apb_interface` | `rtl/spi_apb_interface.v` | Owns `spi_master`; exposes a local poll-based register interface for the current sensor sample, plus an optional forwarding path that mirrors each sample into `tmr_reg_bank` over the internal APB bus |
+| `spi_master` | `rtl/spi_master.v` | SPI Mode 3 master implementing the IIS3DWB power-on boot config sequence and the 48-bit XYZ burst-read protocol, synchronized to the async `sensor_drdy` interrupt |
+| `apb` | `rtl/apb.v` | Minimal request-driven APB master: converts a simple `req_valid`/`req_write`/`req_addr`/`req_wdata` handshake into a compliant SETUP/ACCESS APB transfer |
+| `axis_sequencer` | `rtl/axis_sequencer.v` | Polls `spi_apb_interface` for each new burst and presents all three X/Y/Z slices to the core simultaneously (no axis rotation under ITAG); polling FSM is TMR-protected |
+| `goertzel_core` | `rtl/goertzel_core.v` | Interleaved Tri-Axis (ITAG) 3-bin Goertzel IIR engine in Q8.15 fixed-point: 9 resonators (3 bins × 3 axes) processed every sample via a 19-state FSM sharing one multiplier; control FSM is triplicated (5-bit `vote5`) with a self-scrubbing majority voter |
+| `multiplier` | `rtl/multiplier.v` | The single, chip-wide hardware multiplier — the only `*` operator in the synthesizable datapath, instanced exactly once inside `magnitude_compute`; combinational signed product, operand-isolated by its caller |
+| `magnitude_compute` | `rtl/magnitude_compute.v` | Owns the shared `multiplier` instance; snapshots the 18 Goertzel state values at each block boundary and computes the per-bin, per-axis magnitude (including the `C·v1·v2` cross term) for all 9 axis/bin pairs on that one multiplier; FSM is triplicated (4-bit `vote4`) |
+| `fault_flagger` | `rtl/fault_flagger.v` | Owns the 512-sample block counter, compares magnitudes against a programmable threshold, and latches a sticky fault flag with bin/axis attribution |
+| `tmr_reg_bank` | `rtl/tmr_reg_bank.v` | APB slave holding the triplicated, scrubbed configuration registers (`CTRL`, `CFG_C0/C1/C2`, `CFG_THRESHOLD`) and read-only status (`STATUS`, `FAULT_MAG`, `FAULT_BIN`) |
+| `ff_2_sync` | `rtl/ff_2_sync.v` | Generic two-stage D-flip-flop synchronizer used to bring the async `sensor_drdy` and `s_miso` lines into the core clock domain |
+| `clk_divider_5` | `rtl/clk_divider_5.v` | Divide-by-5 clock divider generating the SPI bit clock from the system clock |
+
+---
+
+## Fixed-Point Datapath
+
+| Signal | Width | Format |
+|---|---|---|
+| Sensor sample `x_n` | 16-bit | Q1.15 signed fixed-point (as delivered by `axis_sequencer`) |
+| Goertzel coefficients `C0/C1/C2` | 24-bit | Q8.15 signed fixed-point, one per frequency bin, stored in `tmr_reg_bank` |
+| State registers `v1_k`, `v2_k` (k = 0..2, per axis X/Y/Z) | 24-bit | Q8.15 signed fixed-point, saturating add/sub — 18 registers total (3 bins × 3 axes) |
+| Shared multiplier product | 48-bit internal → 24-bit | Full product right-shifted by 15 (`>>> 15`), then saturated back to Q8.15 |
+| Magnitude `\|X(f_k)\|²` | 32-bit | Unsigned integer, clamped to zero on underflow |
+| Threshold `cfg_threshold` | 32-bit | Unsigned integer, host/testbench configurable |
+| Block size | 512 samples | Fixed parameter in `top.v`'s `fault_flagger` instance (`BLOCK_SIZE`) |
+
+**Recursion:** `v[n] = x[n] + C·v[n-1] - v[n-2]`, computed as a single fused three-input saturating add per active bin (no separate accumulator register — the multiplier product and the `x - v2` term are summed directly), so each axis/bin costs exactly two active clock cycles per sample (one multiplier request, one fused update) — 18 active cycles per sample for all 3 bins × 3 axes.
+
+**Terminal magnitude:** `|X(f_k)|² = v1_k² + v2_k² - C_k·v1_k·v2_k`, computed by `magnitude_compute` for all **9 axis/bin pairs** using the single shared multiplier (four multiplies per pair, including the `C·v1·v2` cross term), scheduled entirely into the idle window after the 18-cycle Goertzel burst.
 
 ---
 
 ## Radiation Hardening Strategy (RHBD)
 
-GlobalFoundries 180 nm bulk silicon is a commercial planar CMOS process with no inherent physical radiation tolerance. Structural defense is therefore enforced at every level of the design hierarchy.
+GlobalFoundries 180 nm bulk CMOS has no inherent radiation tolerance, so hardening is applied at the RTL and microarchitecture level:
 
-### 1. RTL-Level Microarchitectural Hardening (SEU / SET Mitigation)
+**Triple Modular Redundancy (TMR) with self-scrubbing.** Every control FSM (`goertzel_core` with a 5-bit `vote5`, `magnitude_compute` with a 4-bit `vote4`, `axis_sequencer`'s polling FSM with a 3-bit `vote3`) and the configuration register bank (`tmr_reg_bank`) keeps three physical copies of its state, continuously combined by a bitwise 2-of-3 majority voter. Critically, all three copies are re-written from the *voted* value every cycle rather than only from each other — so a single-bit upset in one copy is corrected on the very next clock edge instead of being allowed to persist or diverge. Under ITAG the `axis_sequencer` no longer carries a triplicated axis index (there is no axis rotation), which removes that state entirely as an SEU target.
 
-**Triplicated Structural Configuration (TMR)**  
-Every dynamic register slice holding mathematical coefficients or operational bounds is instantiated across three identical register sub-banks (Bank A, Bank B, Bank C). A combinational 2-out-of-3 majority voter assesses bit state continuously. Synthesis pruning is explicitly blocked using `dont_touch` / `keep` attributes to prevent the tool from optimizing away the redundant logic.
+**Periodic background scrubbing.** `tmr_reg_bank`'s configuration fields are rewritten from their voted value on a fixed period (every 1024 cycles) even with no incoming write, bounding the maximum time a latent bit-flip can survive between accesses.
 
-**Shadow Accumulator Parity Tracking**  
-Mathematical accumulators `v₁` and `v₂` dual-track state data alongside dedicated parity compilation bits. If an SEU corrupts an accumulator register bit mid-calculation, a parity mismatch flag triggers an instantaneous soft-reset of the active Goertzel block — wiping the localized error before it can propagate to a fraudulent terminal alarm condition.
+**SEU-safe default states.** Every triplicated FSM's next-state logic defaults to a safe idle/reset state (`S_IDLE`) for any unreachable/illegal state encoding, so an upset that produces an invalid code recovers automatically within one clock rather than hanging.
 
-**Temporal Control Signal Dampening**  
-Critical asynchronous control lines (`RST_N`, `S_INT1`) pass through narrow RC/delay-chain filtering networks to completely attenuate SET logic glitches under **1.5 ns** pulse width.
+**SRAM-free register matrix.** The entire design is flip-flop only — no SRAM macros anywhere in the datapath or configuration storage — avoiding the higher single-event and multi-bit-upset sensitivity of dense memory macros on this process.
 
-### 2. Physical Placement & Layout Hardening (SEL / MBU Mitigation)
+**Sticky fault latch with explicit clear.** `fault_flagger`'s fault output is a level-sensitive latch that only clears on an explicit `cfg_fault_clear` write, so a transient magnitude spike is not silently lost even if it occurs between host polls.
 
-**Continuous Heavy Substrate Tapping**  
-Well and substrate contacts are hard-forced at an ultra-dense pitch of **< 12 µm**, bypassing standard cell automated configurations. This guarantees low substrate resistance, preventing the local voltage drop required to trigger parasitic PNPN latch-up paths.
-
-**Enclosed Guard Ring Perimeters**  
-Active NMOS and PMOS standard cell islands are framed inside heavy continuous P⁺ and N⁺ diffusion isolation guard ring structures to collect stray electron-hole pairs generated by high-energy cosmic ions before they can diffuse to sensitive nodes.
-
-**Spatially Interleaved Bus Networks**  
-Parallel address, control, and data tracks are physically separated via interleaved V_SS ground tracks. Angled heavy-ion particle tracks crossing multiple metal lines hit ground paths instead of neighboring data lines, eliminating Multi-Bit Upset (MBU) correlation across a single ion strike.
-
-**Relaxed Density Routing Budgets**  
-Physical routing configuration restricts maximum cell layout capacity (`PL_TARGET_DENSITY`) strictly to **35% – 45%**. This provides whitespace tracks for complex TMR routing interconnects and enables the automated place-and-route tool to insert protective Antenna Diodes across long interconnect wire runs.
+> Physical-level RHBD techniques (substrate tapping pitch, guard rings, spatially interleaved bus routing, relaxed placement density for antenna-diode insertion) are planned for the LibreLane physical implementation stage but are not yet reflected in a checked-in `librelane` configuration file — see [Project Status](#project-status).
 
 ---
 
-## Target Technology Configurations
+## Area/Latency Design Tradeoff
+
+**Constraint:** the IIS3DWB delivers X, Y, and Z samples simultaneously every 37.5 µs, but the competition's 600×600 µm die budget does not allow three parallel Goertzel pipelines.
+
+| Option | Approach | Area Impact | Inter-axis Detection Latency | Selected |
+|--------|----------|--------------|------------------------------|----------|
+| 1 | Three parallel Goertzel cores (one per axis) | Exceeds die budget | 0 (all axes in parallel) | ❌ |
+| 2 | Buffer all three axes, process sequentially from a sample buffer | +thousands of flip-flops, violates the SRAM-free RHBD strategy | up to 19.2 ms | ❌ |
+| 3 | Single shared-multiplier core, **sequential axis rotation**, reduced block size (legacy design) | +0 flip-flops | up to 38.4 ms | ❌ |
+| **4** | **Single shared-multiplier core, Interleaved Tri-Axis (ITAG) — all 3 axes every sample** | **≈ +645 flip-flops** | **0 (all axes every block)** | ✅ |
+
+The design uses the **Interleaved Tri-Axis Goertzel (ITAG)** core (Option 4). The single hardware multiplier is time-multiplexed across all 9 (axis × bin) resonators plus the magnitude engine, so the sensor's simultaneously-delivered X/Y/Z burst is *fully* analyzed within every 375-cycle sample period (18 active cycles, ~95% idle) instead of discarding two axes per block.
+
+This supersedes the earlier axis-sequential design (Option 3), which processed one axis per 512-sample block and rotated X→Y→Z across blocks. That approach used zero extra flip-flops but had two documented drawbacks ITAG eliminates:
+
+- **Sequential axis processing / inter-axis latency.** Under axis rotation, only one axis accumulated Goertzel state at a time, so a given axis was observed once every three blocks — up to ~38.4 ms worst-case inter-axis latency, and a simultaneous multi-axis fault could be smeared across blocks and missed. ITAG evaluates all three axes against the threshold **every** block: **zero inter-axis latency** and cycle-accurate per-axis attribution.
+- **Frequency resolution.** The legacy design shortened the block (512→171 samples) to keep the 3-axis cycle time bounded, coarsening each bin from ~52 Hz to ~157 Hz. ITAG keeps the full **512-sample** block (and its ~52 Hz resolution) because it no longer needs a shorter block to bound rotation time.
+
+The cost is ≈ 645 additional flip-flops (18 Goertzel state registers instead of 6, the 18-value magnitude snapshot, three sample-input registers, and slightly wider FSM state), roughly 1600 µm² at 180 nm — negligible against the single shared multiplier that dominates datapath area, and far below the sample-buffering alternative (Option 2). Full analysis is in [`docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md`](docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md).
+
+---
+
+## Verification Status
+
+Four testbench suites pass in simulation (Icarus Verilog), covering 100/100 self-checking assertions:
+
+| Testbench | Target | Checks |
+|---|---|---|
+| `testing/spi_master_test/tb_spi_master_full.v` | `spi_master` — boot sequence, DRDY sync, SPI Mode 3 protocol, 48-bit burst read | **71/71** ✅ |
+| `testing/apb_test/tb_spi_apb_interface.v` | `spi_apb_interface` + `apb` — Option A/B sample delivery and forwarding | **8/8** ✅ |
+| `testing/goertzel_core/tb_goertzel_core.v` | `goertzel_core` — ITAG tri-axis independence/routing, Q8.15 arithmetic, `sample_done` timing | **7/7** ✅ |
+| `testing/top_test/tb_top.v` | `top` — full sensor-to-`fault_flag_out` chain with `iis3dwb_model.v` bus-functional model | **14/14** ✅ |
+| **TOTAL** | | **100/100** ✅ |
+
+The top-level testbench exercises axis attribution end-to-end and verifies the ITAG structural invariants: exactly **9 magnitude pulses per block** (3 axes × 3 bins) with correct tag ordering, a **no-magnitude-compute-during-Goertzel-active** assertion (proving the single shared multiplier is never double-requested), and a `sample_done : block_clear` = **512 : 1** cadence check. It includes per-axis fault injection on X, Y and Z **and a simultaneous 3-axis excitation** (Case 5) — the realistic spacecraft scenario the legacy axis-sequential architecture could not resolve within a single block.
+
+> 📖 For detailed descriptions of each test case, stimulus format, and how results confirm correct operation, see [`docs/verification/VERIFICATION_METHODOLOGY.md`](docs/verification/VERIFICATION_METHODOLOGY.md) and [`docs/verification/TEST_SCENARIOS.md`](docs/verification/TEST_SCENARIOS.md).
+
+---
+
+## Target Technology Configuration
 
 | Parameter | Value |
 |---|---|
 | Foundry Node | GlobalFoundries GF180MCU |
-| RTL-to-GDS Flow | LibreLane Open-Source Design Compilation Suite |
-| Pad Implementation | 14-Pin Standalone Custom Layout (`workshop_padring_librelane`) |
-| Standard Cell Library | `gf180mcu_fd_sc_mcl` (7-track, multi-channel) |
-| Source Language | Verilog HDL |
+| RTL-to-GDS Flow | LibreLane open-source digital flow |
+| Standard Cell Library | `gf180mcu_fd_sc_mcl` |
+| Source Language | Verilog HDL (IEEE 1364) |
 | Core Supply Voltage | 1.8 V |
-| IO Supply Voltage | 3.3 V |
-| Target Core Clock | 5 MHz – 10 MHz |
-| Sample Window | 37.5 µs |
+| Target Core Clock | 5–10 MHz |
+| Sensor ODR | 26.667 kHz (IIS3DWB, fixed by boot configuration) |
+| Block Size | 512 samples (all three axes per block) |
+| Inter-axis Detection Latency | 0 (X/Y/Z evaluated every block) |
+| Per-block Latency | ~19.2 ms (512 samples @ 26.667 kHz) |
 
 ---
 
@@ -187,44 +228,100 @@ Physical routing configuration restricts maximum cell layout capacity (`PL_TARGE
 
 ```
 .
-├── docs/           # Technical specification proposals and architecture block diagrams
-├── rtl/            # Radiation-hardened synthesizable Verilog HDL source
-│   ├── apb_bridge.v
-│   ├── config_regs.v
-│   ├── fault_flagger.v
-│   ├── goertzel_core.v
-│   ├── pcm_to_q815.v
-│   ├── spi_master.v
-│   ├── tmr_voter.v
-│   └── vibration_top.v
-├── tb/             # Verilog testbenches with ST IIS3DWB bus functional models
-├── verification/   # Golden fixed-point reference software packages (Python)
-├── sim/            # Waveform generation profiles, simulation configs, and validation tracking
-├── scripts/        # Synthesis run-files, compilation setups, and automated verification loops
-└── openlane/       # Custom physical design parameters and RHBD layout config files
+├── docs/
+│   ├── architecture/          # Design analysis and module-level documentation
+│   │   ├── ITAG_ARCHITECTURE_ANALYSIS.md   # Timing, area, power, RHBD tradeoff analysis
+│   │   ├── proposal_outline.md              # Original proposal outline
+│   │   └── top.md                           # Auto-generated top module port docs
+│   ├── images/                # All diagrams and visual assets
+│   │   ├── arch.png                         # High-level system block diagram
+│   │   ├── system_architecture.png          # Detailed architecture diagram
+│   │   ├── top_modules.png                  # Module hierarchy diagram (PNG)
+│   │   ├── top_modules.svg                  # Module hierarchy diagram (SVG)
+│   │   └── top.svg                          # Top module schematic
+│   ├── project/               # Project management and proposal documents
+│   │   ├── PROJECT_TRACKER.md               # ← Start here: reviewer progress tracker
+│   │   ├── Project_Proposal.pdf             # Original contest proposal
+│   │   ├── presentation_deck.pptx           # Presentation slides
+│   │   └── vibration_sensor.pdf             # IIS3DWB sensor reference datasheet
+│   ├── specs/                 # Technical specifications (reviewer focus area)
+│   │   ├── SYSTEM_ARCHITECTURE.md           # Full block diagram + signal chain
+│   │   ├── IO_SPECIFICATION.md              # All pins, SPI format, register map
+│   │   ├── SPI_IMPLEMENTATION.md            # SPI origin, design decisions, references
+│   │   └── GOERTZEL_CORE_EXPLANATION.md     # ITAG core: math, FSM, RHBD, simulation proof
+│   └── verification/          # Verification plans and test documentation
+│       ├── VERIFICATION_METHODOLOGY.md      # What each simulation tests and how
+│       └── TEST_SCENARIOS.md                # SPI stimulus → expected output tables
+│
+├── rtl/                       # Synthesizable Verilog HDL source
+│   ├── top.v                  # Chip-level integration (external pins)
+│   ├── spi_apb_interface.v    # SPI front-end wrapper + Option A/B sample delivery
+│   ├── spi_master.v           # IIS3DWB SPI Mode 3 master (boot + burst read)
+│   ├── apb.v                  # Minimal APB master FSM
+│   ├── axis_sequencer.v       # SPI sample demux → tri-axis simultaneous presentation
+│   ├── goertzel_core.v        # ITAG 3-bin × 3-axis Goertzel IIR engine (TMR FSM)
+│   ├── multiplier.v           # Single chip-wide hardware multiplier
+│   ├── magnitude_compute.v    # Magnitude engine (owns multiplier, 9 pulses/block)
+│   ├── fault_flagger.v        # 512-sample block counter + threshold comparator
+│   ├── tmr_reg_bank.v         # APB slave: triplicated + scrubbed config/status regs
+│   ├── ff_2_sync.v            # 2-stage D-FF synchronizer (CDC)
+│   └── clk_divider_5.v        # Divide-by-5 SPI clock generator
+│
+├── testing/                   # Self-checking Icarus Verilog testbenches
+│   ├── spi_master_test/       # tb_spi_master_full.v (71/71 checks), iis3dwb_model.v
+│   ├── apb_test/              # tb_spi_apb_interface.v (8/8 checks)
+│   ├── goertzel_core/         # tb_goertzel_core.v (7/7 checks)
+│   └── top_test/              # tb_top.v (14/14 checks) — full chip integration
+│
+├── tb/                        # (reserved for additional bus-functional models)
+├── sim/                       # (reserved for simulation configs)
+├── verification/              # (reserved for golden fixed-point reference models)
+├── librelane/runs/            # Prior LibreLane synthesis/PnR run logs
+├── Makefile                   # sim_spi / sim_apb / sim_goertzel / sim_top / sim_all
+└── CHANGELOG.md               # Detailed bug-fix and verification history
 ```
+
+---
+
+## Building and Running the Testbenches
+
+All testbenches use [Icarus Verilog](http://iverilog.icarus.com/) (`iverilog`/`vvp`). From the repository root:
+
+```bash
+make sim_spi        # spi_master standalone (IIS3DWB boot + burst read)       71/71
+make sim_apb        # spi_apb_interface + apb (Option A/B sample delivery)      8/8
+make sim_goertzel   # goertzel_core standalone (ITAG 3-bin x 3-axis + Q8.15)   7/7
+make sim_top        # full chain: sensor SPI in -> fault_flag_out + attribution 14/14
+make sim_all        # run all four suites                                      100/100
+make clean          # remove generated sim binaries and VCD dumps
+```
+
+Each target produces a VCD waveform dump in its corresponding `testing/<block>/` directory, viewable with GTKWave or any other VCD viewer.
 
 ---
 
 ## Team
 
-**B22 — Team Space Jam**  
+**B22 — Team Space Jam**
 SSCS Chipathon 2026, Track B (Sensor Circuits)
 
 ---
 
 ## Project Status
 
-> **Phase 1 — Architecture Planning and System Boundary Definition**
-
-- [x] System architecture defined
-- [x] Block diagram completed
-- [x] Mixed-precision datapath specification finalized
-- [x] RHBD strategy documented
-- [ ] RTL implementation in progress
-- [ ] Functional simulation and verification
-- [ ] Synthesis and timing closure (LibreLane)
-- [ ] Physical layout and DRC/LVS sign-off
+- [x] System architecture implemented in RTL (`top.v` integration complete)
+- [x] IIS3DWB SPI boot sequence and burst-read protocol implemented and verified
+- [x] Interleaved Tri-Axis (ITAG) 3-bin Goertzel core with a single shared multiplier implemented and verified
+- [x] Simultaneous tri-axis processing (all X/Y/Z evaluated every block, zero inter-axis latency)
+- [x] Axis sequencing, magnitude computation, and fault flagging implemented and verified
+- [x] TMR + scrubbing applied to control FSMs and configuration registers
+- [x] Full-chain functional simulation passing — **100/100 checks across 4 testbench suites**
+- [x] Simultaneous multi-axis fault injection testing (`tb_top.v` Case 5)
+- [x] Reviewer documentation complete (system architecture, verification methodology, test scenarios, I/O spec, SPI origin, Goertzel core explanation, project tracker)
+- [ ] Gate-level / post-synthesis simulation
+- [ ] LibreLane synthesis and timing closure for the current RTL (`librelane/runs/` contains logs from earlier architecture iterations only)
+- [ ] Physical layout, DRC/LVS sign-off, and physical-level RHBD (guard rings, substrate tapping, routing density constraints)
+- [ ] Host-facing command/configuration bus bridge outside the `top.v` boundary
 - [ ] Final GDS submission
 
 ---

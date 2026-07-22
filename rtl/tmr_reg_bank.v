@@ -8,7 +8,7 @@
 //   0x10 CFG_THRESHOLD [31:0]
 //   0x14 STATUS      [0]=fault_flag (R)
 //   0x18 FAULT_MAG   [31:0] (R)
-//   0x1C FAULT_BIN   [1:0]  (R)
+//   0x1C FAULT_BIN   [1:0]=bin idx (R), [3:2]=axis idx 0=X/1=Y/2=Z (R)
 //============================================================================
 `timescale 1ns/1ps
 `default_nettype none
@@ -27,9 +27,9 @@ module tmr_reg_bank (
     output reg         pready,
 
     // config outputs
-    output wire [23:0] cfg_c0,
-    output wire [23:0] cfg_c1,
-    output wire [23:0] cfg_c2,
+    output wire signed [23:0] cfg_c0,
+    output wire signed [23:0] cfg_c1,
+    output wire signed [23:0] cfg_c2,
     output wire [31:0] cfg_threshold,
     output reg         cfg_start,
     output reg         cfg_stop,
@@ -39,7 +39,8 @@ module tmr_reg_bank (
     // status inputs
     input  wire        fault_flag,
     input  wire [31:0] fault_mag_latched,
-    input  wire [1:0]  fault_bin_latched
+    input  wire [1:0]  fault_bin_latched,
+    input  wire [1:0]  fault_axis_latched
 );
 
     function automatic [31:0] vote32;
@@ -116,7 +117,7 @@ module tmr_reg_bank (
                 8'h10: prdata <= cfg_threshold;
                 8'h14: prdata <= {31'd0, fault_flag};
                 8'h18: prdata <= fault_mag_latched;
-                8'h1C: prdata <= {30'd0, fault_bin_latched};
+                8'h1C: prdata <= {28'd0, fault_axis_latched, fault_bin_latched};
                 default: prdata <= 32'd0;
             endcase
         end

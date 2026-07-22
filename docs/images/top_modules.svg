@@ -1,0 +1,339 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#080F1E"/>
+      <stop offset="50%" stop-color="#0B1528"/>
+      <stop offset="100%" stop-color="#050A14"/>
+    </linearGradient>
+
+    <!-- Card Gradients -->
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#121F38"/>
+      <stop offset="100%" stop-color="#0D172A"/>
+    </linearGradient>
+    <linearGradient id="extCardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#162722"/>
+      <stop offset="100%" stop-color="#0E1A17"/>
+    </linearGradient>
+    <linearGradient id="hostCardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#281A30"/>
+      <stop offset="100%" stop-color="#1A1121"/>
+    </linearGradient>
+
+    <!-- Drop Shadows / Glows -->
+    <filter id="cyanGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="magentaGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <filter id="greenGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="4" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+
+    <!-- Arrow Markers -->
+    <marker id="arrowCyan" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#00E5FF"/>
+    </marker>
+    <marker id="arrowYellow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#FFC107"/>
+    </marker>
+    <marker id="arrowPink" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#FF007F"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+      <path d="M0,0 L6,3 L0,6 Z" fill="#00FF66"/>
+    </marker>
+  </defs>
+
+  <style>
+    .title { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 24px; font-weight: 800; fill: #00E5FF; letter-spacing: 2px; }
+    .subtitle { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 12px; fill: #8892B0; letter-spacing: 1px; }
+    .card-title { font-family: 'Courier New', Courier, monospace; font-size: 14px; font-weight: bold; fill: #00E5FF; }
+    .card-subtitle { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 10px; fill: #8892B0; font-weight: 600; }
+    .card-text { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 10px; fill: #CCD6F6; }
+    .port-text { font-family: 'Courier New', Courier, monospace; font-size: 9px; fill: #A8B2D1; }
+    .edge-label { font-family: 'Courier New', Courier, monospace; font-size: 9px; fill: #00E5FF; text-anchor: middle; }
+    .edge-label-yellow { font-family: 'Courier New', Courier, monospace; font-size: 9px; fill: #FFC107; text-anchor: middle; }
+    .edge-label-pink { font-family: 'Courier New', Courier, monospace; font-size: 9px; fill: #FF007F; text-anchor: middle; }
+  </style>
+
+  <!-- Background -->
+  <rect width="1200" height="700" fill="url(#bgGrad)"/>
+
+
+
+  <!-- TITLE -->
+  <text x="50" y="45" class="title">GF180 ASIC - VIBRATION DETECTION SYSTEM</text>
+  <text x="50" y="65" class="subtitle">AUTONOMOUS ANOMALY DETECTOR - RTL SIGNAL &amp; DATA FLOW</text>
+
+  <!-- ==================== EXTERNAL HARDWARE ==================== -->
+  <!-- Header -->
+  <text x="50" y="105" font-family="'Helvetica Neue', Helvetica" font-size="12" font-weight="bold" fill="#888888" letter-spacing="1">EXTERNAL HARDWARE</text>
+  <line x1="50" y1="112" x2="250" y2="112" stroke="#888888" stroke-width="1" opacity="0.3"/>
+
+  <!-- Sensor Card -->
+  <rect x="50" y="130" width="200" height="150" rx="6" fill="url(#extCardGrad)" stroke="#00FF66" stroke-width="1.5" opacity="0.8"/>
+  <rect x="50" y="130" width="200" height="25" rx="6" fill="#0E1A17"/>
+  <text x="60" y="146" font-family="'Courier New'" font-size="11" font-weight="bold" fill="#00FF66">IIS3DWB SENSOR</text>
+  <text x="60" y="170" class="card-subtitle">3-AXIS DIGITAL VIBRATION</text>
+  <text x="60" y="190" class="card-text">• Output Data Rate: 26.667 kHz</text>
+  <text x="60" y="205" class="card-text">• 16-bit 2's Complement PCM</text>
+  <text x="60" y="220" class="card-text">• SPI Protocol (Mode 3)</text>
+  <text x="60" y="235" class="card-text">• DRDY Interrupt Signal</text>
+
+  <!-- Host/Flight Computer Card -->
+  <rect x="50" y="420" width="200" height="180" rx="6" fill="url(#hostCardGrad)" stroke="#FF007F" stroke-width="1.5" opacity="0.8"/>
+  <rect x="50" y="420" width="200" height="25" rx="6" fill="#1A1121"/>
+  <text x="60" y="436" font-family="'Courier New'" font-size="11" font-weight="bold" fill="#FF007F">SATELLITE HOST</text>
+  <text x="60" y="460" class="card-subtitle">FLIGHT COMPUTER (MCU)</text>
+  <text x="60" y="480" class="card-text">• Configures Coefficients (c0,c1,c2)</text>
+  <text x="60" y="495" class="card-text">• Sets Alarm Magnitudes &amp; Thresh</text>
+  <text x="60" y="510" class="card-text">• Reads Status &amp; Clears Faults</text>
+  <text x="60" y="525" class="card-text">• Communicates via APB Slave</text>
+  <text x="60" y="540" class="card-text">• Monitors Hardware ALARM Interrupt</text>
+
+
+  <!-- ==================== GF180 ASIC CUSTOM SILICON BOUNDARY ==================== -->
+  <rect x="310" y="90" width="840" height="540" rx="10" fill="none" stroke="#00E5FF" stroke-width="2" filter="url(#cyanGlow)" opacity="0.4"/>
+  <rect x="310" y="90" width="840" height="540" rx="10" fill="none" stroke="#00E5FF" stroke-width="1.5"/>
+  <text x="330" y="112" font-family="'Helvetica Neue', Helvetica" font-size="12" font-weight="bold" fill="#00E5FF" letter-spacing="1">GF180 ASIC CUSTOM SILICON</text>
+
+  <!-- 1. SPI_APB_INTERFACE -->
+  <g transform="translate(340, 130)">
+    <rect width="210" height="150" rx="6" fill="url(#cardGrad)" stroke="#00E5FF" stroke-width="1.5"/>
+    <text x="15" y="25" class="card-title">SPI_APB_INTERFACE</text>
+    <text x="15" y="42" class="card-subtitle">SPI MASTER + APB ROUTER</text>
+    <line x1="15" y1="48" x2="195" y2="48" stroke="#00E5FF" stroke-width="1" opacity="0.3"/>
+    <text x="15" y="65" class="card-text">• Wraps internal SPI Master</text>
+    <text x="15" y="80" class="card-text">• Triggers reads via sensor_drdy</text>
+    <text x="15" y="95" class="card-text">• Performs APB Master writes</text>
+    <text x="15" y="110" class="card-text">• Handles Sequencer polling</text>
+    
+    <!-- Ports -->
+    <text x="5" y="65" class="port-text" text-anchor="start">MISO</text>
+    <text x="5" y="85" class="port-text" text-anchor="start">DRDY</text>
+    <text x="5" y="105" class="port-text" text-anchor="start">CSN/SCK</text>
+    <text x="205" y="70" class="port-text" text-anchor="end">REQ/RESP</text>
+    <text x="150" y="142" class="port-text" text-anchor="middle">APB MASTER</text>
+  </g>
+
+  <!-- 2. TMR_REG_BANK -->
+  <g transform="translate(340, 390)">
+    <rect width="210" height="210" rx="6" fill="url(#cardGrad)" stroke="#B19FFB" stroke-width="1.5"/>
+    <text x="15" y="25" class="card-title" fill="#B19FFB">TMR_REG_BANK</text>
+    <text x="15" y="42" class="card-subtitle">TRIPLICATED REGS &amp; VOTERS</text>
+    <line x1="15" y1="48" x2="195" y2="48" stroke="#B19FFB" stroke-width="1" opacity="0.3"/>
+    <text x="15" y="65" class="card-text">• Redundant registers (TMR x3)</text>
+    <text x="15" y="80" class="card-text">• Resists radiation (SEU upsets)</text>
+    <text x="15" y="95" class="card-text">• Stores Coefficients &amp; Threshold</text>
+    <text x="15" y="110" class="card-text">• Latches fault magnitude &amp; axis</text>
+    <text x="15" y="125" class="card-text">• Controls Run Enable system state</text>
+    <text x="15" y="140" class="card-text">• Exposes APB Slave interface</text>
+    
+    <!-- Ports -->
+    <text x="105" y="15" class="port-text" text-anchor="middle">APB SLAVE</text>
+    <text x="205" y="80" class="port-text" text-anchor="end">CFG</text>
+    <text x="205" y="130" class="port-text" text-anchor="end">RUN</text>
+    <text x="205" y="180" class="port-text" text-anchor="end">LATCH</text>
+  </g>
+
+  <!-- 3. AXIS_SEQUENCER -->
+  <g transform="translate(620, 130)">
+    <rect width="210" height="130" rx="6" fill="url(#cardGrad)" stroke="#FFC107" stroke-width="1.5"/>
+    <text x="15" y="25" class="card-title" fill="#FFC107">AXIS_SEQUENCER</text>
+    <text x="15" y="42" class="card-subtitle">3-AXIS TIME-MULTIPLEXER</text>
+    <line x1="15" y1="48" x2="195" y2="48" stroke="#FFC107" stroke-width="1" opacity="0.3"/>
+    <text x="15" y="65" class="card-text">• Polls SPI_APB for new samples</text>
+    <text x="15" y="80" class="card-text">• Commands sequentially X, Y, Z</text>
+    <text x="15" y="95" class="card-text">• Controls DSP execution start</text>
+    <text x="15" y="110" class="card-text">• Issues block clear pulses</text>
+
+    <!-- Ports -->
+    <text x="5" y="70" class="port-text" text-anchor="start">REQ/RESP</text>
+    <text x="105" y="122" class="port-text" text-anchor="middle">X_N / RDY / CLR</text>
+  </g>
+
+  <!-- 4. GOERTZEL_CORE -->
+  <g transform="translate(620, 310)">
+    <rect width="210" height="150" rx="6" fill="url(#cardGrad)" stroke="#00FF66" stroke-width="1.5"/>
+    <text x="15" y="25" class="card-title" fill="#00FF66">GOERTZEL_CORE</text>
+    <text x="15" y="42" class="card-subtitle">3-BIN TIME-SHARED DSP</text>
+    <line x1="15" y1="48" x2="195" y2="48" stroke="#00FF66" stroke-width="1" opacity="0.3"/>
+    <text x="15" y="65" class="card-text">• Computes Goertzel v1, v2 terms</text>
+    <text x="15" y="80" class="card-text">• Shares single hardware multiplier</text>
+    <text x="15" y="95" class="card-text">• Redundant internal accumulators</text>
+    <text x="15" y="110" class="card-text">• 3 computation cycles per sample</text>
+    <text x="15" y="125" class="card-text">• Q8.15 Fixed-point format</text>
+
+    <!-- Ports -->
+    <text x="105" y="15" class="port-text" text-anchor="middle">X_N / RDY / CLR</text>
+    <text x="5" y="80" class="port-text" text-anchor="start">CFG</text>
+    <text x="205" y="80" class="port-text" text-anchor="end">MULT BUS</text>
+    <text x="105" y="142" class="port-text" text-anchor="middle">DONE / V1,V2</text>
+  </g>
+
+  <!-- 5. MAGNITUDE_COMPUTE -->
+  <g transform="translate(620, 500)">
+    <rect width="210" height="110" rx="6" fill="url(#cardGrad)" stroke="#00FF66" stroke-width="1.5"/>
+    <text x="15" y="25" class="card-title" fill="#00FF66">MAGNITUDE_COMPUTE</text>
+    <text x="15" y="42" class="card-subtitle">DSP MULTIPLIER SERVICE</text>
+    <line x1="15" y1="48" x2="195" y2="48" stroke="#00FF66" stroke-width="1" opacity="0.3"/>
+    <text x="15" y="65" class="card-text">• Solves squared magnitude</text>
+    <text x="15" y="80" class="card-text">• Shares core multiplier</text>
+    <text x="15" y="95" class="card-text">• Pipelines: v1^2 + v2^2 - v1*v2*C</text>
+
+    <!-- Ports -->
+    <text x="105" y="15" class="port-text" text-anchor="middle">V1,V2 / IN</text>
+    <text x="205" y="60" class="port-text" text-anchor="end">MULT BUS</text>
+    <text x="170" y="102" class="port-text" text-anchor="middle">MAG VAL</text>
+  </g>
+
+  <!-- 6. FAULT_FLAGGER -->
+  <g transform="translate(900, 310)">
+    <rect width="210" height="180" rx="6" fill="url(#cardGrad)" stroke="#FF007F" stroke-width="1.5"/>
+    <text x="15" y="25" class="card-title" fill="#FF007F">FAULT_FLAGGER</text>
+    <text x="15" y="42" class="card-subtitle">THRESHOLD COMPARATOR</text>
+    <line x1="15" y1="48" x2="195" y2="48" stroke="#FF007F" stroke-width="1" opacity="0.3"/>
+    <text x="15" y="65" class="card-text">• Compares mag to threshold</text>
+    <text x="15" y="80" class="card-text">• Runs block sizing (512 window)</text>
+    <text x="15" y="95" class="card-text">• Holds fault latch parameters</text>
+    <text x="15" y="110" class="card-text">• Drives Alarm IRQ line</text>
+    <text x="15" y="125" class="card-text">• Handles fault clearing logic</text>
+
+    <!-- Ports -->
+    <text x="5" y="70" class="port-text" text-anchor="start">CFG</text>
+    <text x="5" y="110" class="port-text" text-anchor="start">MAG VAL</text>
+    <text x="5" y="150" class="port-text" text-anchor="start">LATCH</text>
+    <text x="205" y="95" class="port-text" text-anchor="end">ALARM</text>
+  </g>
+
+  <!-- ==================== SIGNALS & PATHS ==================== -->
+
+  <!-- SENSOR TO SPI_APB_INTERFACE -->
+  <!-- MISO -->
+  <path d="M 250,175 L 340,175" stroke="#00FF66" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <text x="295" y="170" class="edge-label" fill="#00FF66">miso</text>
+
+  <!-- DRDY -->
+  <path d="M 250,210 L 340,210" stroke="#00FF66" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <text x="295" y="205" class="edge-label" fill="#00FF66">sensor_drdy</text>
+
+  <!-- CSN/SCLK/MOSI -->
+  <path d="M 340,245 L 250,245" stroke="#00E5FF" stroke-width="2" marker-end="url(#arrowCyan)"/>
+  <text x="295" y="240" class="edge-label">spi_bus</text>
+
+
+  <!-- HOST TO TMR_REG_BANK (APB SLAVE) -->
+  <!-- APB SLAVE BUS -->
+  <path d="M 150,420 L 150,340 L 445,340 L 445,390" stroke="#B19FFB" stroke-width="2.5" fill="none" marker-end="url(#arrowCyan)"/>
+  <text x="280" y="335" class="edge-label" fill="#B19FFB">APB Host Interface (p_addr, pwdata, pwrite, penable)</text>
+  <path d="M 430,390 L 430,355 L 135,355 L 135,420" stroke="#B19FFB" stroke-width="2" fill="none" marker-end="url(#arrowCyan)"/>
+  <text x="280" y="367" class="edge-label" fill="#B19FFB">prdata, pready</text>
+
+
+  <!-- SPI_APB_INTERFACE TO TMR_REG_BANK (APB MASTER) -->
+  <!-- APB MASTER BUS -->
+  <path d="M 370,280 L 370,390" stroke="#B19FFB" stroke-width="3" marker-end="url(#arrowCyan)"/>
+  <path d="M 390,390 L 390,280" stroke="#B19FFB" stroke-width="3" marker-end="url(#arrowCyan)"/>
+  <text x="380" y="335" class="edge-label" fill="#B19FFB" transform="rotate(-90 380 335)">TMR_FWD_APB</text>
+
+
+  <!-- SPI_APB_INTERFACE TO AXIS_SEQUENCER (REQ/RESP) -->
+  <path d="M 550,170 L 620,170" stroke="#FFC107" stroke-width="2" marker-end="url(#arrowYellow)"/>
+  <path d="M 620,190 L 550,190" stroke="#FFC107" stroke-width="2" marker-end="url(#arrowYellow)"/>
+  <text x="585" y="162" class="edge-label-yellow">seq_req</text>
+  <text x="585" y="202" class="edge-label-yellow">resp_data</text>
+
+
+  <!-- TMR CONFIG TO INTERNAL BLOCKS -->
+  <!-- Run Enable to Sequencer -->
+  <path d="M 550,440 L 590,440 L 590,240 L 620,240" stroke="#B19FFB" stroke-width="1.5" fill="none" stroke-dasharray="3,3" marker-end="url(#arrowCyan)"/>
+  <!-- Run Enable to Goertzel -->
+  <path d="M 550,445 L 620,445" stroke="#B19FFB" stroke-width="1.5" fill="none" stroke-dasharray="3,3" marker-end="url(#arrowCyan)"/>
+  <text x="585" y="435" class="edge-label" fill="#B19FFB">run_enable</text>
+
+  <!-- Coefficients & Threshold -->
+  <path d="M 445,600 L 445,640 L 920,640 L 920,490" stroke="#FFC107" stroke-width="1.5" fill="none" stroke-dasharray="3,3" marker-end="url(#arrowYellow)"/>
+  <path d="M 605,640 L 605,430 L 620,430" stroke="#FFC107" stroke-width="1.5" fill="none" stroke-dasharray="3,3" marker-end="url(#arrowYellow)"/>
+  <path d="M 610,640 L 610,580 L 620,580" stroke="#FFC107" stroke-width="1.5" fill="none" stroke-dasharray="3,3" marker-end="url(#arrowYellow)"/>
+  <text x="750" y="635" class="edge-label-yellow">cfg_c0, cfg_c1, cfg_c2, cfg_threshold</text>
+
+
+  <!-- AXIS_SEQUENCER TO GOERTZEL_CORE -->
+  <path d="M 725,260 L 725,310" stroke="#FFC107" stroke-width="2" marker-end="url(#arrowYellow)"/>
+  <text x="730" y="290" class="edge-label-yellow" text-anchor="start">core_x_n / data_ready</text>
+
+
+  <!-- AXIS_SEQUENCER TO MAGNITUDE_COMPUTE / FAULT_FLAGGER (AXIS & CLR) -->
+  <!-- current_axis to mag_inst -->
+  <path d="M 830,195 L 870,195 L 870,550 L 830,550" stroke="#FFC107" stroke-width="1.5" fill="none" marker-end="url(#arrowYellow)"/>
+  <text x="875" y="275" class="edge-label-yellow" text-anchor="start">current_axis</text>
+  
+  <!-- block_clear to ff_inst -->
+  <path d="M 830,225 L 885,225 L 885,340 L 900,340" stroke="#FFC107" stroke-width="1.5" fill="none" marker-end="url(#arrowYellow)"/>
+  <text x="880" y="250" class="edge-label-yellow" text-anchor="start">block_clear</text>
+
+
+  <!-- SHARED MULTIPLIER BUS (GOERTZEL &lt;-&gt; MAGNITUDE) -->
+  <path d="M 830,370 L 850,370 L 850,520 L 830,520" stroke="#00FF66" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"/>
+  <path d="M 830,535 L 840,535 L 840,385 L 830,385" stroke="#00FF66" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"/>
+  <text x="845" y="450" class="edge-label" fill="#00FF66" transform="rotate(90 845 450)">mult_req / mult_a / mult_b / mult_q</text>
+
+
+  <!-- GOERTZEL STATE TO MAGNITUDE -->
+  <path d="M 700,460 L 700,500" stroke="#00FF66" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <text x="705" y="485" class="edge-label" fill="#00FF66" text-anchor="start">v1_x, v2_x</text>
+
+  <!-- GOERTZEL TO FAULT_FLAGGER -->
+  <path d="M 790,460 L 790,480 L 910,480 L 910,490 L 920,490" stroke="#00FF66" stroke-width="2" fill="none"/>
+  <path d="M 830,350 L 900,350" stroke="#00FF66" stroke-width="2" marker-end="url(#arrowGreen)"/>
+  <text x="865" y="345" class="edge-label" fill="#00FF66">sample_done</text>
+
+
+  <!-- MAGNITUDE TO FAULT_FLAGGER -->
+  <path d="M 830,590 L 950,590 L 950,490" stroke="#00FF66" stroke-width="2" fill="none" marker-end="url(#arrowGreen)"/>
+  <text x="945" y="560" class="edge-label" fill="#00FF66" text-anchor="end">mag_out, mag_out_valid</text>
+
+
+  <!-- FAULT_FLAGGER TO TMR_REG_BANK (LATCHED FAULTS) -->
+  <path d="M 1005,490 L 1005,620 L 400,620 L 400,600" stroke="#FF007F" stroke-width="2.5" fill="none" marker-end="url(#arrowPink)"/>
+  <text x="700" y="615" class="edge-label-pink">fault_flag / latched_magnitude / latched_axis / latched_bin</text>
+
+
+  <!-- FAULT_FLAGGER TO SATELLITE HOST (ALARM INTERRUPT) -->
+  <path d="M 1110,400 L 1150,400 L 1150,660 L 110,660 L 110,600" stroke="#FF007F" stroke-width="2.5" fill="none" marker-end="url(#arrowPink)"/>
+  <text x="630" y="655" class="edge-label-pink">ALARM IRQ (Hardware Interrupt to Host Computer)</text>
+  
+  <!-- LED Output Indication -->
+  <circle cx="1150" cy="400" r="5" fill="#FF007F" filter="url(#magentaGlow)"/>
+
+
+  <!-- ==================== LEGEND PANEL ==================== -->
+  <g transform="translate(930, 110)">
+    <rect width="180" height="150" rx="6" fill="#0C1625" stroke="#888888" stroke-width="1" opacity="0.8"/>
+    <text x="15" y="20" font-family="'Helvetica Neue', Helvetica" font-size="10" font-weight="bold" fill="#888888" letter-spacing="1">SIGNAL LEGEND</text>
+    <line x1="15" y1="26" x2="165" y2="26" stroke="#888888" stroke-width="1" opacity="0.3"/>
+    
+    <!-- Legend item 1 -->
+    <line x1="15" y1="45" x2="45" y2="45" stroke="#00FF66" stroke-width="2"/>
+    <text x="55" y="48" font-family="'Helvetica Neue', Helvetica" font-size="9" fill="#CCD6F6">SPI / DSP Data Path</text>
+
+    <!-- Legend item 2 -->
+    <line x1="15" y1="70" x2="45" y2="70" stroke="#FFC107" stroke-width="2"/>
+    <text x="55" y="73" font-family="'Helvetica Neue', Helvetica" font-size="9" fill="#CCD6F6">Sequencer / Control</text>
+
+    <!-- Legend item 3 -->
+    <line x1="15" y1="95" x2="45" y2="95" stroke="#B19FFB" stroke-width="2"/>
+    <text x="55" y="98" font-family="'Helvetica Neue', Helvetica" font-size="9" fill="#CCD6F6">APB Config / Registers</text>
+
+    <!-- Legend item 4 -->
+    <line x1="15" y1="120" x2="45" y2="120" stroke="#FF007F" stroke-width="2"/>
+    <text x="55" y="123" font-family="'Helvetica Neue', Helvetica" font-size="9" fill="#CCD6F6">Fault / Alarm IRQ</text>
+  </g>
+
+</svg>

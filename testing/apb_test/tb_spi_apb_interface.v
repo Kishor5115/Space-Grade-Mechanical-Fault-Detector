@@ -64,7 +64,7 @@ module tb_spi_apb_interface;
     wire [31:0] tmr_last_addr, tmr_last_data;
     wire        tmr_wr_event;
 
-    tmr_reg_bank tmr_stub (
+    tmr_slave_stub tmr_stub (
         .clk(clk),
         .sys_rst_n(sys_rst_n),
         .psel(psel),
@@ -177,6 +177,9 @@ module tb_spi_apb_interface;
     reg [47:0] captured_sample;
 
     initial begin
+        $dumpfile("waves.vcd");
+        $dumpvars(0, tb_spi_apb_interface);
+
         sys_rst_n = 0;
         #45 sys_rst_n = 1;
         @(posedge clk);

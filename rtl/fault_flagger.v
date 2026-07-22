@@ -1,15 +1,17 @@
 //============================================================================
 // fault_flagger.v
-// Owns the 512-sample block counter (counts sample_done pulses, pulses
-// block_clear every 512). Compares magnitude_compute's per-bin mag_out
+// Owns the 171-sample block counter (counts sample_done pulses, pulses
+// block_clear every 171). Compares magnitude_compute's per-bin mag_out
 // stream against cfg_threshold -- immediate trip, no debounce.
-// fault_flag is sticky until cfg_fault_clear.
+// fault_flag is sticky until cfg_fault_clear. fault_bin_latched/
+// fault_axis_latched jointly identify which frequency bin AND which
+// physical sensor axis (X/Y/Z) produced the tripping magnitude.
 //============================================================================
 `timescale 1ns/1ps
 `default_nettype none
 
 module fault_flagger #(
-    parameter integer BLOCK_SIZE = 512
+    parameter integer BLOCK_SIZE = 171  // Reduced from 512 for 3x faster axis rotation (competition area optimization)
 )(
     input  wire        clk,
     input  wire        rst_n,
@@ -19,6 +21,7 @@ module fault_flagger #(
 
     input  wire [31:0] mag_in,
     input  wire [1:0]  mag_bin_idx,
+    input  wire [1:0]  mag_axis_idx,
     input  wire        mag_in_valid,
 
     input  wire [31:0] cfg_threshold,
@@ -26,7 +29,8 @@ module fault_flagger #(
 
     output reg         fault_flag,
     output reg  [31:0] fault_mag_latched,
-    output reg  [1:0]  fault_bin_latched
+    output reg  [1:0]  fault_bin_latched,
+    output reg  [1:0]  fault_axis_latched
 );
 
     localparam integer CNT_W = $clog2(BLOCK_SIZE);
@@ -68,12 +72,14 @@ module fault_flagger #(
             fault_flag        <= 1'b0;
             fault_mag_latched <= 32'd0;
             fault_bin_latched <= 2'd0;
+            fault_axis_latched<= 2'd0;
         end else begin
             if (cfg_fault_clear)   fault_flag <= 1'b0;
             if (over && !fault_flag) begin
                 fault_flag        <= 1'b1;
                 fault_mag_latched <= mag_in;
                 fault_bin_latched <= mag_bin_idx;
+                fault_axis_latched<= mag_axis_idx;
             end
         end
     end

@@ -7,7 +7,7 @@ microarchitecture vs. the current axis-sequential design.
 `fault_flagger.v` / `tmr_reg_bank.v` / SPI front-end reviewed for backward compatibility.
 
 > This analysis is derived from a full read of the checked-in RTL as of this commit.
-> Where CLAUDE.md's own estimates differ from what the RTL implies, the RTL-derived
+> Where initial design estimates differ from what the RTL implies, the RTL-derived
 > number is used and the discrepancy is called out explicitly (see §7).
 
 ---
@@ -16,7 +16,7 @@ microarchitecture vs. the current axis-sequential design.
 
 | Fact | Source in RTL | Value |
 |---|---|---|
-| System clock | CLAUDE.md / skills | 10 MHz (100 ns) |
+| System clock | Project specification | 10 MHz (100 ns) |
 | Sample rate | IIS3DWB boot config | 26.667 kHz |
 | Cycles per sample | 10 MHz / 26.667 kHz | **375** |
 | goertzel_core FSM | `goertzel_core.v` | 7 states, 3-bit TMR (`state_a/b/c`, `vote3`) |
@@ -31,8 +31,8 @@ microarchitecture vs. the current axis-sequential design.
 > ⚠️ **Block-size discrepancy (pre-existing, not introduced by ITAG).**
 > `fault_flagger.v`'s *default* parameter is `BLOCK_SIZE = 171`, but `top.v`
 > instantiates it as `fault_flagger #(.BLOCK_SIZE(512))`. The **effective** block
-> size in the integrated chip is therefore **512**, matching CLAUDE.md's "Key
-> Numbers", while `README.md` still describes 171. This should be reconciled in
+> size in the integrated chip is therefore **512**, matching the target specification,
+> while `README.md` still describes 171. This should be reconciled in
 > Phase 4 docs. ITAG keeps the effective block size at 512 (§6).
 
 ---
@@ -65,7 +65,7 @@ ITAG raises the pair count from 3 bins to **9 (axis,bin) pairs**:
 mag session = 1 (M_ARM) + 9 pairs × 6 cycles = 1 + 54 = 55 cycles
 ```
 
-> 📝 **Correction to CLAUDE.md.** CLAUDE.md Phase-1 note says "27 multiplies … 54
+> 📝 **Clarification on initial design notes.** Some early design notes estimated "27 multiplies … 54
 > cycles". The multiply *count* is right (9 pairs × 3 multiplies), but the FSM
 > spends 6 cycles per pair (a WAIT state follows each of the 3 multiplies), so the
 > session is **55 cycles including `M_ARM`**, or 54 excluding it. The margin below
@@ -139,8 +139,8 @@ DFF ≈ 2.5 µm² is used only for order-of-magnitude context.
 | Input sample reg | `x_q15_r` 24 | `x/y/z_q15_r` 72 | **+48** |
 | Multiplier / adder / sat logic | shared, 1× | shared, 1× | 0 |
 
-> 📝 **Correction to CLAUDE.md.** CLAUDE.md's Phase-1 area section reports "+294 DFFs"
-> counting only the 12 v-registers (+288) and the state widening (+6). It **omits**
+> 📝 **Clarification on initial area estimates.** Initial design projections reported "+294 DFFs"
+> counting only the 12 v-registers (+288) and the state widening (+6). They **omitted**
 > (a) the two new input-sample registers `y_q15_r`, `z_q15_r` (+48 DFF), and,
 > more significantly, (b) the `magnitude_compute` snapshot expansion below.
 
@@ -182,8 +182,8 @@ TOTAL                                                     ≈ +645 DFF
 ```
 
 > 📝 **Bottom line on area:** the honest number is **≈ +645 DFF**, roughly **2.2×**
-> CLAUDE.md's stated "+294". The difference is almost entirely the `magnitude_compute`
-> snapshot expansion (+288), which CLAUDE.md's area section did not account for.
+> the initial estimate of "+294". The difference is almost entirely the `magnitude_compute`
+> snapshot expansion (+288), which the initial estimate did not account for.
 > At ~2.5 µm²/DFF this is ≈ 1600 µm² — still **negligible** against the shared 24×24
 > multiplier and the 600×600 µm die budget, and still far below Option 2 (sample
 > buffering) from the README tradeoff table. The conclusion ("area cost is negligible")
@@ -275,7 +275,7 @@ the current design for the one active axis, and is the intended fail-safe (false
 biased) behavior for a safety monitor. **Recommendation:** if the widened cross-section is
 a concern, Phase 2+ could add an optional periodic scrub (`block_clear`-driven zeroing is
 already effectively a 512-sample scrub) or revisit triplicating v-state — but this is a
-*policy* decision outside CLAUDE.md's stated scope and is flagged, not assumed.
+*policy* decision outside the primary architectural scope and is flagged, not assumed.
 
 **Overall:** ITAG is radiation-neutral-to-slightly-positive on control logic (removes the
 axis-index TMR/scrub), and consistent with the existing Rule C philosophy on datapath. The
@@ -290,7 +290,7 @@ per-block clear.
 |---|---|---|
 | `fault_flagger.v` | **None** (RTL unchanged). Still consumes `mag_in`, `mag_bin_idx`, `mag_axis_idx`, `mag_in_valid`, `sample_done`, drives `block_clear`. | Now receives **9** `mag_out_valid` pulses/block instead of 3; sticky-fault comparator handles any count. `sample_done` still once/sample. Block counter contract intact. |
 | Effective block size | Stays **512** (`top.v` override retained). | No counter re-parameterization. |
-| `tmr_reg_bank.v` | None. | Same APB map, same `cfg_c0/c1/c2`, `cfg_threshold`. All 3 axes reuse the same 3 coefficients (CLAUDE.md). |
+| `tmr_reg_bank.v` | None. | Same APB map, same `cfg_c0/c1/c2`, `cfg_threshold`. All 3 axes reuse the same 3 coefficients. |
 | `spi_apb_interface.v`, `spi_master.v`, `apb.v` | None. | Burst still delivers X/Y/Z; ITAG simply stops discarding Y/Z. |
 | `axis_sequencer` ↔ `goertzel_core` | `core_x_n` → `core_x_n` + `core_y_n` + `core_z_n`; `goertzel_core` gains `y_n`, `z_n` ports; `current_axis` port **removed**. | Port-list change; `top.v` rewiring. |
 | `goertzel_core` ↔ `magnitude_compute` | v-output/input set grows 6 → 18; `axis_in` port **removed** from `magnitude_compute`. | Port-list change; `top.v` rewiring. |
@@ -299,17 +299,17 @@ per-block clear.
 
 No change to the APB register map, no change to external chip pins, no change to the
 SPI/sensor contract. **Backward compatibility is limited to internal port renaming and
-`top.v` rewiring**, exactly as CLAUDE.md's file map anticipates.
+`top.v` rewiring**, exactly as anticipated.
 
 ---
 
-## 7. Summary of corrections to CLAUDE.md's own estimates
+## 7. Summary of corrections to initial design estimates
 
 The proposal is sound and the timing/latency conclusions hold. Three numeric points in
-CLAUDE.md should be corrected for accuracy (all in the "less optimistic" direction, none
+the initial projections should be corrected for accuracy (all in the "less optimistic" direction, none
 changes the go/no-go):
 
-1. **Area delta is ≈ +645 DFF, not +294.** CLAUDE.md counted goertzel's +12 v-regs (+288)
+1. **Area delta is ≈ +645 DFF, not +294.** The initial estimate counted goertzel's +12 v-regs (+288)
    and +6 state bits but omitted the `magnitude_compute` snapshot expansion (+288) and the
    two extra input-sample registers (+48). Still negligible vs. the shared multiplier.
 2. **Mag session is 55 cycles (1 `M_ARM` + 9×6), not 54.** The multiply *count* (27) is
@@ -335,11 +335,11 @@ snapshot indexed by bin (coefficients are shared across axes), avoiding an unnec
   3× larger unprotected v-state cross-section, mitigated by per-block clear (§5),
 - requires **zero** changes to `fault_flagger`, `tmr_reg_bank`, or the SPI front-end (§6).
 
-All ten Design Invariants in CLAUDE.md remain satisfiable by the Phase-2 plan:
+All ten Design Invariants remain satisfiable by the Phase-2 plan:
 Q8.15 only, single shared multiplier, TMR on all three FSMs (goertzel widened to 5-bit),
 SEU-safe defaults, `block_clear` priority, once-per-sample `sample_done`,
 `default_nettype none`, explicit sign-extension, saturating 3-input sums, operand isolation.
 
-**Recommended Phase-2 implementation order (unchanged from CLAUDE.md):**
+**Recommended Phase-2 implementation order (unchanged from early projections):**
 `goertzel_core.v` → `axis_sequencer.v` → `magnitude_compute.v` → `top.v`, then testbench,
 then docs. Pausing here for review before touching RTL, as requested.

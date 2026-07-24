@@ -1,0 +1,75 @@
+meta:
+  version: 3
+  flow: Classic
+
+PDK: gf180mcuD
+DESIGN_NAME: top
+
+VERILOG_FILES:
+  - dir::../rtl/multiplier.v
+  - dir::../rtl/clk_divider.v
+  - dir::../rtl/ff_2_sync.v
+  - dir::../rtl/apb_arb2.v
+  - dir::../rtl/cmd_spi_slave.v
+  - dir::../rtl/apb.v
+  - dir::../rtl/spi_master.v
+  - dir::../rtl/spi_apb_interface.v
+  - dir::../rtl/tmr_reg_bank.v
+  - dir::../rtl/axis_sequencer.v
+  - dir::../rtl/goertzel_core.v
+  - dir::../rtl/magnitude_compute.v
+  - dir::../rtl/fault_flagger.v
+  - dir::../rtl/top.v
+
+# ------------------------------------------------------------
+# Clocking
+# ------------------------------------------------------------
+# System clock: 16 MHz (62.5 ns period).
+# SPI clock is clk / 8 via clk_divider (produces 2.0 MHz SPI SCK,
+# well within the IIS3DWB's 10 MHz SPI-clock maximum).
+CLOCK_PORT: clk
+CLOCK_NET:  clk
+CLOCK_PERIOD: 62.5   # ns (16 MHz)
+
+FALLBACK_SDC: dir::../librelane/test2/constraints.sdc
+
+# ------------------------------------------------------------
+# Synthesis
+# ------------------------------------------------------------
+# AREA 0 keeps the critical-path register chain for the Goertzel v1/v2
+# state compact. DELAY 0 would over-duplicate at this clock rate.
+SYNTH_STRATEGY: "AREA 0"
+
+# ------------------------------------------------------------
+# Floorplan & Placement
+# ------------------------------------------------------------
+FP_SIZING:       relative
+FP_CORE_UTIL:    40
+PL_TARGET_DENSITY_PCT: 55
+
+# ------------------------------------------------------------
+# Routing
+# ------------------------------------------------------------
+GRT_ALLOW_CONGESTION: true
+
+# ------------------------------------------------------------
+# Linter warnings suppressed (same set as test2/config_lint.yaml)
+# ------------------------------------------------------------
+RUN_LINTER: true
+LINTER_DISABLE_WARNINGS_BLACKBOX:
+  - UNDRIVEN
+  - UNUSEDSIGNAL
+  - TIMESCALEMOD
+  - PINMISSING
+LINTER_DISABLE_WARNINGS:
+  - DECLFILENAME
+  - EOFNEWLINE
+  - MODDUP
+  - MODMISSING
+  - PINCONNECTEMPTY
+  - PINMISSING
+  - WIDTHEXPAND
+  - UNUSEDPARAM
+  - UNUSEDSIGNAL
+  - CASEINCOMPLETE
+  - SYNCASYNCNET

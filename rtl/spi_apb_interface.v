@@ -110,6 +110,12 @@ module spi_apb_interface (
 
   wire [3:0] local_addr = req_addr[3:0];
 
+  // Forward declarations — these wires are defined in their proper sections
+  // below, but iverilog requires all wires used in always blocks to be declared
+  // before (or at the same scope as) their first use.
+  wire req_valid_pulse; // defined near line 175 (edge-qualified req_valid)
+  wire fwd_done;        // defined near line 264 (FWD_DONE_S state reached)
+
   // ack spi_master as soon as we've latched its data, freeing it to
   // go back to IDLE and wait for the next DRDY
   always @(posedge clk or negedge sys_rst_n)
@@ -172,7 +178,7 @@ module spi_apb_interface (
   reg [31:0] local_rdata;
   reg        local_done;
   reg        req_valid_d;
-  wire       req_valid_pulse = req_valid & ~req_valid_d;
+  assign     req_valid_pulse = req_valid & ~req_valid_d;
 
   always @(posedge clk or negedge sys_rst_n)
   begin
@@ -261,7 +267,7 @@ module spi_apb_interface (
   reg        fwd_req_valid;
   reg [31:0] fwd_req_addr;
   reg [31:0] fwd_req_wdata;
-  wire       fwd_done = (fwd_state == FWD_DONE_S);
+  assign     fwd_done = (fwd_state == FWD_DONE_S);
 
   assign apb_req_valid = tmr_forward_en ? fwd_req_valid : 1'b0;
   assign apb_req_write = 1'b1; // forwarder only ever writes

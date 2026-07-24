@@ -63,7 +63,7 @@ Encoded in Q8.15 (24-bit signed): C_k_q815 = round(C_k × 32768)
 
 ### 3.1 The Core Innovation
 
-The standard Goertzel implementation processes one axis at a time. The **Interleaved Tri-Axis Goertzel (ITAG)** microarchitecture interleaves computation across all three axes (X, Y, Z) within a **single sample period**. At 10 MHz system clock / 26.667 kHz sensor ODR, each sample period is **375 clock cycles**. The ITAG core uses only **18 of those cycles** (4.8%) for active computation, leaving 95.2% idle.
+The standard Goertzel implementation processes one axis at a time. The **Interleaved Tri-Axis Goertzel (ITAG)** microarchitecture interleaves computation across all three axes (X, Y, Z) within a **single sample period**. At 16 MHz system clock / 26.667 kHz sensor ODR, each sample period is **600 clock cycles**. The ITAG core uses only **18 of those cycles** (3.0%) for active computation, leaving 97.0% idle.
 
 ### 3.2 The 19-State FSM
 
@@ -209,7 +209,7 @@ This single clean overflow clamp (one per update, after the multiply) prevents t
 ### 7.1 Unit Test — `tb_goertzel_core.v` (7/7 checks pass)
 
 **Test setup:**
-- 500 samples of a 2-tone stimulus (1 kHz + 5 kHz) at correct IIS3DWB timing (1 data_ready per 375 clk cycles)
+- 500 samples of a 2-tone stimulus (1 kHz + 5 kHz) at correct IIS3DWB timing (1 data_ready per 600 clk cycles)
 - Same two tones applied to all three axes, but at different amplitudes: **X=1.0×, Y=0.5×, Z=0.25×**
 - Coefficients tuned to 1 kHz (bin 0), 5 kHz (bin 1), 10 kHz off-target (bin 2)
 
@@ -261,7 +261,7 @@ Injects small bin-0 tones on **all three axes simultaneously** (amp_x=0.04, amp_
 | TMR copies | 3 | state_a, state_b, state_c — all driven from voted next-state |
 | v-state registers | 18 | 3 axes × 3 bins × {v1, v2} — each 24-bit, not triplicated |
 | Active cycles/sample | 18 | 6 per axis (2 per bin × 3 bins) |
-| Idle cycles/sample | 357 | 375 − 18 = ~95.2% idle |
+| Idle cycles/sample | 582 | 600 − 18 = ~97.0% idle |
 
 ---
 

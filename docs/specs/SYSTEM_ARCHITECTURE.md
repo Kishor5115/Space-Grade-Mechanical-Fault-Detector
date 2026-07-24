@@ -20,7 +20,7 @@ SATELLITE       │                        rtl/top.v (chip boundary)            
 STRUCTURAL      │                                                                    │
 MEMBER          │  Pin        Direction  Description                                 │
    │            │  ─────────────────────────────────────────────────────────────    │
-   ▼            │  clk        IN         System clock (5–10 MHz)                     │
+   ▼            │  clk        IN         System clock (16 MHz, single domain)         │
  [IIS3DWB]──────│  sys_rst_n  IN         Active-low synchronous reset                │
  MEMS Sensor    │  c_miso     IN         SPI MISO (sensor → ASIC)                   │
    │  │  │  │   │  c_csn      OUT        SPI chip-select, active-low                 │
@@ -151,7 +151,7 @@ The chip has **no external command/configuration bus** within the `top.v` bounda
 top (rtl/top.v)
 ├── spi_apb_interface (rtl/spi_apb_interface.v)
 │   ├── spi_master (rtl/spi_master.v)
-│   │   ├── clk_divider_5 (rtl/clk_divider_5.v)  — SPI clock generation
+│   │   ├── clk_divider (rtl/clk_divider.v)       — SPI clock generation (÷8)
 │   │   ├── ff_2_sync (rtl/ff_2_sync.v)           — sensor_drdy CDC
 │   │   └── ff_2_sync (rtl/ff_2_sync.v)           — s_miso CDC
 │   └── apb (rtl/apb.v)                            — APB master (Option B)
@@ -215,17 +215,17 @@ v2_new = v1_old
 
 ## 7. Timing Budget
 
-At 10 MHz system clock / 26.667 kHz sensor ODR:
+At 16 MHz system clock / 26.667 kHz sensor ODR:
 
 | Period | Value |
 |---|---|
-| System clock period | 100 ns |
+| System clock period | 62.5 ns |
 | Sensor sample period | 37.5 µs |
-| Clock cycles per sample | 375 cycles |
-| Goertzel active cycles per sample | 18 cycles (4.8%) |
-| Magnitude computation (block boundary) | 55 cycles (14.7%) |
-| Idle cycles (non-boundary sample) | 357 cycles (95.2%) |
-| Worst-case margin (boundary sample) | 302 idle cycles |
+| Clock cycles per sample | 600 cycles |
+| Goertzel active cycles per sample | 18 cycles (3.0%) |
+| Magnitude computation (block boundary) | 55 cycles (9.2%) |
+| Idle cycles (non-boundary sample) | 582 cycles (97.0%) |
+| Worst-case margin (boundary sample) | 527 idle cycles |
 | Detection latency | ≤ 19.2 ms (one block) |
 
 ---
@@ -256,5 +256,5 @@ At 10 MHz system clock / 26.667 kHz sensor ODR:
 | Standard Cell Library | `gf180mcu_fd_sc_mcl` |
 | Core supply | 1.8 V |
 | IO supply | 3.3 V |
-| Target clock | 5–10 MHz |
+| Target clock | 16 MHz (single domain) |
 | Die budget | ~600×600 µm |

@@ -10,7 +10,7 @@ MODEL     := iis3dwb_model.v
 
 # All RTL source files needed by spi_master (no `include directives)
 RTL_SRCS  := $(RTL_DIR)/spi_master.v \
-             $(RTL_DIR)/clk_divider_5.v \
+             $(RTL_DIR)/clk_divider.v \
              $(RTL_DIR)/ff_2_sync.v
 
 SRCS      := $(TOP_TB) $(RTL_SRCS) $(MODEL)

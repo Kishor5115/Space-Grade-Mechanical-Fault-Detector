@@ -120,7 +120,7 @@ Verifies the Interleaved Tri-Axis Goertzel (ITAG) core's arithmetic correctness 
 `goertzel_core` (standalone, with a local multiplier model)
 
 ### Stimulus
-- 500 samples of a **two-tone stimulus** (1 kHz + 5 kHz) at real IIS3DWB timing (one `data_ready` every 375 clock cycles at 10 MHz)
+- 500 samples of a **two-tone stimulus** (1 kHz + 5 kHz) at real IIS3DWB timing (one `data_ready` every 600 clock cycles at 16 MHz)
 - **Same tone applied to all three axes, but at different amplitudes**: X=1.0×, Y=0.5×, Z=0.25×
 - This amplitude ordering proves that:
   - The per-axis datapaths are independent (no cross-talk)

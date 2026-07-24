@@ -11,7 +11,7 @@
 //     magnitude_compute capture path: 1-cycle latency, mult_q valid the cycle
 //     after mult_req).
 //   * Drives 500 samples of a (1 kHz + 5 kHz) two-tone stimulus at the real
-//     10 MHz / 26.667 kHz timing (one data_ready every 375 clk cycles).
+//     16 MHz / 26.667 kHz timing (one data_ready every 600 clk cycles).
 //   * The SAME two-tone shape is applied to all three axes but at DIFFERENT
 //     amplitudes: X = 1.0x, Y = 0.5x, Z = 0.25x. This proves the interleaved
 //     per-axis datapaths are (a) independent and (b) correctly routed -- a
@@ -31,10 +31,10 @@ module goertzel_3bin_tb;
     //------------------------------------------------------------------------
     // System parameters
     //------------------------------------------------------------------------
-    localparam real    CLK_PERIOD_NS = 100.0;    // 10 MHz
+    localparam real    CLK_PERIOD_NS = 62.5;     // 16 MHz
     localparam real    FS_HZ         = 26667.0;  // ADC sample rate
     localparam integer N_SAMPLES     = 500;      // test run length
-    localparam integer SAMPLES_DIV   = 375;      // clk cycles between samples
+    localparam integer SAMPLES_DIV   = 600;      // clk cycles between samples (16 MHz / 26.667 kHz)
     localparam integer DATA_W        = 24;
     localparam integer SAMPLE_W      = 16;
     localparam integer FRAC_W        = 15;       // Q8.15 fractional bits
@@ -142,7 +142,7 @@ module goertzel_3bin_tb;
     always #(CLK_PERIOD_NS/2.0) clk = ~clk;
 
     //------------------------------------------------------------------------
-    // Sample-cadence counter -> one data_ready pulse every 375 cycles.
+    // Sample-cadence counter -> one data_ready pulse every 600 cycles.
     //------------------------------------------------------------------------
     integer cycle_cnt;
     integer n_idx;       // index of the sample currently being delivered

@@ -127,7 +127,7 @@ The ASIC interfaces directly with an off-chip **STMicroelectronics IIS3DWB** dig
 | `fault_flagger` | `rtl/fault_flagger.v` | Owns the 512-sample block counter, compares magnitudes against a programmable threshold, and latches a sticky fault flag with bin/axis attribution |
 | `tmr_reg_bank` | `rtl/tmr_reg_bank.v` | APB slave holding the triplicated, scrubbed configuration registers (`CTRL`, `CFG_C0/C1/C2`, `CFG_THRESHOLD`) and read-only status (`STATUS`, `FAULT_MAG`, `FAULT_BIN`) |
 | `ff_2_sync` | `rtl/ff_2_sync.v` | Generic two-stage D-flip-flop synchronizer used to bring the async `sensor_drdy` and `s_miso` lines into the core clock domain |
-| `clk_divider_5` | `rtl/clk_divider_5.v` | Divide-by-5 clock divider generating the SPI bit clock from the system clock |
+| `clk_divider` | `rtl/clk_divider.v` | Parameterized power-of-2 clock divider (÷8 default) generating the 2 MHz SPI bit clock from the 16 MHz system clock; MSB-tap, glitch-free, 50 % duty |
 
 ---
 
@@ -216,7 +216,7 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 | Standard Cell Library | `gf180mcu_fd_sc_mcl` |
 | Source Language | Verilog HDL (IEEE 1364) |
 | Core Supply Voltage | 1.8 V |
-| Target Core Clock | 5–10 MHz |
+| Target Core Clock | 16 MHz (single clock domain) |
 | Sensor ODR | 26.667 kHz (IIS3DWB, fixed by boot configuration) |
 | Block Size | 512 samples (all three axes per block) |
 | Inter-axis Detection Latency | 0 (X/Y/Z evaluated every block) |
@@ -265,7 +265,7 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 │   ├── fault_flagger.v        # 512-sample block counter + threshold comparator
 │   ├── tmr_reg_bank.v         # APB slave: triplicated + scrubbed config/status regs
 │   ├── ff_2_sync.v            # 2-stage D-FF synchronizer (CDC)
-│   └── clk_divider_5.v        # Divide-by-5 SPI clock generator
+│   └── clk_divider.v          # Parameterized ÷8 SPI clock generator (2 MHz @ 16 MHz)
 │
 ├── testing/                   # Self-checking Icarus Verilog testbenches
 │   ├── spi_master_test/       # tb_spi_master_full.v (71/71 checks), iis3dwb_model.v

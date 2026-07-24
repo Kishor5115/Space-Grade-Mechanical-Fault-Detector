@@ -16,9 +16,9 @@ microarchitecture vs. the current axis-sequential design.
 
 | Fact | Source in RTL | Value |
 |---|---|---|
-| System clock | Project specification | 10 MHz (100 ns) |
+| System clock | Project specification | 16 MHz (62.5 ns) |
 | Sample rate | IIS3DWB boot config | 26.667 kHz |
-| Cycles per sample | 10 MHz / 26.667 kHz | **375** |
+| Cycles per sample | 16 MHz / 26.667 kHz | **600** |
 | goertzel_core FSM | `goertzel_core.v` | 7 states, 3-bit TMR (`state_a/b/c`, `vote3`) |
 | goertzel active cycles/sample (current) | `S_IDLE→B0_MUL…B2_UPD` | **6** |
 | goertzel state regs (current) | `v1_0…v2_2` | 6 × 24-bit |
@@ -90,7 +90,7 @@ Trace the block-boundary sample (worst case, the only sample where mag runs):
 | 21–74 | S_IDLE (idle) | **0** | — | `M_SQV1 … M_CV1_W` ×9 |
 | 75 | S_IDLE | 0 | — | `M_IDLE` |
 | … | S_IDLE | 0 | — | `M_IDLE` |
-| 375 | S_IDLE→XB0_MUL (next sample) | high | — | `M_IDLE` |
+| 600 | S_IDLE→XB0_MUL (next sample) | high | — | `M_IDLE` |
 
 Key points confirmed from RTL:
 
@@ -108,11 +108,11 @@ Key points confirmed from RTL:
 ### 1.4 Idle margin
 
 ```
-Non-boundary sample : 375 − 18            = 357 idle cycles (95.2% idle)
-Boundary sample     : 375 − 18 − 55       = 302 idle cycles (80.5% idle)
+Non-boundary sample : 600 − 18            = 582 idle cycles (97.0% idle)
+Boundary sample     : 600 − 18 − 55       = 527 idle cycles (87.8% idle)
 ```
 
-The next sample's goertzel run (cycle 375) begins **~300 cycles after** the mag session
+The next sample's goertzel run (cycle 600) begins **~525 cycles after** the mag session
 finishes (~cycle 75). **The budget closes with very large margin.** ITAG is timing-safe.
 
 | Metric | Current | ITAG |
@@ -195,7 +195,7 @@ TOTAL                                                     ≈ +645 DFF
 
 | Metric | Current | ITAG |
 |---|---|---|
-| goertzel active duty | 6/375 = 1.6% | 18/375 = 4.8% |
+| goertzel active duty | 6/600 = 1.0% | 18/600 = 3.0% |
 | goertzel datapath switching | 1× | **≈3×** (three axes updated per sample) |
 | Multiplier idle fraction (non-boundary) | 98.4% | 95.2% |
 | mag sessions per **block** | 1 (of 3 bins) | 1 (of 9 pairs) |

@@ -11,7 +11,7 @@ RTL_SRCS  := $(RTL_DIR)/top.v \
              $(RTL_DIR)/spi_apb_interface.v \
              $(RTL_DIR)/apb.v \
              $(RTL_DIR)/spi_master.v \
-             $(RTL_DIR)/clk_divider_5.v \
+             $(RTL_DIR)/clk_divider.v \
              $(RTL_DIR)/ff_2_sync.v \
              $(RTL_DIR)/axis_sequencer.v \
              $(RTL_DIR)/goertzel_core.v \

@@ -46,7 +46,7 @@ The project implements an autonomous radiation-hardened ASIC for spacecraft vibr
 |---|---|---|---|
 | `spi_master.v` | ✅ DONE | Async signal CDC (2-FF sync) | IIS3DWB boot sequence + SPI Mode 3 burst read |
 | `ff_2_sync.v` | ✅ DONE | CDC primitive | 2-stage D-FF synchronizer |
-| `clk_divider_5.v` | ✅ DONE | — | SPI clock generation (÷5) |
+| `clk_divider.v` | ✅ DONE | — | SPI clock generation (÷8) |
 | `spi_apb_interface.v` | ✅ DONE | Edge-qualified req_valid | Option A/B sample delivery |
 | `apb.v` | ✅ DONE | — | Minimal APB master FSM |
 | `axis_sequencer.v` | ✅ DONE | TMR polling FSM (3-bit vote3) | ITAG: simultaneous X/Y/Z presentation |
@@ -84,7 +84,7 @@ The project implements an autonomous radiation-hardened ASIC for spacecraft vibr
 | Task | Status | Notes |
 |---|---|---|
 | LibreLane synthesis (current RTL) | ⬜ TODO | Prior runs in `librelane/runs/` from older arch iteration |
-| Timing closure at 10 MHz | ⬜ TODO | Target: all paths < 100 ns |
+| Timing closure at 16 MHz | ⬜ TODO | Target: all paths < 62.5 ns |
 | Physical layout (place & route) | ⬜ TODO | 600×600 µm die target |
 | DRC / LVS sign-off | ⬜ TODO | GF180MCU design rules |
 | Physical RHBD (guard rings, substrate tapping, routing constraints) | ⬜ TODO | Planned for LibreLane config |
@@ -111,7 +111,7 @@ The project implements an autonomous radiation-hardened ASIC for spacecraft vibr
 | Shared hardware multipliers | 1 (structural, grep-auditable) |
 | Goertzel bins per axis | 3 (programmable frequencies) |
 | Axes processed per sample period | 3 (X, Y, Z — zero inter-axis latency) |
-| Active cycles per sample period | 18 / 375 (~4.8%) |
+| Active cycles per sample period | 18 / 600 (~3.0%) |
 | Block size | 512 samples = 19.2 ms |
 | Detection latency (any axis) | ≤ 19.2 ms |
 | RHBD: TMR FSMs | 3 (goertzel_core, magnitude_compute, axis_sequencer) |

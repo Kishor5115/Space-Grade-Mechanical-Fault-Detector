@@ -30,7 +30,7 @@ The SPI implementation was designed to meet requirements that ruled out a generi
 
 | Sub-module | File | Purpose |
 |---|---|---|
-| `clk_divider_5` | `rtl/clk_divider_5.v` | Divides system clock by 5 to produce the SPI bit clock (`spc_raw`). Toggle-based: output duty cycle is 50%. |
+| `clk_divider` | `rtl/clk_divider.v` | Parameterized power-of-2 divider (÷8 default) producing the SPI bit clock (`spc_raw`) at clk/8 = 2 MHz from the 16 MHz system clock. MSB-tap, glitch-free, 50 % duty. ÷8 keeps the SPI half-period ≥ 4 clk so the 2-FF `s_miso` synchronizer samples the correct bit. |
 | `ff_2_sync` (×2) | `rtl/ff_2_sync.v` | Two-stage D-FF synchronizer, instanced twice: once for `sensor_drdy` (async interrupt), once for `s_miso` (serial data from sensor). Same synchronizer cell used both times. |
 
 ### 3.2 FSM States
@@ -112,7 +112,7 @@ This synchronizer is used for:
 1. `sensor_drdy` (async from IIS3DWB INT1 pin → synchronized for FSM trigger)
 2. `s_miso` (async serial data from sensor → synchronized for data sampling)
 
-The 2-cycle synchronization latency is negligible: at 26.667 kHz ODR against a 10 MHz system clock, there are 375 clock cycles between samples. The 2-cycle DRDY synchronization delay of 0.2 µs is immaterial compared to the ~37.5 µs sample period.
+The 2-cycle synchronization latency is negligible: at 26.667 kHz ODR against a 16 MHz system clock, there are 600 clock cycles between samples. The 2-cycle DRDY synchronization delay of 0.125 µs is immaterial compared to the ~37.5 µs sample period.
 
 ---
 
@@ -161,7 +161,7 @@ The following files from this project may be useful to other teams interfacing w
 | File | Description | License |
 |---|---|---|
 | `rtl/spi_master.v` | SPI Mode 3 master with IIS3DWB boot sequence and 48-bit burst read | See project LICENSE |
-| `rtl/clk_divider_5.v` | Simple divide-by-5 clock divider for SPI clock generation | See project LICENSE |
+| `rtl/clk_divider.v` | Parameterized power-of-2 (÷8) clock divider for SPI clock generation | See project LICENSE |
 | `rtl/ff_2_sync.v` | Generic 2-stage flip-flop synchronizer | See project LICENSE |
 | `testing/spi_master_test/iis3dwb_model.v` | Bus-functional model of the IIS3DWB sensor (simulation only) | See project LICENSE |
 | `testing/spi_master_test/tb_spi_master_full.v` | Self-checking testbench (71 assertions) for the SPI master | See project LICENSE |

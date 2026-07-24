@@ -2,7 +2,7 @@
 
 
 module spi_master (
-    input  clk,                    // sys clk 50 MHz
+    input  clk,                    // single system clock (10 MHz target)
     input  sys_rst_n,
 
     input  sync_data_ready_trig,   // DRDY interrupt from sensor (async)
@@ -28,13 +28,23 @@ module spi_master (
   // ------------------------------------------------------------
   // SPI bit clock: mode 3 idles high, data driven on falling SPC,
   // sampled on rising SPC (per datasheet Section 3.2 / Figure 3).
-  // clk_divider_5 produces a 0/1 toggling clk_out; invert/idle-high
-  // it only while a transfer is active (CS low). While idle, hold
-  // SPC high per mode-3 requirement ("SPC ... stopped high when CS
-  // is high").
+  // clk_divider produces a 50%-duty toggling clk_out at clk/8 (2 MHz
+  // from a 16 MHz system clock), well under the IIS3DWB 10 MHz SPI max
+  // and fast enough to read a 56-bit burst in 28 us < the 37.5 us
+  // sample period. /8 (not a faster divide) is required so the SPI
+  // half-period (4 clk) exceeds the 2-FF MISO synchronizer latency --
+  // see clk_divider.v. We invert/idle-high it only while a transfer is
+  // active (CS low); while idle, SPC is held high per the mode-3
+  // requirement. The divided signal is NEVER used as a clock internally
+  // -- only via the clk-domain edge detectors below -- so the chip stays
+  // single-clock.
   // ------------------------------------------------------------
   wire spc_raw;
-  clk_divider_5 s_clk_inst (.clk_in(clk), .rst_n(sys_rst_n), .clk_out(spc_raw));
+  clk_divider #(.DIV_LOG2(3)) s_clk_inst (
+      .clk_in (clk),
+      .rst_n  (sys_rst_n),
+      .clk_out(spc_raw)
+  );
 
     wire sync_ready_w;
     ff_2_sync ff_sync_drdy (.clk(clk), .async_in(sync_data_ready_trig), .sync_out(sync_ready_w));

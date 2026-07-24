@@ -46,4 +46,8 @@ runs/
 
 vivado/
 
+# Local task/scratch notes -- never commit
+
+CLAUDE.md
+
 

@@ -100,6 +100,7 @@ The project implements an autonomous radiation-hardened ASIC for spacecraft vibr
 |---|---|---|
 | Host-facing command/config bus bridge (SPI-to-APB) | ⬜ TODO | Currently exercised via testbench APB direct writes |
 | Power characterization (post-synthesis switching activity) | ⬜ TODO | RTL estimates in `docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md` |
+| Clock/power gating evaluation | ✅ DONE (no RTL change) | Evaluated and rejected — see §3.1 of `ITAG_ARCHITECTURE_ANALYSIS.md`. Existing operand isolation (multiplier) + synchronous enable-gating (all conditionally-loaded registers) already capture the zero-area-cost win; standalone ICG insertion is not area-neutral and risks masking TMR scrub self-correction. |
 | Formal property verification | ⬜ TODO | FSM reachability, SEU recovery properties |
 
 ---

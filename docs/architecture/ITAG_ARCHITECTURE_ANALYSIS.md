@@ -200,7 +200,7 @@ TOTAL                                                     ≈ +645 DFF
 | Multiplier idle fraction (non-boundary) | 98.4% | 95.2% |
 | mag sessions per **block** | 1 (of 3 bins) | 1 (of 9 pairs) |
 | mag multiplies per **block** | 9 | 27 |
-| mag active as fraction of block | 19 / (512×375) ≈ 0.01% | 55 / (512×375) ≈ 0.03% |
+| mag active as fraction of block | 19 / (512×600) ≈ 0.006% | 55 / (512×600) ≈ 0.018% |
 
 **Discussion.**
 - The dominant dynamic-power term is the shared multiplier, which stays **operand-isolated
@@ -216,6 +216,57 @@ TOTAL                                                     ≈ +645 DFF
   isolation strategy that keeps the multiplier dark. Power remains dominated by leakage,
   which grows <1%. A precise figure requires a post-synthesis `.lib`-based power run
   (LibreLane), out of scope for RTL Phase 1.
+
+### 3.1 Clock/power gating evaluation (area-neutrality gate)
+
+Investigated adding explicit clock-gating hardware (RTL-level ICG cells, or a
+synthesis clock-gating pass) on top of the operand isolation above. **Decision: do
+not add any** — neither option clears an area-neutral bar for this design.
+
+**What already exists, at zero extra area (RTL-level enable gating):**
+- The shared multiplier's operands are driven to `0` by every caller whenever it is
+  not requested (`goertzel_core` and `magnitude_compute`'s FSMs; documented directly
+  in `multiplier.v`'s header), so its combinational cone does not toggle during the
+  ≥95% idle window. This costs nothing extra — it reuses the FSM's own state mux.
+- Every register with an idle condition is already a synchronous conditional load
+  (`if (cond) reg <= ...; ` — otherwise holds): the sample-input registers
+  (`x_q15_r`/`y_q15_r`/`z_q15_r`, load only on `data_ready && enable && S_IDLE`), the
+  18 Goertzel `v1`/`v2` state registers (update only in their own `*_UPD` state), and
+  `magnitude_compute`'s snapshot/output registers (load only on `block_clear_in` or
+  their own FSM state). This is the RTL-level equivalent of clock gating and is
+  already present with no dedicated gating logic.
+
+**Why adding explicit gating on top does not clear the area-neutral bar:**
+- **Synthesis-inferred clock gating is not available in this flow.** Yosys (the
+  synthesis engine LibreLane drives) has no native clock-gating inference; the only
+  way to get it is a third-party plugin (`Lighter`/`cg_plugin`), which is not part of
+  the standard LibreLane/GF180 toolchain used here and has documented failures on
+  other PDKs (missing gated-clock buffer cell in the target standard-cell library).
+  Depending on an unverified plugin is not a safe "area-neutral" change to introduce
+  ahead of a first tapeout run.
+- **Manual RTL-level ICG insertion costs real area.** Each gated clock domain needs a
+  dedicated integrated clock-gate cell plus a glitch-free enable latch (a half-cycle
+  transparent latch, required so the gated clock never toggles mid-high-phase) — net
+  area *increase*, not neutral, for a design that is already flip-flop-only with no
+  SRAM to justify the tradeoff against.
+- **Gating the clock on TMR-voted state is a correctness risk, not just an area
+  question.** `goertzel_core`'s 5-bit voted FSM state and `magnitude_compute`'s 4-bit
+  voted FSM state are re-written from the *voted* value every cycle specifically so a
+  bit-flip self-corrects on the next edge (§ Radiation Hardening Strategy, README). A
+  clock-gating enable that has any bug would silently suppress that self-correction
+  for however long the domain is gated — the opposite of what RHBD scrubbing is for.
+  The datapath registers Rule C intentionally leaves un-triplicated (relying on the
+  512-sample `block_clear`) have the same property: a stuck gate would extend an SEU's
+  lifetime past the next expected scrub.
+
+**Conclusion:** the existing RTL-level enable gating already captures the available
+low-risk, zero-area-cost dynamic-power reduction (dominant term: the multiplier, held
+dark ≥95% of the time). Adding standalone clock/power-gating hardware on top would
+increase area and, on the TMR-voted control state, work against the scrubbing
+discipline the design relies on for SEU tolerance — so no additional gating hardware
+was added. This should be revisited only if a future post-synthesis power report
+shows dynamic power dominating leakage by enough margin to justify a verified,
+PDK-qualified clock-gating cell.
 
 ---
 

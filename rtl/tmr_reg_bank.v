@@ -47,6 +47,10 @@ module tmr_reg_bank (
         input [31:0] a,b,c; begin vote32=(a&b)|(b&c)|(a&c); end
     endfunction
 
+    function automatic [23:0] vote24;
+        input [23:0] a,b,c; begin vote24=(a&b)|(b&c)|(a&c); end
+    endfunction
+
     wire apb_write = psel & penable & pwrite;
     wire [7:0] waddr = p_addr[7:0];
 
@@ -74,9 +78,9 @@ module tmr_reg_bank (
     reg [23:0] c2_a,c2_b,c2_c;
     reg [31:0] th_a,th_b,th_c;
 
-    assign cfg_c0        = vote32({8'd0,c0_a},{8'd0,c0_b},{8'd0,c0_c});
-    assign cfg_c1        = vote32({8'd0,c1_a},{8'd0,c1_b},{8'd0,c1_c});
-    assign cfg_c2        = vote32({8'd0,c2_a},{8'd0,c2_b},{8'd0,c2_c});
+    assign cfg_c0        = vote24(c0_a,c0_b,c0_c);
+    assign cfg_c1        = vote24(c1_a,c1_b,c1_c);
+    assign cfg_c2        = vote24(c2_a,c2_b,c2_c);
     assign cfg_threshold = vote32(th_a,th_b,th_c);
 
     // write + scrub, real write wins

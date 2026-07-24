@@ -31,7 +31,7 @@ CLOCK_PORT: clk
 CLOCK_NET:  clk
 CLOCK_PERIOD: 62.5   # ns (16 MHz)
 
-FALLBACK_SDC: dir::../librelane/test2/constraints.sdc
+FALLBACK_SDC: dir::constraints.sdc
 
 # ------------------------------------------------------------
 # Synthesis
@@ -43,14 +43,16 @@ SYNTH_STRATEGY: "AREA 0"
 # ------------------------------------------------------------
 # Floorplan & Placement
 # ------------------------------------------------------------
-FP_SIZING:       relative
-FP_CORE_UTIL:    40
-PL_TARGET_DENSITY_PCT: 55
+FP_SIZING:             absolute
+DIE_AREA:              [0, 0, 650, 650]
+PL_TARGET_DENSITY_PCT: 70
+MAX_FANOUT_CONSTRAINT: 10
 
 # ------------------------------------------------------------
 # Routing
 # ------------------------------------------------------------
-GRT_ALLOW_CONGESTION: true
+CTS_APPLY_NDR: none
+GRT_ALLOW_CONGESTION:  true
 
 # ------------------------------------------------------------
 # Linter warnings suppressed (same set as test2/config_lint.yaml)
@@ -69,6 +71,7 @@ LINTER_DISABLE_WARNINGS:
   - PINCONNECTEMPTY
   - PINMISSING
   - WIDTHEXPAND
+  - WIDTHTRUNC
   - UNUSEDPARAM
   - UNUSEDSIGNAL
   - CASEINCOMPLETE

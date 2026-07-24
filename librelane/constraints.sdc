@@ -56,6 +56,15 @@ set_false_path -to [get_ports fault_flag_out]
 # period. clk itself is excluded from input-delay budgeting.
 #-----------------------------------------------------------------------------
 set io_delay [expr {$clk_period_ns * 0.30}]
-set data_inputs  [remove_from_collection [all_inputs] [get_ports clk]]
-set_input_delay  -clock clk $io_delay $data_inputs
+set clk_indx [lsearch [all_inputs] [get_ports clk]]
+set non_clk_inputs [lreplace [all_inputs] $clk_indx $clk_indx ""]
+set_input_delay  -clock clk $io_delay $non_clk_inputs
 set_output_delay -clock clk $io_delay [all_outputs]
+
+# --- Suppress expected/harmless OpenROAD warnings ---
+# STA-1140: duplicate standard cell library read
+if {[info commands suppress_message] != ""} {
+    suppress_message STA 1140
+    # RSZ-0020: 2 floating nets (VDD/VSS)
+    suppress_message RSZ 0020
+}

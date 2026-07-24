@@ -47,3 +47,7 @@ runs/
 vivado/
 
 
+# opendb files
+*.db
+
+

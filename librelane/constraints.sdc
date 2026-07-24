@@ -38,6 +38,13 @@ set_false_path -from [get_ports sensor_drdy]
 set_false_path -from [get_ports c_miso]
 set_false_path -from [get_ports tmr_forward_en]
 
+# Command-SPI config bus is sampled asynchronously and 2-FF synchronized into
+# the clk domain (single-clock, oversampled receiver -- cmd_spi_slave.v), so
+# cut it from timing like the other async inputs.
+set_false_path -from [get_ports cmd_sclk]
+set_false_path -from [get_ports cmd_csn]
+set_false_path -from [get_ports cmd_mosi]
+
 # Async reset: asynchronous assert, release is reset-synchronized in practice.
 set_false_path -from [get_ports sys_rst_n]
 

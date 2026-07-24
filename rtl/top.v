@@ -25,6 +25,15 @@ module top (
     // push samples to tmr_reg_bank over apb)
     input  wire        tmr_forward_en,
 
+    // External command-SPI bus (host/RISC-V -> chip): write-only config
+    // channel for Goertzel coefficients, threshold, and control. Sampled
+    // asynchronously and 2-FF synchronized into the clk domain (single-clock,
+    // oversampled receiver -- see cmd_spi_slave.v). Host must clock cmd_sclk
+    // at <= clk/4 (<= 4 MHz at 16 MHz). Tie cmd_csn high if unused.
+    input  wire        cmd_sclk,
+    input  wire        cmd_csn,
+    input  wire        cmd_mosi,
+
     // Fault output to RISC core
     output wire        fault_flag_out
 );
@@ -37,7 +46,22 @@ module top (
     wire        seq_req_valid, seq_req_write, seq_req_done;
     wire [31:0] seq_req_addr, seq_req_wdata, seq_resp_rdata;
 
-    // APB master bus wires (spi_apb_interface -> tmr_reg_bank)
+    // APB master bus wires (spi_apb_interface Option-B forwarder -> arbiter m0)
+    wire        fwd_apb_pwrite, fwd_apb_psel, fwd_apb_penable;
+    wire [31:0] fwd_apb_p_addr, fwd_apb_pwdata;
+    wire        fwd_apb_pready;
+    wire [31:0] fwd_apb_prdata;
+
+    // Command-SPI config APB master bus (cmd apb master -> arbiter m1)
+    wire        cmd_apb_pwrite, cmd_apb_psel, cmd_apb_penable;
+    wire [31:0] cmd_apb_p_addr, cmd_apb_pwdata;
+    wire        cmd_apb_pready;
+    wire [31:0] cmd_apb_prdata;
+
+    // Arbitrated APB slave bus (arbiter -> tmr_reg_bank). NOTE: these net
+    // names are kept as apb_* because the top-level testbench drives config
+    // by force/release on exactly these wires (a stand-in for the command-SPI
+    // host); the command-SPI path drives them for real in silicon.
     wire        apb_pwrite, apb_psel, apb_penable;
     wire [31:0] apb_p_addr, apb_pwdata, apb_prdata;
     wire        apb_pready;
@@ -58,20 +82,90 @@ module top (
         .req_wdata         (seq_req_wdata),
         .req_done          (seq_req_done),
         .resp_rdata        (seq_resp_rdata),
-        // APB master bus to tmr_reg_bank
-        .prdata            (apb_prdata),
-        .pready            (apb_pready),
-        .pwrite            (apb_pwrite),
-        .p_addr            (apb_p_addr),
-        .pwdata            (apb_pwdata),
-        .psel              (apb_psel),
-        .penable           (apb_penable),
+        // APB master bus to tmr_reg_bank (via arbiter, Option-B forwarder path)
+        .prdata            (fwd_apb_prdata),
+        .pready            (fwd_apb_pready),
+        .pwrite            (fwd_apb_pwrite),
+        .p_addr            (fwd_apb_p_addr),
+        .pwdata            (fwd_apb_pwdata),
+        .psel              (fwd_apb_psel),
+        .penable           (fwd_apb_penable),
         // sensor SPI
         .s_miso            (c_miso),
         .s_csn             (c_csn),
         .s_clk             (c_sclk),
         .s_mosi            (c_mosi),
         .sync_data_ready_trig(sensor_drdy)
+    );
+
+    // ----------------------------------------------------------------
+    // cmd_spi_slave: external host/RISC-V configuration receiver.
+    // Oversampled, single-clock, write-only. Emits a req_* handshake that
+    // its own apb master (cmd_apb_master) turns into APB writes.
+    // ----------------------------------------------------------------
+    wire        cmd_req_valid, cmd_req_write, cmd_req_done;
+    wire [31:0] cmd_req_addr, cmd_req_wdata;
+    wire [31:0] cmd_req_rdata_unused;
+
+    cmd_spi_slave cmd_spi_inst (
+        .clk       (clk),
+        .rst_n     (sys_rst_n),
+        .cmd_sclk  (cmd_sclk),
+        .cmd_csn   (cmd_csn),
+        .cmd_mosi  (cmd_mosi),
+        .req_valid (cmd_req_valid),
+        .req_write (cmd_req_write),
+        .req_addr  (cmd_req_addr),
+        .req_wdata (cmd_req_wdata),
+        .req_done  (cmd_req_done)
+    );
+
+    apb cmd_apb_master (
+        .clk        (clk),
+        .sys_rst_n  (sys_rst_n),
+        .req_valid  (cmd_req_valid),
+        .req_write  (cmd_req_write),
+        .req_addr   (cmd_req_addr),
+        .req_wdata  (cmd_req_wdata),
+        .req_done   (cmd_req_done),
+        .resp_rdata (cmd_req_rdata_unused),
+        .prdata     (cmd_apb_prdata),
+        .pready     (cmd_apb_pready),
+        .pwrite     (cmd_apb_pwrite),
+        .p_addr     (cmd_apb_p_addr),
+        .pwdata     (cmd_apb_pwdata),
+        .psel       (cmd_apb_psel),
+        .penable    (cmd_apb_penable)
+    );
+
+    // ----------------------------------------------------------------
+    // apb_arb2: share the single tmr_reg_bank APB slave between the
+    // Option-B sample forwarder (m0) and the command-SPI config path (m1).
+    // ----------------------------------------------------------------
+    apb_arb2 apb_arb_inst (
+        .clk       (clk),
+        .rst_n     (sys_rst_n),
+        .m0_psel   (fwd_apb_psel),
+        .m0_penable(fwd_apb_penable),
+        .m0_pwrite (fwd_apb_pwrite),
+        .m0_paddr  (fwd_apb_p_addr),
+        .m0_pwdata (fwd_apb_pwdata),
+        .m0_pready (fwd_apb_pready),
+        .m0_prdata (fwd_apb_prdata),
+        .m1_psel   (cmd_apb_psel),
+        .m1_penable(cmd_apb_penable),
+        .m1_pwrite (cmd_apb_pwrite),
+        .m1_paddr  (cmd_apb_p_addr),
+        .m1_pwdata (cmd_apb_pwdata),
+        .m1_pready (cmd_apb_pready),
+        .m1_prdata (cmd_apb_prdata),
+        .s_psel    (apb_psel),
+        .s_penable (apb_penable),
+        .s_pwrite  (apb_pwrite),
+        .s_paddr   (apb_p_addr),
+        .s_pwdata  (apb_pwdata),
+        .s_pready  (apb_pready),
+        .s_prdata  (apb_prdata)
     );
 
     // ----------------------------------------------------------------

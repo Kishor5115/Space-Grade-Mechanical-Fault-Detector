@@ -226,7 +226,41 @@ In addition to the fault-injection cases, the testbench continuously monitors:
 
 ---
 
-## 6. Running the Testbenches
+## 6. Testbench 5 — External Command-SPI Coefficient Reception (`tb_cmd_spi.v`)
+
+### Location
+`testing/cmd_spi_test/tb_cmd_spi.v`
+
+### Purpose
+Verifies the external configuration path added for host/RISC-V-driven coefficient, threshold, and control programming: `cmd_spi_slave` → its own `apb` master → `apb_arb2` → `tmr_reg_bank`. Unlike `tb_top.v` (which loads configuration via a hierarchical APB force, standing in for a not-yet-implemented host bridge), this testbench drives the **real external pins** (`cmd_sclk`/`cmd_csn`/`cmd_mosi`) exactly as an external host would, with no hierarchical shortcuts on the stimulus side.
+
+### DUT Under Test
+`top.v` — full chip, with the sensor-facing SPI pins held quiet (`c_miso=0`, `sensor_drdy=0`) so only the command-SPI path is exercised.
+
+### Stimulus
+A bit-banged SPI mode-3 host model drives 40-bit `{address[7:0], data[31:0]}` frames MSb-first, with `cmd_csn` held low for the whole frame, at a 5 MHz command clock against the testbench's 50 MHz-equivalent core clock (10× oversampling — comfortably above the ≥4× the receiver's 2-FF synchronizer requires).
+
+### Test Sequence and Expected Results
+
+| Step | Frame Sent (`addr`, `data`) | Register Written | Expected Result |
+|---|---|---|---|
+| 1 | `0x04`, `0x0012_3456` | `CFG_C0` | `dut.cfg_c0 == 0x00_1234_56` |
+| 2 | `0x08`, `0x000A_BCDE` | `CFG_C1` | `dut.cfg_c1 == 0x00_0ABC_DE` |
+| 3 | `0x0C`, `0x007F_FFFF` | `CFG_C2` | `dut.cfg_c2 == 0x00_7FFF_FF` |
+| 4 | `0x10`, `0xDEAD_BEEF` | `CFG_THRESHOLD` | `dut.cfg_threshold == 0xDEAD_BEEF` |
+| 5 | `0x00`, `0x0000_0001` | `CTRL` (`cfg_start`) | `dut.run_enable == 1` |
+| 6 | `0x00`, `0x0000_0004` | `CTRL` (`cfg_stop`) | `dut.run_enable == 0` |
+| 7–8 | — | — | `CFG_C0`/`CFG_THRESHOLD` unchanged by the CTRL writes (no cross-register corruption) |
+
+### Result
+**8/8 checks passing** (Icarus Verilog)
+
+### How Results Confirm Correct Operation
+Because the stimulus enters through the actual chip pins (not a hierarchical force), a pass here demonstrates the complete external-to-internal path is silicon-legal: the asynchronous 2-FF synchronization of `cmd_sclk`/`cmd_csn`/`cmd_mosi`, the clk-domain SCLK edge detection, the 40-bit shift-and-frame logic, the `apb_arb2` grant to the command path, and `tmr_reg_bank`'s register decode all function correctly together — with the chip remaining in its single 16 MHz clock domain throughout (no second clock is ever created).
+
+---
+
+## 7. Running the Testbenches
 
 All testbenches use **Icarus Verilog 13.0**. From the repository root:
 
@@ -236,9 +270,10 @@ make sim_spi        # 71/71 checks
 make sim_apb        # 8/8 checks
 make sim_goertzel   # 7/7 checks
 make sim_top        # 14/14 checks
+make sim_cmd_spi    # 8/8 checks
 
 # All at once
-make sim_all        # 100/100 checks
+make sim_all        # 108/108 checks
 
 # Clean generated files
 make clean
@@ -248,7 +283,7 @@ Each target compiles all RTL sources, runs the simulation, and prints pass/fail 
 
 ---
 
-## 7. Verification Coverage Summary
+## 8. Verification Coverage Summary
 
 | Coverage Area | Layer Covered | Status |
 |---|---|---|
@@ -267,5 +302,7 @@ Each target compiles all RTL sources, runs the simulation, and prints pass/fail 
 | Single-multiplier no-contention | Integration TB | ✅ |
 | Block counter cadence (512:1) | Integration TB | ✅ |
 | ITAG 9-pulse/block invariant | Integration TB | ✅ |
+| External command-SPI frame reception (real pins) | Command-SPI TB | ✅ |
+| Command-SPI → APB → tmr_reg_bank register writes | Command-SPI TB | ✅ |
 | Gate-level / post-synthesis simulation | — | ⬜ Planned |
 | Formal property verification (FSM reachability) | — | ⬜ Planned |

@@ -25,16 +25,17 @@ SPI_DIR      := testing/spi_master_test
 APB_DIR      := testing/apb_test
 GOERTZEL_DIR := testing/goertzel_core
 TOP_DIR      := testing/top_test
+CMD_SPI_DIR  := testing/cmd_spi_test
 
 IVERILOG := iverilog
 VVP      := vvp
 IFLAGS   := -g2012 -I rtl
 
-.PHONY: all sim_all sim_spi sim_apb sim_goertzel sim_top clean
+.PHONY: all sim_all sim_spi sim_apb sim_goertzel sim_top sim_cmd_spi clean
 
 all: sim_all
 
-sim_all: sim_spi sim_apb sim_goertzel sim_top
+sim_all: sim_spi sim_apb sim_goertzel sim_top sim_cmd_spi
 
 sim_spi:
 	$(MAKE) -C $(SPI_DIR) run
@@ -52,8 +53,12 @@ sim_goertzel:
 sim_top:
 	$(MAKE) -C $(TOP_DIR) run
 
+sim_cmd_spi:
+	$(MAKE) -C $(CMD_SPI_DIR) run
+
 clean:
 	$(MAKE) -C $(SPI_DIR) clean
 	$(MAKE) -C $(APB_DIR) clean
 	$(MAKE) -C $(TOP_DIR) clean
+	$(MAKE) -C $(CMD_SPI_DIR) clean
 	rm -f $(GOERTZEL_DIR)/sim.out goertzel_3bin_tb.vcd

@@ -58,6 +58,11 @@ module tb_top;
         .c_mosi         (c_mosi),
         .sensor_drdy    (sensor_drdy),
         .tmr_forward_en (tmr_forward_en),
+        // command-SPI config bus unused here (tb drives config via APB force);
+        // hold it idle so cmd_spi_slave stays parked.
+        .cmd_sclk       (1'b1),
+        .cmd_csn        (1'b1),
+        .cmd_mosi       (1'b0),
         .fault_flag_out (fault_flag_out)
     );
 

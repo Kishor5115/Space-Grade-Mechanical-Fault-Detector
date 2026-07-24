@@ -20,7 +20,7 @@ SATELLITE       │                        rtl/top.v (chip boundary)            
 STRUCTURAL      │                                                                    │
 MEMBER          │  Pin        Direction  Description                                 │
    │            │  ─────────────────────────────────────────────────────────────    │
-   ▼            │  clk        IN         System clock (16 MHz, single domain)         │
+   ▼            │  clk        IN         System clock (16 MHz, single domain)        │
  [IIS3DWB]──────│  sys_rst_n  IN         Active-low synchronous reset                │
  MEMS Sensor    │  c_miso     IN         SPI MISO (sensor → ASIC)                   │
    │  │  │  │   │  c_csn      OUT        SPI chip-select, active-low                 │
@@ -30,12 +30,15 @@ MEMBER          │  Pin        Direction  Description                          
    │  │  └──────│─────────────────────────────────────────────────────────          │
    │  └─────────│─ (SPI bus)                                                        │
    └────────────│─────────────────────────────────────────────────────────          │
+                │  cmd_sclk   IN         Command-SPI bit clock (host → ASIC, async) │
+                │  cmd_csn    IN         Command-SPI chip-select, active-low        │
+                │  cmd_mosi   IN         Command-SPI MOSI (host → ASIC, write-only) │
                 │  tmr_forward_en IN     0=Option A (local only), 1=Option B        │
                 │  fault_flag_out OUT    Sticky digital fault flag → host/RISC      │
-                └────────────────────────────────────────────────────────────────────┘
+                └───────────────────────────────────────────────────────────────────┘
 ```
 
-The chip has **no external command/configuration bus** within the `top.v` boundary. Coefficients and threshold are programmed via the internal APB bus — in the final silicon a host-facing SPI-to-APB bridge sits outside this boundary. During simulation, the internal APB bus is driven directly by the testbench.
+An external host/RISC-V core connects to `cmd_sclk`/`cmd_csn`/`cmd_mosi` to program coefficients, threshold, and control. `cmd_spi_slave` samples these pins asynchronously, 2-FF-synchronizes them into the core clock domain, and turns each 40-bit `{address, data}` frame into an APB write via its own `apb` master and the `apb_arb2` arbiter — so the internal APB bus (`tmr_reg_bank`'s register map, §5 of `IO_SPECIFICATION.md`) is reachable from outside `top.v` without any additional clock domain. During register-level unit testing, the internal APB bus may also be driven directly by a testbench.
 
 ---
 
@@ -154,7 +157,13 @@ top (rtl/top.v)
 │   │   ├── clk_divider (rtl/clk_divider.v)       — SPI clock generation (÷8)
 │   │   ├── ff_2_sync (rtl/ff_2_sync.v)           — sensor_drdy CDC
 │   │   └── ff_2_sync (rtl/ff_2_sync.v)           — s_miso CDC
-│   └── apb (rtl/apb.v)                            — APB master (Option B)
+│   └── apb (rtl/apb.v)                            — APB master (Option B forwarder, arb m0)
+├── cmd_spi_slave (rtl/cmd_spi_slave.v)            — external config receiver
+│   ├── ff_2_sync (rtl/ff_2_sync.v)               — cmd_sclk CDC
+│   ├── ff_2_sync (rtl/ff_2_sync.v)               — cmd_csn CDC
+│   └── ff_2_sync (rtl/ff_2_sync.v)               — cmd_mosi CDC
+├── apb (rtl/apb.v)                                — APB master (command-SPI config, arb m1)
+├── apb_arb2 (rtl/apb_arb2.v)                      — 2:1 APB arbiter (m1 priority)
 ├── tmr_reg_bank (rtl/tmr_reg_bank.v)             — APB slave, config/status
 ├── axis_sequencer (rtl/axis_sequencer.v)          — SPI sample demuxing
 ├── goertzel_core (rtl/goertzel_core.v)            — ITAG IIR engine

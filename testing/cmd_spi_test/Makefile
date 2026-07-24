@@ -1,12 +1,11 @@
-# Makefile for tb_top.v (full-chip end-to-end testbench)
+# Makefile for tb_cmd_spi.v (external coefficient reception, end-to-end via top)
 
 RTL_DIR   := ../../rtl
 TEST_DIR  := .
 
-TOP_TB    := tb_top.v
-MODEL     := ../spi_master_test/iis3dwb_model.v
+TOP_TB    := tb_cmd_spi.v
 
-# All RTL source files (no `include directives -- list explicitly)
+# Full chip + all deps (top instantiates the command-SPI config path).
 RTL_SRCS  := $(RTL_DIR)/top.v \
              $(RTL_DIR)/spi_apb_interface.v \
              $(RTL_DIR)/apb.v \
@@ -22,10 +21,10 @@ RTL_SRCS  := $(RTL_DIR)/top.v \
              $(RTL_DIR)/fault_flagger.v \
              $(RTL_DIR)/tmr_reg_bank.v
 
-SRCS      := $(TOP_TB) $(RTL_SRCS) $(MODEL)
+SRCS      := $(TOP_TB) $(RTL_SRCS)
 
 SIM       := sim.out
-WAVE      := tb_top.vcd
+WAVE      := tb_cmd_spi.vcd
 
 IVERILOG  := iverilog
 VVP       := vvp

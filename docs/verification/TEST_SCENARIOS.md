@@ -343,7 +343,8 @@ These checks run continuously during the integration test and validate internal 
 | `tb_spi_apb_interface.v` | 8 | ✅ 8/8 PASS |
 | `tb_goertzel_core.v` | 7 | ✅ 7/7 PASS |
 | `tb_top.v` | 14 | ✅ 14/14 PASS |
-| **TOTAL** | **100** | **✅ 100/100 PASS** |
+| `tb_cmd_spi.v` | 8 | ✅ 8/8 PASS |
+| **TOTAL** | **108** | **✅ 108/108 PASS** |
 
 ---
 

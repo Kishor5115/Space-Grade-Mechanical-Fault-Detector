@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-The project implements an autonomous radiation-hardened ASIC for spacecraft vibration fault detection using the **Interleaved Tri-Axis Goertzel (ITAG)** DSP algorithm, targeting GlobalFoundries GF180MCU via the LibreLane open-source RTL-to-GDS flow. All RTL is implemented, all four testbench suites pass (100/100 checks), and the full-chip integration simulation is verified end-to-end.
+The project implements an autonomous radiation-hardened ASIC for spacecraft vibration fault detection using the **Interleaved Tri-Axis Goertzel (ITAG)** DSP algorithm, targeting GlobalFoundries GF180MCU via the LibreLane open-source RTL-to-GDS flow. All RTL is implemented, all five testbench suites pass (108/108 checks), and the full-chip integration simulation — including external coefficient reception over the command-SPI bus — is verified end-to-end.
 
 ---
 
@@ -49,6 +49,8 @@ The project implements an autonomous radiation-hardened ASIC for spacecraft vibr
 | `clk_divider.v` | ✅ DONE | — | SPI clock generation (÷8) |
 | `spi_apb_interface.v` | ✅ DONE | Edge-qualified req_valid | Option A/B sample delivery |
 | `apb.v` | ✅ DONE | — | Minimal APB master FSM |
+| `cmd_spi_slave.v` | ✅ DONE | 2-FF sync (cmd_sclk/csn/mosi) | External command-SPI config receiver (RISC-V coefficient/threshold/control) |
+| `apb_arb2.v` | ✅ DONE | — | 2:1 APB arbiter (command config + sample forwarder) |
 | `axis_sequencer.v` | ✅ DONE | TMR polling FSM (3-bit vote3) | ITAG: simultaneous X/Y/Z presentation |
 | `goertzel_core.v` | ✅ DONE | TMR FSM (5-bit vote5) | 19-state ITAG, 18 v-state regs, Q8.15 |
 | `multiplier.v` | ✅ DONE | Operand isolation | Single chip-wide hardware multiplier |
@@ -65,7 +67,8 @@ The project implements an autonomous radiation-hardened ASIC for spacecraft vibr
 | `tb_spi_apb_interface.v` | Option A/B sample delivery, APB forwarding | ✅ PASS | 8/8 |
 | `tb_goertzel_core.v` | ITAG tri-axis independence, Q8.15 accuracy, sample_done timing | ✅ PASS | 7/7 |
 | `tb_top.v` | Full sensor-to-fault_flag chain, per-axis attribution, simultaneous 3-axis | ✅ PASS | 14/14 |
-| **TOTAL** | | **✅ ALL PASS** | **100/100** |
+| `tb_cmd_spi.v` | External coefficient/threshold/control reception via `top`'s command-SPI pins | ✅ PASS | 8/8 |
+| **TOTAL** | | **✅ ALL PASS** | **108/108** |
 
 ### Phase 4 — Documentation (Addressing Reviewer Feedback) ✅ COMPLETE
 
@@ -106,7 +109,7 @@ The project implements an autonomous radiation-hardened ASIC for spacecraft vibr
 | Metric | Value |
 |---|---|
 | RTL modules implemented | 12 |
-| Total testbench check assertions | 100/100 PASS |
+| Total testbench check assertions | 108/108 PASS |
 | Estimated flip-flop count (RTL) | ~645 DFF above baseline (ITAG delta) |
 | Shared hardware multipliers | 1 (structural, grep-auditable) |
 | Goertzel bins per axis | 3 (programmable frequencies) |
@@ -131,4 +134,4 @@ The project implements an autonomous radiation-hardened ASIC for spacecraft vibr
 
 ---
 
-*Updated after full simulation run confirming 100/100 checks passing — 2026-07-22*
+*Updated after full simulation run confirming 108/108 checks passing (adds external command-SPI coefficient reception) — 2026-07-24*

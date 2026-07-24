@@ -157,7 +157,7 @@ module magnitude_compute #(
         begin vote4=(a&b)|(b&c)|(a&c); end
     endfunction
 
-    reg [3:0] ms_a, ms_b, ms_c;
+    (* keep = "true" *) reg [3:0] ms_a, ms_b, ms_c;
     wire [3:0] ms_v = vote4(ms_a, ms_b, ms_c);
     reg [3:0] ms_next;
 

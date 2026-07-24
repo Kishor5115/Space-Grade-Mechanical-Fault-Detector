@@ -51,7 +51,7 @@ module axis_sequencer (
         S_S0_REQ=3'd3, S_S0_WAIT=3'd4,
         S_S1_REQ=3'd5, S_S1_WAIT=3'd6, S_PRESENT=3'd7;
 
-    reg [2:0] ps_a, ps_b, ps_c;
+    (* keep = "true" *) reg [2:0] ps_a, ps_b, ps_c;
     wire [2:0] ps_v = vote3(ps_a, ps_b, ps_c);
     reg [2:0]  ps_next;
 

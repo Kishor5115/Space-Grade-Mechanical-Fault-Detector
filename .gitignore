@@ -50,4 +50,6 @@ vivado/
 # opendb files
 *.db
 
+.DS_store
+.DS_Store
 

@@ -173,7 +173,7 @@ module goertzel_core #(
     endfunction
 
     // Triple Modular Redundancy: three physical copies of the state register.
-    reg  [4:0] state_a, state_b, state_c;
+    (* keep = "true" *) reg  [4:0] state_a, state_b, state_c;
     wire [4:0] state_v = vote5(state_a, state_b, state_c); // voted (SEU-scrubbed)
     reg  [4:0] next_state;
 

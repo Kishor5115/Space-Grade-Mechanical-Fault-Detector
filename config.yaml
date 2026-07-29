@@ -1,0 +1,45 @@
+meta:
+  version: 3
+  flow: Classic
+
+DESIGN_NAME: top
+VERILOG_FILES:
+  - dir::rtl/*.v
+CLOCK_PORT: clk
+CLOCK_PERIOD: 20
+
+# Custom SDC — overrides LibreLane's default base.sdc.
+FALLBACK_SDC: dir::constraints.sdc
+
+# Die sizing left relative — actual instance count for this design is unknown
+# until synthesis runs (TMR triplication + Goertzel core will not be counter-sized).
+FP_SIZING: relative
+PL_TARGET_DENSITY_PCT: 45
+
+VDD_NETS: [VDD]
+GND_NETS: [VSS]
+
+PRIMARY_GDSII_STREAMOUT_TOOL: klayout
+DIODE_ON_PORTS: in
+RT_MAX_LAYER: Metal4
+PDN_MULTILAYER: false
+
+PDN_VWIDTH: 5
+PDN_HWIDTH: 5
+PDN_VSPACING: 1
+PDN_HSPACING: 1
+PDN_VPITCH: 75
+PDN_HPITCH: 75
+PDN_EXTEND_TO: boundary
+
+MAX_FANOUT_CONSTRAINT: 10
+
+CTS_CLK_MAX_WIRE_LENGTH: 0
+CTS_DISTANCE_BETWEEN_BUFFERS: 0
+CTS_SINK_CLUSTERING_SIZE: 20
+CTS_SINK_CLUSTERING_MAX_DIAMETER: 60
+
+TOP_MARGIN_MULT: 1
+BOTTOM_MARGIN_MULT: 1
+LEFT_MARGIN_MULT: 6
+RIGHT_MARGIN_MULT: 6

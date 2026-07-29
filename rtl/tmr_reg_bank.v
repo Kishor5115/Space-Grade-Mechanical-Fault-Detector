@@ -69,10 +69,10 @@ module tmr_reg_bank (
     end
 
     // ---- triplicated config registers ----
-    reg [23:0] c0_a,c0_b,c0_c;
-    reg [23:0] c1_a,c1_b,c1_c;
-    reg [23:0] c2_a,c2_b,c2_c;
-    reg [31:0] th_a,th_b,th_c;
+    (* keep = "true" *) reg [23:0] c0_a,c0_b,c0_c;
+    (* keep = "true" *) reg [23:0] c1_a,c1_b,c1_c;
+    (* keep = "true" *) reg [23:0] c2_a,c2_b,c2_c;
+    (* keep = "true" *)reg [31:0] th_a,th_b,th_c;
 
     assign cfg_c0        = vote32({8'd0,c0_a},{8'd0,c0_b},{8'd0,c0_c});
     assign cfg_c1        = vote32({8'd0,c1_a},{8'd0,c1_b},{8'd0,c1_c});

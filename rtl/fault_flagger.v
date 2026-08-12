@@ -44,7 +44,7 @@ module fault_flagger #(
     // sample_done per IIS3DWB sample), so SEU exposure per write is
     // ~37.5us -- short enough that periodic scrubbing adds no meaningful
     // benefit over the voting already applied here.
-    reg [CNT_W-1:0] cnt_a, cnt_b, cnt_c;
+    (* keep = "true" *) reg [CNT_W-1:0] cnt_a, cnt_b, cnt_c;
     wire [CNT_W-1:0] cnt_v = vote_cnt(cnt_a, cnt_b, cnt_c);
     wire block_boundary = sample_done && (cnt_v == BLOCK_SIZE - 1);
 

@@ -3,8 +3,23 @@ meta:
   flow: Classic
 
 DESIGN_NAME: top
+
 VERILOG_FILES:
-  - dir::rtl/*.v
+  - dir::rtl/multiplier.v
+  - dir::rtl/clk_divider.v
+  - dir::rtl/ff_2_sync.v
+  - dir::rtl/apb_arb2.v
+  - dir::rtl/cmd_spi_slave.v
+  - dir::rtl/apb.v
+  - dir::rtl/spi_master.v
+  - dir::rtl/spi_apb_interface.v
+  - dir::rtl/tmr_reg_bank.v
+  - dir::rtl/axis_sequencer.v
+  - dir::rtl/goertzel_core.v
+  - dir::rtl/magnitude_compute.v
+  - dir::rtl/fault_flagger.v
+  - dir::rtl/top.v
+
 CLOCK_PORT: clk
 CLOCK_PERIOD: 62.5
 
@@ -17,7 +32,10 @@ FALLBACK_SDC: dir::constraints.sdc
 FP_SIZING: relative
 #TODO: CHANGE TO ABSOLUTE AFTER ONE ITERATION
 
-PL_TARGET_DENSITY_PCT: 60
+PL_TARGET_DENSITY_PCT: 45
+GPL_CELL_PADDING: 2
+DPL_CELL_PADDING: 2
+
 
 VDD_NETS: [VDD]
 GND_NETS: [VSS]
@@ -37,8 +55,8 @@ PDN_EXTEND_TO: boundary
 
 TOP_MARGIN_MULT: 1
 BOTTOM_MARGIN_MULT: 1
-LEFT_MARGIN_MULT: 6
-RIGHT_MARGIN_MULT: 6
+LEFT_MARGIN_MULT: 1
+RIGHT_MARGIN_MULT: 1
 
 SYNTH_STRATEGY: "AREA 0"
 
@@ -50,11 +68,11 @@ MAX_FANOUT_CONSTRAINT: 10
 
 # CTS & Routing
 CTS_APPLY_NDR: none
-CTS_CLK_MAX_WIRE_LENGTH: 10
-CTS_DISTANCE_BETWEEN_BUFFERS: 2
+CTS_CLK_MAX_WIRE_LENGTH: 0
+CTS_DISTANCE_BETWEEN_BUFFERS: 0
 CTS_SINK_CLUSTERING_SIZE: 20
 CTS_SINK_CLUSTERING_MAX_DIAMETER: 60
-GRT_ALLOW_CONGESTION:  true
+#GRT_ALLOW_CONGESTION:  true
 
 # Linter warnings suppressed
 

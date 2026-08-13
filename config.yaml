@@ -32,8 +32,10 @@ SIGNOFF_SDC_FILE: dir::signoff_constraints.sdc
 # Die sizing left relative — actual instance count for this design is unknown
 # until synthesis runs (TMR triplication + Goertzel core will not be counter-sized).
 
-FP_SIZING: relative
-#TODO: CHANGE TO ABSOLUTE AFTER ONE ITERATION
+# # Floorplan & Placement
+FP_SIZING:    absolute
+DIE_AREA:     [0, 0, 750, 750]
+MAX_FANOUT_CONSTRAINT: 10
 
 PL_TARGET_DENSITY_PCT: 90
 GPL_CELL_PADDING: 2
@@ -63,11 +65,7 @@ RIGHT_MARGIN_MULT: 1
 
 SYNTH_STRATEGY: "AREA 1"
 
-# # Floorplan & Placement
-# FP_SIZING:             absolute
-# DIE_AREA:              [0, 0, 650, 650]
-# PL_TARGET_DENSITY_PCT: 70
-MAX_FANOUT_CONSTRAINT: 10
+
 
 # CTS & Routing
 CTS_APPLY_NDR: none

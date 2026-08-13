@@ -21,10 +21,13 @@ VERILOG_FILES:
   - dir::rtl/top.v
 
 CLOCK_PORT: clk
-CLOCK_PERIOD: 62.5
+CLOCK_PERIOD: 50
+ #actually 62.5 but ti prevent setup vio
 
 # Custom SDC — overrides LibreLane's default base.sdc.
 FALLBACK_SDC: dir::constraints.sdc
+PNR_SDC_FILE: dir::pnr_constraints.sdc
+SIGNOFF_SDC_FILE: dir::signoff_constraints.sdc
 
 # Die sizing left relative — actual instance count for this design is unknown
 # until synthesis runs (TMR triplication + Goertzel core will not be counter-sized).
@@ -32,7 +35,7 @@ FALLBACK_SDC: dir::constraints.sdc
 FP_SIZING: relative
 #TODO: CHANGE TO ABSOLUTE AFTER ONE ITERATION
 
-PL_TARGET_DENSITY_PCT: 45
+PL_TARGET_DENSITY_PCT: 90
 GPL_CELL_PADDING: 2
 DPL_CELL_PADDING: 2
 
@@ -58,7 +61,7 @@ BOTTOM_MARGIN_MULT: 1
 LEFT_MARGIN_MULT: 1
 RIGHT_MARGIN_MULT: 1
 
-SYNTH_STRATEGY: "AREA 0"
+SYNTH_STRATEGY: "AREA 1"
 
 # # Floorplan & Placement
 # FP_SIZING:             absolute

@@ -20,6 +20,10 @@ VERILOG_FILES:
   - dir::rtl/fault_flagger.v
   - dir::rtl/top.v
 
+
+IO_PIN_ORDER_CFG: dir::pins.cfg
+ERRORS_ON_UNMATCHED_IO: both
+
 CLOCK_PORT: clk
 CLOCK_PERIOD: 62.5
  #actually 62.5 but ti prevent setup vio
@@ -63,7 +67,7 @@ BOTTOM_MARGIN_MULT: 1
 LEFT_MARGIN_MULT: 1
 RIGHT_MARGIN_MULT: 1
 
-SYNTH_STRATEGY: "AREA 2"
+SYNTH_STRATEGY: "AREA 3"
 SYNTH_MUL_BOOTH: true
 SYNTH_SIZING: true    
 

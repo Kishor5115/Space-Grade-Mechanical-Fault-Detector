@@ -14,7 +14,7 @@
 # SPI bit clock: 16/8 = 2 MHz (c_sclk), <= IIS3DWB 10 MHz SPI max.
 #=============================================================================
 
-set clk_period_ns 50
+set clk_period_ns 62.5
 # 62.5
 create_clock -name clk -period $clk_period_ns [get_ports clk]
 

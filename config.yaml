@@ -21,7 +21,7 @@ VERILOG_FILES:
   - dir::rtl/top.v
 
 CLOCK_PORT: clk
-CLOCK_PERIOD: 50
+CLOCK_PERIOD: 62.5
  #actually 62.5 but ti prevent setup vio
 
 # Custom SDC — overrides LibreLane's default base.sdc.
@@ -34,10 +34,10 @@ SIGNOFF_SDC_FILE: dir::signoff_constraints.sdc
 
 # # Floorplan & Placement
 FP_SIZING:    absolute
-DIE_AREA:     [0, 0, 750, 750]
+DIE_AREA:     [0, 0, 800, 800]
 MAX_FANOUT_CONSTRAINT: 10
+PL_TARGET_DENSITY_PCT: 65
 
-PL_TARGET_DENSITY_PCT: 90
 GPL_CELL_PADDING: 2
 DPL_CELL_PADDING: 2
 
@@ -63,8 +63,9 @@ BOTTOM_MARGIN_MULT: 1
 LEFT_MARGIN_MULT: 1
 RIGHT_MARGIN_MULT: 1
 
-SYNTH_STRATEGY: "AREA 1"
-
+SYNTH_STRATEGY: "AREA 2"
+SYNTH_MUL_BOOTH: true
+SYNTH_SIZING: true    
 
 
 # CTS & Routing

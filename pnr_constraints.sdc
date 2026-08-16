@@ -9,7 +9,8 @@
 # than the real 62.5 ns) -- tune empirically, not a derived/guaranteed value.
 #=============================================================================
 
-set clk_period_ns 50.0
+
+set clk_period_ns 55.0
 create_clock -name clk -period $clk_period_ns [get_ports clk]
 
 create_generated_clock -name c_sclk -source [get_ports clk] -divide_by 8 \

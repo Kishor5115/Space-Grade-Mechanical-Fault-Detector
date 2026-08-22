@@ -6,6 +6,58 @@ the way it was, with explicit attention to the project's two governing
 constraints: **radiation-hardened-by-design (RHBD) correctness** and
 **area/power optimization** for the GF180MCU target.
 
+---
+
+# Documentation Sync Pass — Physical Implementation + Command-SPI (2026-08-22)
+
+This is a **documentation-only** pass (no RTL changed). It closes a widening gap between the
+checked-in RTL/physical-implementation state and every doc under `docs/` plus this repo's
+`README.md`, which had not been updated since before the command-SPI feature (`2450ba6`) and the
+LibreLane physical implementation runs. Full detail lives in the individual doc diffs; the two
+findings worth calling out explicitly:
+
+1. **`top.v` has had a host-facing command-SPI bus for some time** (`cmd_spi_slave.v` → `apb` →
+   `apb_arb2` → `tmr_reg_bank`, write-only, 40-bit `{addr[7:0],data[31:0]}` frames, single-clock
+   oversampled per `cmd_spi_slave.v`'s own header comment) — but `README.md`'s System Architecture
+   section, `docs/specs/SYSTEM_ARCHITECTURE.md`, and every open item list in the project still said
+   "no host-facing bus, planned as future work" or listed it under Phase 6 / Project Status TODOs.
+   The feature is real, implemented, and is what the signed-off physical implementation is built
+   from — the docs were simply never updated after that commit landed.
+2. **`testing/cmd_spi_test/tb_cmd_spi.v` was written and passes** (see commit `2450ba6`, "feat:
+   external coefficient reception via command-SPI slave -> APB") **but exists only on the `asic`
+   git branch.** It is absent from this branch's working tree (confirmed via `git log --all` +
+   `git cat-file -e <branch>:testing/cmd_spi_test/tb_cmd_spi.v` across all local/remote branches),
+   and the root `Makefile`'s `sim_all` target was never extended with a `sim_cmd_spi` rule on
+   *either* branch. This means the "100/100 checks" verification claim, while accurate for what it
+   counts, does **not** cover `cmd_spi_slave.v` or `apb_arb2.v` on this branch — both of which are
+   in the RTL that LibreLane physically implemented and signed off. This is now stated explicitly
+   in `README.md` (Verification Status, Project Status) and
+   `docs/project/PROJECT_TRACKER.md` (Known Open Issues) instead of being silently absent.
+
+## Updated
+
+- **`README.md`** — System Architecture diagram, walkthrough, and Module Reference now include
+  `cmd_spi_slave`/`apb_arb2`; Repository Structure and Fixed-Point/Module tables corrected from the
+  stale `clk_divider_5.v` filename to the actual `clk_divider.v` (parameterized `/8` divider, not a
+  fixed `/5`); Target Technology Configuration updated from the pre-implementation "5–10 MHz" /
+  `gf180mcu_fd_sc_mcl` placeholders to the signed-off 16 MHz / `gf180mcu_fd_sc_mcu7t5v0`; Verification
+  Status and Project Status both now flag the missing `tb_cmd_spi.v`/`sim_cmd_spi` gap explicitly
+  rather than silently reporting "100/100" and "4/4 suites" without qualification.
+- **`docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md`** *(new)* — full 3-stage LibreLane flow
+  results (synthesis / floorplan-through-route / signoff), TMR survival check against the actual
+  gate netlist (8/8 groups, 375 bits), and the root-caused reset-false-path DRV violation finding.
+- **`docs/verification/GATE_LEVEL_VERIFICATION_GAPS.md`** *(new)* — what physical verification was
+  and wasn't done (no EQY, no gate-level sim, KLayout DRC skipped, IR drop not chip-representative),
+  written ahead of the planned cocotb gate-level work.
+- **`docs/project/PROJECT_TRACKER.md`** — Phase 5 rewritten from all-TODO to reflect the actual
+  3-stage flow status; Known Open Issues expanded with the cell-name-collision, EQY, and
+  chip-audit-registration items.
+- **`docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md`** — added a post-implementation addendum (§9)
+  reconciling the original 10 MHz-assumed pre-implementation estimates against the actual 16 MHz
+  signed-off results, without altering the original analysis.
+
+---
+
 This pass was driven by a single instruction: verify the existing
 architecture and RTL against the intended 3-axis time-multiplexed
 Goertzel design, fix what's broken, and build the missing testbenches

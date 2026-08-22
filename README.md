@@ -38,8 +38,10 @@ The following documents directly address each point of reviewer feedback. Start 
 | 📡 **SPI Implementation** — team-developed origin, IIS3DWB compliance, references | [`docs/specs/SPI_IMPLEMENTATION.md`](docs/specs/SPI_IMPLEMENTATION.md) |
 | ⚙️ **Goertzel Core Explanation** — ITAG architecture, FSM, fixed-point math, radiation hardening, simulation evidence | [`docs/specs/GOERTZEL_CORE_EXPLANATION.md`](docs/specs/GOERTZEL_CORE_EXPLANATION.md) |
 | 🔬 **ITAG Architecture Analysis** — pre-implementation timing, area, power, RHBD, tradeoff analysis | [`docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md`](docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md) |
+| 🏭 **Physical Implementation Results** — actual LibreLane synthesis/PnR/signoff metrics, TMR survival, timing closure | [`docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md`](docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md) |
+| 🔍 **Gate-Level Verification Gaps** — what physical verification was and wasn't done, ahead of gate-level cocotb work | [`docs/verification/GATE_LEVEL_VERIFICATION_GAPS.md`](docs/verification/GATE_LEVEL_VERIFICATION_GAPS.md) |
 
-**Current verification result: 100/100 self-checking simulation assertions PASS** across all four testbench suites.
+**Current verification result: 100/100 self-checking simulation assertions PASS** across all four testbench suites. **Physical implementation (synthesis → place & route → signoff) is complete for the `top` macro**, with clean DRC/LVS/XOR/antenna and timing closed (0 setup/hold violations) across all 9 PVT corners — see the Physical Implementation Results doc above for full metrics.
 
 ---
 
@@ -84,7 +86,9 @@ The ASIC interfaces directly with an off-chip **STMicroelectronics IIS3DWB** dig
                  │                                        │                         │
                  │              ┌─────────────────────────┘                         │
                  │              ▼                                                   │
-                 │        tmr_reg_bank ◀── internal APB bus ── spi_apb_interface    │
+ host/RISC ─cmd──▶│ cmd_spi_slave ─▶ apb ──┐                                        │
+ SPI (write-only)│                          ▼                                       │
+                 │        tmr_reg_bank ◀── apb_arb2 ◀── spi_apb_interface           │
                  │        (triplicated, scrubbed config/status registers)           │
                  └──────────────────────────────────────────────────────────────────┘
                                                         │
@@ -92,7 +96,7 @@ The ASIC interfaces directly with an off-chip **STMicroelectronics IIS3DWB** dig
                                               fault_flag_out (to host/RISC core)
 ```
 
-`top.v` is the chip-level integration module. Its **only external pins** are the sensor SPI bus (`c_miso`/`c_csn`/`c_sclk`/`c_mosi`), the sensor's `sensor_drdy` interrupt, a `tmr_forward_en` mode-select input, and the single `fault_flag_out` alarm line — there is no separate command-SPI or host-programming bus inside the current core boundary. Runtime coefficients (`cfg_c0/c1/c2`, `cfg_threshold`) and control (`cfg_start/cfg_stop/cfg_fault_clear`) live in `tmr_reg_bank`, driven over the *internal* APB bus. In the current architecture that internal bus is exercised from testbenches via direct APB transactions; a host-facing SPI-to-APB (or other bus) bridge sitting outside `top.v`'s boundary is the natural next integration step and is called out explicitly below as future work rather than claimed as already implemented.
+`top.v` is the chip-level integration module. Its external pins are the sensor SPI bus (`c_miso`/`c_csn`/`c_sclk`/`c_mosi`), the sensor's `sensor_drdy` interrupt, a `tmr_forward_en` mode-select input, a **host-facing command-SPI bus** (`cmd_sclk`/`cmd_csn`/`cmd_mosi`, write-only), and the single `fault_flag_out` alarm line. Runtime coefficients (`cfg_c0/c1/c2`, `cfg_threshold`) and control (`cfg_start/cfg_stop/cfg_fault_clear`) live in `tmr_reg_bank`, driven over the *internal* APB bus. That internal bus now has two legal masters, arbitrated by `apb_arb2` (command-SPI has priority): the command-SPI path (`cmd_spi_slave` → `apb`) for real host configuration, and `spi_apb_interface`'s optional Option-B sample-forwarding path. Testbenches may still drive the internal APB bus directly via hierarchical force for convenience, but a real host now has a proper, silicon-legal path onto the chip that does not require that trick.
 
 > 📐 For a fully detailed signal-level block diagram with per-module port descriptions, see [`docs/specs/SYSTEM_ARCHITECTURE.md`](docs/specs/SYSTEM_ARCHITECTURE.md).
 
@@ -108,7 +112,7 @@ The ASIC interfaces directly with an off-chip **STMicroelectronics IIS3DWB** dig
 4. **`goertzel_core`** runs the classic second-order IIR recursion `v[n] = x[n] + C·v[n-1] − v[n-2]` for three independent frequency bins on all three axes (9 resonators total) in Q8.15 fixed-point, all sharing a single hardware multiplier via time multiplexing (18 active clock cycles per incoming sample — 6 per axis; the multiplier is otherwise held frozen for zero switching power). This is the **Interleaved Tri-Axis Goertzel (ITAG)** microarchitecture.
 5. **`magnitude_compute`** owns the design's single `multiplier.v` instance, snapshots each axis/bin's `v1`/`v2` state and coefficient at the block boundary, and reuses that same shared multiplier during otherwise-idle cycles to compute `|X(f_k)|² = v1² + v2² − C·v1·v2` for all **9 axis/bin pairs**, tagging each result with both its frequency bin index and the physical axis (X/Y/Z) that produced it. The `C·v1·v2` cross term also rides the shared multiplier, so exactly one multiplier exists in the whole datapath.
 6. **`fault_flagger`** owns the 512-sample block counter, compares every tagged magnitude against `cfg_threshold`, and latches a sticky `fault_flag` (plus the offending bin and axis) on the first magnitude that exceeds threshold. The flag stays asserted until explicitly cleared via `cfg_fault_clear`.
-7. **`tmr_reg_bank`** is the single APB slave in the design: it holds the triplicated, periodically-scrubbed coefficient/threshold/control registers and exposes fault status for read-back.
+7. **`tmr_reg_bank`** is the single APB slave in the design: it holds the triplicated, periodically-scrubbed coefficient/threshold/control registers and exposes fault status for read-back. Its APB port is shared between two masters via `apb_arb2` — the host-facing `cmd_spi_slave` path (priority) and `spi_apb_interface`'s optional Option-B sample-forwarding path.
 
 ---
 
@@ -116,18 +120,20 @@ The ASIC interfaces directly with an off-chip **STMicroelectronics IIS3DWB** dig
 
 | Module | Source File | Description |
 |---|---|---|
-| `top` | `rtl/top.v` | Chip-level integration: wires the sensor SPI front end, axis sequencer, Goertzel core, magnitude engine, fault flagger, and register bank together; the only hierarchy level with external pins |
+| `top` | `rtl/top.v` | Chip-level integration: wires the sensor SPI front end, command-SPI receiver, APB arbiter, axis sequencer, Goertzel core, magnitude engine, fault flagger, and register bank together; the only hierarchy level with external pins |
 | `spi_apb_interface` | `rtl/spi_apb_interface.v` | Owns `spi_master`; exposes a local poll-based register interface for the current sensor sample, plus an optional forwarding path that mirrors each sample into `tmr_reg_bank` over the internal APB bus |
 | `spi_master` | `rtl/spi_master.v` | SPI Mode 3 master implementing the IIS3DWB power-on boot config sequence and the 48-bit XYZ burst-read protocol, synchronized to the async `sensor_drdy` interrupt |
-| `apb` | `rtl/apb.v` | Minimal request-driven APB master: converts a simple `req_valid`/`req_write`/`req_addr`/`req_wdata` handshake into a compliant SETUP/ACCESS APB transfer |
+| `cmd_spi_slave` | `rtl/cmd_spi_slave.v` | **Host-facing command-SPI receiver.** Write-only, SPI Mode 3, single-clock oversampled (no second clock domain — `cmd_sclk`/`cmd_csn`/`cmd_mosi` are 2-FF synchronized and sampled in the `clk` domain, host must clock `cmd_sclk` ≤ `clk`/4). Receives 40-bit `{addr[7:0], data[31:0]}` frames and turns each into an APB write request |
+| `apb` | `rtl/apb.v` | Minimal request-driven APB master: converts a simple `req_valid`/`req_write`/`req_addr`/`req_wdata` handshake into a compliant SETUP/ACCESS APB transfer. Instantiated twice — once inside `spi_apb_interface` (Option-B sample forwarding), once directly in `top.v` for the command-SPI path |
+| `apb_arb2` | `rtl/apb_arb2.v` | 2-master/1-slave APB arbiter (registered grant) sharing `tmr_reg_bank`'s single APB slave port between the command-SPI config path (priority) and the Option-B sample-forwarding path |
 | `axis_sequencer` | `rtl/axis_sequencer.v` | Polls `spi_apb_interface` for each new burst and presents all three X/Y/Z slices to the core simultaneously (no axis rotation under ITAG); polling FSM is TMR-protected |
 | `goertzel_core` | `rtl/goertzel_core.v` | Interleaved Tri-Axis (ITAG) 3-bin Goertzel IIR engine in Q8.15 fixed-point: 9 resonators (3 bins × 3 axes) processed every sample via a 19-state FSM sharing one multiplier; control FSM is triplicated (5-bit `vote5`) with a self-scrubbing majority voter |
 | `multiplier` | `rtl/multiplier.v` | The single, chip-wide hardware multiplier — the only `*` operator in the synthesizable datapath, instanced exactly once inside `magnitude_compute`; combinational signed product, operand-isolated by its caller |
 | `magnitude_compute` | `rtl/magnitude_compute.v` | Owns the shared `multiplier` instance; snapshots the 18 Goertzel state values at each block boundary and computes the per-bin, per-axis magnitude (including the `C·v1·v2` cross term) for all 9 axis/bin pairs on that one multiplier; FSM is triplicated (4-bit `vote4`) |
 | `fault_flagger` | `rtl/fault_flagger.v` | Owns the 512-sample block counter, compares magnitudes against a programmable threshold, and latches a sticky fault flag with bin/axis attribution |
 | `tmr_reg_bank` | `rtl/tmr_reg_bank.v` | APB slave holding the triplicated, scrubbed configuration registers (`CTRL`, `CFG_C0/C1/C2`, `CFG_THRESHOLD`) and read-only status (`STATUS`, `FAULT_MAG`, `FAULT_BIN`) |
-| `ff_2_sync` | `rtl/ff_2_sync.v` | Generic two-stage D-flip-flop synchronizer used to bring the async `sensor_drdy` and `s_miso` lines into the core clock domain |
-| `clk_divider_5` | `rtl/clk_divider_5.v` | Divide-by-5 clock divider generating the SPI bit clock from the system clock |
+| `ff_2_sync` | `rtl/ff_2_sync.v` | Generic two-stage D-flip-flop synchronizer; instanced for `sensor_drdy`/`s_miso` (sensor side) and for `cmd_sclk`/`cmd_csn`/`cmd_mosi` (command-SPI side) |
+| `clk_divider` | `rtl/clk_divider.v` | Parameterized power-of-2 clock divider (`DIV_LOG2`); instantiated with `DIV_LOG2=3` to generate the /8 (2 MHz @ 16 MHz) SPI bit clock for the sensor bus |
 
 ---
 
@@ -163,13 +169,15 @@ GlobalFoundries 180 nm bulk CMOS has no inherent radiation tolerance, so hardeni
 
 **Sticky fault latch with explicit clear.** `fault_flagger`'s fault output is a level-sensitive latch that only clears on an explicit `cfg_fault_clear` write, so a transient magnitude spike is not silently lost even if it occurs between host polls.
 
-> Physical-level RHBD techniques (substrate tapping pitch, guard rings, spatially interleaved bus routing, relaxed placement density for antenna-diode insertion) are planned for the LibreLane physical implementation stage but are not yet reflected in a checked-in `librelane` configuration file — see [Project Status](#project-status).
+> Physical-level RHBD techniques (substrate tapping pitch, guard rings, spatially interleaved bus routing, relaxed placement density for antenna-diode insertion) are planned for the chip-level padring integration stage. The `top` macro itself has completed LibreLane physical implementation (synthesis → place & route → signoff) with clean DRC/LVS/XOR/antenna and closed timing on all 9 PVT corners — see [`docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md`](docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md) — but guard rings and substrate tapping are chip-level concerns that apply once this macro is placed in the multi-team padring; see [Project Status](#project-status).
 
 ---
 
 ## Area/Latency Design Tradeoff
 
-**Constraint:** the IIS3DWB delivers X, Y, and Z samples simultaneously every 37.5 µs, but the competition's 600×600 µm die budget does not allow three parallel Goertzel pipelines.
+**Constraint:** the IIS3DWB delivers X, Y, and Z samples simultaneously every 37.5 µs, but the original ~600×600 µm die-budget target does not allow three parallel Goertzel pipelines.
+
+> **Post-implementation note:** the ~600×600 µm figure below was the design-time area budget used to justify this tradeoff, not the final signed-off die size. The actual `top` macro closes timing cleanly at **800×800 µm** (640,000 µm², 60.9% utilization) — a 650×650 µm attempt failed setup timing by −19 ns. The tradeoff reasoning (parallel cores vs. sample buffering vs. axis rotation vs. ITAG) is unaffected by this; only the absolute area numbers below are historical. See [`docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md`](docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md).
 
 | Option | Approach | Area Impact | Inter-axis Detection Latency | Selected |
 |--------|----------|--------------|------------------------------|----------|
@@ -191,7 +199,7 @@ The cost is ≈ 645 additional flip-flops (18 Goertzel state registers instead o
 
 ## Verification Status
 
-Four testbench suites pass in simulation (Icarus Verilog), covering 100/100 self-checking assertions:
+Four testbench suites pass in simulation (Icarus Verilog) **on this branch**, covering 100/100 self-checking assertions:
 
 | Testbench | Target | Checks |
 |---|---|---|
@@ -200,6 +208,8 @@ Four testbench suites pass in simulation (Icarus Verilog), covering 100/100 self
 | `testing/goertzel_core/tb_goertzel_core.v` | `goertzel_core` — ITAG tri-axis independence/routing, Q8.15 arithmetic, `sample_done` timing | **7/7** ✅ |
 | `testing/top_test/tb_top.v` | `top` — full sensor-to-`fault_flag_out` chain with `iis3dwb_model.v` bus-functional model | **14/14** ✅ |
 | **TOTAL** | | **100/100** ✅ |
+
+> ⚠️ **Not counted above:** a fifth testbench, `testing/cmd_spi_test/tb_cmd_spi.v`, was written and passing for the command-SPI path (`cmd_spi_slave` → `apb` → `apb_arb2` → `tmr_reg_bank`) — see `git log --all -- testing/cmd_spi_test/tb_cmd_spi.v` (commit `2450ba6`). **That file exists only on the `asic` git branch and is not present on this branch**, and the root `Makefile`'s `sim_all` target was never extended with a `sim_cmd_spi` rule even where the file does exist. The command-SPI RTL (`cmd_spi_slave.v`, `apb_arb2.v`) that this branch's physical implementation is built from currently has **no testbench checked in on this branch**. See [Known Open Issues](docs/project/PROJECT_TRACKER.md#known-open-issues).
 
 The top-level testbench exercises axis attribution end-to-end and verifies the ITAG structural invariants: exactly **9 magnitude pulses per block** (3 axes × 3 bins) with correct tag ordering, a **no-magnitude-compute-during-Goertzel-active** assertion (proving the single shared multiplier is never double-requested), and a `sample_done : block_clear` = **512 : 1** cadence check. It includes per-axis fault injection on X, Y and Z **and a simultaneous 3-axis excitation** (Case 5) — the realistic spacecraft scenario the legacy axis-sequential architecture could not resolve within a single block.
 
@@ -213,14 +223,19 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 |---|---|
 | Foundry Node | GlobalFoundries GF180MCU |
 | RTL-to-GDS Flow | LibreLane open-source digital flow |
-| Standard Cell Library | `gf180mcu_fd_sc_mcl` |
+| Standard Cell Library | `gf180mcu_fd_sc_mcu7t5v0` |
 | Source Language | Verilog HDL (IEEE 1364) |
 | Core Supply Voltage | 1.8 V |
-| Target Core Clock | 5–10 MHz |
+| Target Core Clock | 16 MHz (62.5 ns period) |
 | Sensor ODR | 26.667 kHz (IIS3DWB, fixed by boot configuration) |
 | Block Size | 512 samples (all three axes per block) |
 | Inter-axis Detection Latency | 0 (X/Y/Z evaluated every block) |
 | Per-block Latency | ~19.2 ms (512 samples @ 26.667 kHz) |
+| **Signed-off die size** | **800 × 800 µm (640,000 µm²), 60.9% core utilization** |
+| **Post-synthesis flip-flop count** | **1,767** (375 bits TMR-triplicated, 8/8 groups intact) |
+| **Timing closure (9 PVT corners)** | **Setup +11.84 ns / hold +0.127 ns worst-case, 0 violations** |
+| **Physical signoff** | **DRC 0 · LVS 0 · XOR 0 · antenna 0** — see [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md) |
+| **Total power (signoff)** | **46.4 mW** (35.0 mW internal + 11.4 mW switching + 5.2 µW leakage) |
 
 ---
 
@@ -257,7 +272,9 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 │   ├── top.v                  # Chip-level integration (external pins)
 │   ├── spi_apb_interface.v    # SPI front-end wrapper + Option A/B sample delivery
 │   ├── spi_master.v           # IIS3DWB SPI Mode 3 master (boot + burst read)
-│   ├── apb.v                  # Minimal APB master FSM
+│   ├── cmd_spi_slave.v        # Host-facing command-SPI receiver (write-only, 40-bit frames)
+│   ├── apb.v                  # Minimal APB master FSM (instantiated twice: fwd + cmd paths)
+│   ├── apb_arb2.v             # 2-master/1-slave APB arbiter (cmd-SPI priority)
 │   ├── axis_sequencer.v       # SPI sample demux → tri-axis simultaneous presentation
 │   ├── goertzel_core.v        # ITAG 3-bin × 3-axis Goertzel IIR engine (TMR FSM)
 │   ├── multiplier.v           # Single chip-wide hardware multiplier
@@ -265,13 +282,16 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 │   ├── fault_flagger.v        # 512-sample block counter + threshold comparator
 │   ├── tmr_reg_bank.v         # APB slave: triplicated + scrubbed config/status regs
 │   ├── ff_2_sync.v            # 2-stage D-FF synchronizer (CDC)
-│   └── clk_divider_5.v        # Divide-by-5 SPI clock generator
+│   └── clk_divider.v          # Parameterized power-of-2 SPI clock generator (/8 default)
 │
 ├── testing/                   # Self-checking Icarus Verilog testbenches
 │   ├── spi_master_test/       # tb_spi_master_full.v (71/71 checks), iis3dwb_model.v
-│   ├── apb_test/              # tb_spi_apb_interface.v (8/8 checks)
+│   ├── apb_test/               # tb_spi_apb_interface.v (8/8 checks)
 │   ├── goertzel_core/         # tb_goertzel_core.v (7/7 checks)
-│   └── top_test/              # tb_top.v (14/14 checks) — full chip integration
+│   ├── top_test/               # tb_top.v (14/14 checks) — full chip integration
+│   └── cmd_spi_test/            # ⚠️ tb_cmd_spi.v exists only on the `asic` git branch —
+│                                 #    not present on this branch; see Known Open Issues
+│                                 #    in docs/project/PROJECT_TRACKER.md
 │
 ├── tb/                        # (reserved for additional bus-functional models)
 ├── sim/                       # (reserved for simulation configs)
@@ -292,9 +312,11 @@ make sim_spi        # spi_master standalone (IIS3DWB boot + burst read)       71
 make sim_apb        # spi_apb_interface + apb (Option A/B sample delivery)      8/8
 make sim_goertzel   # goertzel_core standalone (ITAG 3-bin x 3-axis + Q8.15)   7/7
 make sim_top        # full chain: sensor SPI in -> fault_flag_out + attribution 14/14
-make sim_all        # run all four suites                                      100/100
+make sim_all        # run all four suites above                              100/100
 make clean          # remove generated sim binaries and VCD dumps
 ```
+
+> ⚠️ There is no `sim_cmd_spi` target — the command-SPI testbench (`tb_cmd_spi.v`) is not present on this branch (see [Verification Status](#verification-status) above). `make sim_all` therefore does **not** exercise `cmd_spi_slave.v` or `apb_arb2.v`.
 
 Each target produces a VCD waveform dump in its corresponding `testing/<block>/` directory, viewable with GTKWave or any other VCD viewer.
 
@@ -317,13 +339,18 @@ SSCS Chipathon 2026, Track B (Sensor Circuits)
 - [x] TMR + scrubbing applied to control FSMs and configuration registers
 - [x] Full-chain functional simulation passing — **100/100 checks across 4 testbench suites**
 - [x] Simultaneous multi-axis fault injection testing (`tb_top.v` Case 5)
+- [x] Host-facing command-SPI configuration path (`cmd_spi_slave` → `apb` → `apb_arb2` → `tmr_reg_bank`) implemented inside the `top.v` boundary — real host writes no longer require a hierarchical testbench force
 - [x] Reviewer documentation complete (system architecture, verification methodology, test scenarios, I/O spec, SPI origin, Goertzel core explanation, project tracker)
-- [ ] Gate-level / post-synthesis simulation
-- [ ] LibreLane synthesis and timing closure for the current RTL (`librelane/runs/` contains logs from earlier architecture iterations only)
-- [ ] Physical layout, DRC/LVS sign-off, and physical-level RHBD (guard rings, substrate tapping, routing density constraints)
-- [ ] Host-facing command/configuration bus bridge outside the `top.v` boundary
+- [x] LibreLane synthesis, place & route, and signoff for the current ITAG RTL — 800×800 µm, timing closed on all 9 PVT corners, TMR confirmed intact in the gate netlist (see [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md))
+- [x] Physical layout, DRC/LVS/XOR/antenna sign-off — all clean (KLayout DRC ruleset unavailable for gf180mcuD; Magic DRC + KLayout XOR used instead)
+- [ ] Command-SPI testbench (`tb_cmd_spi.v`) — written and passing on the `asic` git branch, **not present on this branch**; no `sim_cmd_spi` Makefile target exists on either branch (see [Verification Status](#verification-status))
+- [ ] Gate-level / post-synthesis simulation (SDF back-annotated; planned next via cocotb — see [`GATE_LEVEL_VERIFICATION_GAPS.md`](docs/verification/GATE_LEVEL_VERIFICATION_GAPS.md))
+- [ ] Formal RTL↔netlist equivalence check (Yosys EQY)
+- [ ] Reset-net max-slew/max-cap DRV violations — root-caused, fix-or-waive decision pending
+- [ ] Physical-level RHBD (guard rings, substrate tapping, routing density constraints) — chip-level, pending padring integration
+- [ ] Chip-audit registration and slot assignment (multi-team padring)
 - [ ] Final GDS submission
 
 ---
 
-*Built with LibreLane · GF180MCU · gf180mcu_fd_sc_mcl*
+*Built with LibreLane · GF180MCU · gf180mcu_fd_sc_mcu7t5v0*

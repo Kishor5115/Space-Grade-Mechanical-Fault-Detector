@@ -2,13 +2,16 @@
 
 **Document:** Comparative analysis of the proposed *Interleaved Tri-Axis Goertzel* (ITAG)
 microarchitecture vs. the current axis-sequential design.
-**Status:** Research / pre-implementation. **No RTL has been changed by this document.**
+**Status:** Research / pre-implementation RTL analysis (§0–§8), now with a
+**post-implementation reality-check addendum (§9)** added after LibreLane physical signoff.
+**No RTL has been changed by §0–§8 of this document.**
 **Scope:** `goertzel_core.v`, `axis_sequencer.v`, `magnitude_compute.v`, `top.v`;
 `fault_flagger.v` / `tmr_reg_bank.v` / SPI front-end reviewed for backward compatibility.
 
 > This analysis is derived from a full read of the checked-in RTL as of this commit.
 > Where initial design estimates differ from what the RTL implies, the RTL-derived
-> number is used and the discrepancy is called out explicitly (see §7).
+> number is used and the discrepancy is called out explicitly (see §7). Where
+> pre-implementation estimates differ from actual physical signoff results, see §9.
 
 ---
 
@@ -343,3 +346,112 @@ SEU-safe defaults, `block_clear` priority, once-per-sample `sample_done`,
 **Recommended Phase-2 implementation order (unchanged from early projections):**
 `goertzel_core.v` → `axis_sequencer.v` → `magnitude_compute.v` → `top.v`, then testbench,
 then docs. Pausing here for review before touching RTL, as requested.
+
+---
+
+## 9. Post-implementation addendum — reality check against signed-off physical results
+
+> **Added after LibreLane physical implementation (synthesis → place & route → signoff).**
+> Everything above this section is the original pre-implementation RTL analysis and is left
+> unmodified; this addendum only records where actual tool-measured results agree or diverge
+> from the projections made in §0–§8. Full physical results:
+> [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](PHYSICAL_IMPLEMENTATION_RESULTS.md).
+
+### 9.1 Clock frequency: 16 MHz signed off, not the 10 MHz assumed in §0
+
+§0's baseline table states "System clock | Project specification | 10 MHz (100 ns)" and derives
+375 cycles/sample from that. The macro that was actually taped out targets **16 MHz (62.5 ns
+period)**, per `librelane/signoff_constraints.sdc` and the current `README.md`. The
+cycles-per-sample ratio in §0–§1 (375 cycles at 26.667 kHz sample rate) is **clock-rate-independent**
+— it only depends on the ratio of system clock to sample rate — so all of the cycle-budget and
+idle-margin analysis in §1 remains numerically valid at 16 MHz. Only the absolute time values
+implied by "cycles" (e.g. "375 cycles ≈ 37.5 µs at 10 MHz") should be read as "375 cycles ≈ 23.4 µs
+at 16 MHz" instead. This does not change any conclusion in §1 or §4.
+
+### 9.2 TMR survival: confirmed in the actual gate netlist, not just claimed at RTL
+
+§5 discusses TMR at the RTL/architectural level (voter widths, illegal-state recovery, the Rule-C
+tradeoff on datapath state). The gate-level netlist produced by `S1_SYNTH`
+(`~/eda/designs/space-jam/librelane/runs/S1_SYNTH/06-yosys-synthesis/top.nl.v`) was parsed directly
+to confirm the `(* keep = "true" *)` attributes actually prevented Yosys from collapsing the
+triplicated copies during synthesis:
+
+| Triplicated group (from §5's architecture) | Bits per copy | Status in gate netlist |
+|---|---|---|
+| `axseq_inst.ps` — axis-sequencer polling FSM (§5 row 4, "retained") | 3 | intact ×3 |
+| `goertzel_inst.state` — goertzel FSM (§5 row 1, widened to 5-bit `vote5`) | 5 | intact ×3 |
+| `mag_inst.ms` — magnitude FSM (§5 row 5, "unchanged") | 4 | intact ×3 |
+| `ff_inst.cnt` — fault-flagger block counter | 9 | intact ×3 |
+| `tmr_inst.c0`, `c1`, `c2` — Goertzel coefficients | 24 each | intact ×3 |
+| `tmr_inst.th` — fault threshold | 32 | intact ×3 |
+
+**8/8 groups, 375 total triplicated bits, 21.2% of the design's 1,767 flip-flops.** This is a
+structural confirmation (bit-width equality in the netlist), not a formal proof — `Yosys.EQY` was
+not run (see [`GATE_LEVEL_VERIFICATION_GAPS.md`](../verification/GATE_LEVEL_VERIFICATION_GAPS.md)
+§2.1), so the *voting logic's* correctness through synthesis is unverified beyond RTL simulation.
+The §5 architectural claims about voter width and illegal-state recovery are unaffected — they are
+RTL-level guarantees this check does not add to or subtract from, it only confirms the copies were
+not silently deduplicated.
+
+### 9.3 Area: post-synthesis flip-flop count vs. the §2 DFF-count estimate
+
+§2 estimates a **≈ +645 DFF** delta from the pre-ITAG baseline using a ~2.5 µm²/DFF rule of thumb,
+concluding the impact is negligible against the shared multiplier and the then-assumed 600×600 µm
+die budget. The actual synthesized design (`S1_SYNTH`) contains:
+
+| Metric | §2 estimate basis | Actual (gate netlist) |
+|---|---|---|
+| Total flip-flops | not stated (delta-only estimate) | **1,767** |
+| Cell area (synthesis) | not measured | 336,313 µm² |
+| Signed-off die | "600×600 µm die budget" (assumed) | **800×800 µm (640,000 µm²)**, 60.9% utilization |
+
+§2's core conclusion — that the ITAG area delta is small relative to the shared multiplier and does
+not threaten the design's viability — holds. What changed is the **die budget it was measured
+against**: 600×600 µm turned out not to be achievable for the whole design (not specifically because
+of the ITAG delta), and 800×800 µm is the actual signed-off size. See §7 of
+[`PHYSICAL_IMPLEMENTATION_RESULTS.md`](PHYSICAL_IMPLEMENTATION_RESULTS.md) for the closure history
+(a 650×650 µm attempt failed setup timing by −19 ns before 800×800 succeeded cleanly on all 9
+corners). This is a floorplan/synthesis-strategy outcome, not evidence that the §2 DFF-delta
+reasoning was wrong.
+
+### 9.4 Power: §3's qualitative "modest increase" claim now has a real number
+
+§3 declines to give a precise power figure, stating "a precise figure requires a post-synthesis
+`.lib`-based power run (LibreLane), out of scope for RTL Phase 1." That run has now happened:
+
+| Metric | Value (signoff, `S3_SIGNOFF`) |
+|---|---|
+| Total power | 46.4 mW |
+| Internal power | 35.0 mW |
+| Switching power | 11.4 mW |
+| Leakage power | 5.2 µW |
+
+§3's structural claim — that leakage (proportional to the +645 DFF) is immaterial relative to
+dynamic power dominated by the shared multiplier's operand isolation — is consistent with this
+result: leakage is 5.2 µW against 46.4 mW total, i.e. **0.01% of total power**, matching the "leakage
+grows <1%" prediction in §3 in direction if not in the exact ratio predicted (the prediction was
+made relative to a different, smaller baseline design).
+
+### 9.5 What §5's radiation-hardening discussion does not cover: reset distribution
+
+§5 discusses SEU recovery via illegal-state defaults and the sticky-fault fail-safe philosophy, but
+does not discuss reset distribution timing, because that is a physical-implementation concern that
+does not exist at the RTL level. Physical implementation surfaced one: `sys_rst_n` is false-pathed
+in both `pnr_constraints.sdc` and `signoff_constraints.sdc`, which excludes it from fanout-driven
+buffering. The synthesized reset tree has branches of 125–280 flip-flops on `/RN`, causing 260
+max-slew and 8 max-cap DRV violations (benign relative to the 62.5 ns period, but unaddressed as of
+this writing). This means **reset recovery/removal skew between the three copies of any triplicated
+register has never been analyzed** — an omission relevant to §5's TMR discussion that RTL-level
+analysis could not have caught. See
+[`GATE_LEVEL_VERIFICATION_GAPS.md`](../verification/GATE_LEVEL_VERIFICATION_GAPS.md) §2.5 for the
+fix-or-waive decision this requires.
+
+### 9.6 Net assessment
+
+None of §0–§8's conclusions are invalidated by physical implementation. The **Go recommendation in
+§8 stands** — ITAG fits its cycle budget, its area/power cost is small relative to the shared
+multiplier, and its RHBD posture is neutral-to-positive on control logic. Physical implementation
+added three things pre-implementation RTL analysis structurally cannot provide: a real area/power
+number, a structural (not formal) confirmation that TMR survives synthesis, and a new,
+physical-only finding (reset distribution) that is now tracked as an open item rather than a
+regression in the ITAG design itself.

@@ -5,20 +5,20 @@ meta:
 DESIGN_NAME: top
 
 VERILOG_FILES:
-  - dir::rtl/multiplier.v
-  - dir::rtl/clk_divider.v
-  - dir::rtl/ff_2_sync.v
-  - dir::rtl/apb_arb2.v
-  - dir::rtl/cmd_spi_slave.v
-  - dir::rtl/apb.v
-  - dir::rtl/spi_master.v
-  - dir::rtl/spi_apb_interface.v
-  - dir::rtl/tmr_reg_bank.v
-  - dir::rtl/axis_sequencer.v
-  - dir::rtl/goertzel_core.v
-  - dir::rtl/magnitude_compute.v
-  - dir::rtl/fault_flagger.v
-  - dir::rtl/top.v
+  - dir::../rtl/multiplier.v
+  - dir::../rtl/clk_divider.v
+  - dir::../rtl/ff_2_sync.v
+  - dir::../rtl/apb_arb2.v
+  - dir::../rtl/cmd_spi_slave.v
+  - dir::../rtl/apb.v
+  - dir::../rtl/spi_master.v
+  - dir::../rtl/spi_apb_interface.v
+  - dir::../rtl/tmr_reg_bank.v
+  - dir::../rtl/axis_sequencer.v
+  - dir::../rtl/goertzel_core.v
+  - dir::../rtl/magnitude_compute.v
+  - dir::../rtl/fault_flagger.v
+  - dir::../rtl/top.v
 
 
 IO_PIN_ORDER_CFG: dir::pins.cfg

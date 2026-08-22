@@ -1,13 +1,20 @@
 # Space-Grade Mechanical Fault Detector — Project Tracker
 
 > **SSCS Chipathon 2026 — Track B (Sensor Circuits) | Team B22 — Team Space Jam**
-> Last updated: 2026-07-22
+> Last updated: 2026-08-22
 
 ---
 
 ## Executive Summary
 
 The project implements an autonomous radiation-hardened ASIC for spacecraft vibration fault detection using the **Interleaved Tri-Axis Goertzel (ITAG)** DSP algorithm, targeting GlobalFoundries GF180MCU via the LibreLane open-source RTL-to-GDS flow. All RTL is implemented, all four testbench suites pass (100/100 checks), and the full-chip integration simulation is verified end-to-end.
+
+Physical implementation is now complete for the `top` macro: synthesis, place-and-route, and signoff
+all pass with clean DRC/LVS/XOR/antenna and timing closed (setup + hold met, 0 violations) across all
+9 PVT corners. See [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](../architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md)
+for full metrics and [`GATE_LEVEL_VERIFICATION_GAPS.md`](../verification/GATE_LEVEL_VERIFICATION_GAPS.md)
+for what remains before this is tapeout-ready (gate-level simulation, equivalence checking, and a
+few chip-integration-dependent items).
 
 ---
 
@@ -79,25 +86,43 @@ The project implements an autonomous radiation-hardened ASIC for spacecraft vibr
 | `docs/specs/GOERTZEL_CORE_EXPLANATION.md` | ✅ DONE | Reviewer item #7: core module explanation |
 | `docs/project/PROJECT_TRACKER.md` | ✅ DONE | Reviewer item #8: this tracker |
 
-### Phase 5 — Physical Implementation 🔄 IN PROGRESS
+### Phase 5 — Physical Implementation 🔄 IN PROGRESS (macro hardened, chip integration + gate-level sim remain)
+
+The flow is split into three independently re-runnable LibreLane stages
+(`S1_SYNTH` → `S2_DRT` → `S3_SIGNOFF`), driven from `librelane/01_fault_detector_macro.ipynb`. Full
+results: [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](../architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md).
 
 | Task | Status | Notes |
 |---|---|---|
-| LibreLane synthesis (current RTL) | ⬜ TODO | Prior runs in `librelane/runs/` from older arch iteration |
-| Timing closure at 10 MHz | ⬜ TODO | Target: all paths < 100 ns |
-| Physical layout (place & route) | ⬜ TODO | 600×600 µm die target |
-| DRC / LVS sign-off | ⬜ TODO | GF180MCU design rules |
-| Physical RHBD (guard rings, substrate tapping, routing constraints) | ⬜ TODO | Planned for LibreLane config |
-| Gate-level / post-synthesis simulation | ⬜ TODO | Back-annotated netlist verification |
-| Final GDS submission | ⬜ TODO | Contest deadline target |
+| LibreLane synthesis (current ITAG RTL) | ✅ DONE | `S1_SYNTH`: 0 lint errors, 0 unmapped cells, 0 inferred latches |
+| TMR survival through synthesis | ✅ DONE | 8/8 triplet groups, 375 bits confirmed intact in gate netlist |
+| Physical layout (place & route) | ✅ DONE | `S2_DRT`: 800×800 µm die, 60.9% utilization, 0 routing DRC, 0 antenna |
+| Timing closure at 16 MHz (62.5 ns) | ✅ DONE | Setup + hold met, 0 violations, 0 TNS on all 9 PVT corners |
+| DRC / LVS sign-off | 🔄 PARTIAL | Magic DRC 0, LVS 0, XOR 0 — **KLayout DRC ruleset unavailable for gf180mcuD, step skipped** |
+| Final GDS produced | ✅ DONE | `build/top/gds/top.gds` + LEF + 9-corner LIB + netlist + SPEF/SDF/DEF/SPICE |
+| Die size vs. original 600×600 µm budget | ⚠️ REVISED | Actual signed-off die is **800×800 µm** — see note below and ITAG analysis addendum |
+| DRV cleanup: reset-net max-slew/max-cap violations | ⬜ OPEN | 260 slew + 8 cap violations, root-caused to false-pathed `sys_rst_n` fanout (125–280 flops/branch); needs fix-or-waive decision |
+| Formal RTL↔netlist equivalence (Yosys EQY) | ⬜ TODO | Gated off in both synthesis and signoff runs |
+| Gate-level / post-synthesis simulation | ⬜ TODO | 9-corner SDF exists (`build/top/sdf/`) but unused — **this is the next planned step (cocotb)** |
+| Physical RHBD (guard rings, substrate tapping) | ⬜ TODO | Not yet reflected in LibreLane config; no padring/chip-top yet to apply it against |
+| Chip-audit registration (multi-team padring) | ⬜ TODO | Team B22 not yet present in the chipathon's GDS audit sheet; slot size/type unconfirmed |
+| Cell-name collision cleanup for chip-level merge | ⬜ TODO | Top cell currently named `top`; OpenROAD-generated via cells are unprefixed — both are collision risks in a merged multi-team GDS |
+| IR drop analysis at chip scale | ⬜ BLOCKED | Current 109 µV figure has no real supply-pad locations (`VSRC_LOC_FILES` unset) — must re-run once padring position is known |
+| Final GDS submission | ⬜ TODO | Pending audit registration + slot confirmation above |
+
+**Die size note:** the original architecture documentation targeted a ~600×600 µm die budget as a
+design-time estimate. The actual macro requires 391,518 µm² of core area at achievable placement
+density, and closes timing cleanly at 800×800 µm; a 650×650 µm attempt failed setup timing by
+−19.0 ns. Reaching 600×600 µm would require a dedicated area-reduction pass, not a floorplan
+adjustment — tracked as an open decision, not a regression.
 
 ### Phase 6 — Future Work / Nice-to-Have
 
 | Task | Status | Notes |
 |---|---|---|
 | Host-facing command/config bus bridge (SPI-to-APB) | ⬜ TODO | Currently exercised via testbench APB direct writes |
-| Power characterization (post-synthesis switching activity) | ⬜ TODO | RTL estimates in `docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md` |
-| Formal property verification | ⬜ TODO | FSM reachability, SEU recovery properties |
+| Power characterization (post-synthesis switching activity) | ✅ DONE | Measured at signoff: 46.4 mW total — see [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](../architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md) §4.6 |
+| Formal property verification | ⬜ TODO | FSM reachability, SEU recovery properties — see [`GATE_LEVEL_VERIFICATION_GAPS.md`](../verification/GATE_LEVEL_VERIFICATION_GAPS.md) §2.6 |
 
 ---
 
@@ -117,6 +142,15 @@ The project implements an autonomous radiation-hardened ASIC for spacecraft vibr
 | RHBD: TMR FSMs | 3 (goertzel_core, magnitude_compute, axis_sequencer) |
 | RHBD: TMR config registers | Yes (tmr_reg_bank, 1024-cycle scrub) |
 | RHBD: SRAM macros | 0 (fully flip-flop based) |
+| **Post-synthesis flip-flop count (gate netlist)** | **1,767** |
+| **TMR triplicated state bits (gate netlist)** | **375 bits, 8/8 groups intact** |
+| **Signed-off die size** | **800 × 800 µm (640,000 µm²)** |
+| **Core utilization** | **60.9%** |
+| **Setup slack, worst corner** | **+11.84 ns @ max_ss_125C_4v50** |
+| **Hold slack, worst corner** | **+0.127 ns @ min_ff_n40C_5v50** |
+| **Timing violations (9 corners)** | **0 setup, 0 hold, 0 TNS** |
+| **DRC / LVS / XOR / antenna** | **0 / 0 / 0 / 0** |
+| **Total power (signoff)** | **46.4 mW** (35.0 internal + 11.4 switching + 5.2 µW leakage) |
 
 ---
 
@@ -124,11 +158,18 @@ The project implements an autonomous radiation-hardened ASIC for spacecraft vibr
 
 | Issue | Severity | Mitigation |
 |---|---|---|
-| Gate-level simulation not yet run | Medium | RTL simulation passes; gate-level to be added post-synthesis |
-| LibreLane synthesis with current ITAG RTL not yet executed | Medium | Prior run logs exist for older architecture; re-run planned |
+| Gate-level simulation not yet run | Medium | 9-corner SDF exists in `build/top/sdf/`; RTL simulation passes; **this is the next planned step (cocotb)** |
+| No formal RTL↔netlist equivalence check (Yosys EQY) | Medium | TMR survival confirmed structurally (bit-width parse of netlist); EQY would make this a formal proof |
+| Reset-net max-slew/max-cap DRV violations (260 slew + 8 cap, worst corner) | Medium | Root-caused to false-pathed `sys_rst_n` fanout tree (125–280 flops/branch on `/RN`); benign at current clock margin but needs a fix-or-waive decision — see [`GATE_LEVEL_VERIFICATION_GAPS.md`](../verification/GATE_LEVEL_VERIFICATION_GAPS.md) |
+| KLayout DRC did not run (ruleset unavailable for gf180mcuD) | Low–Medium | Magic DRC (0 errors) + KLayout XOR cross-check (0 differences) are the current DRC evidence; independent rule-check coverage is incomplete |
+| IR drop analysis not chip-representative | Low (for now) | `VSRC_LOC_FILES` unset — no real pad locations yet; current 109 µV figure must be re-run once padring position is known |
+| Die size grew from ~600×600 µm target to signed-off 800×800 µm | Medium | 650×650 µm failed setup by −19 ns; 800×800 closes cleanly. Reaching 600×600 needs a dedicated area-reduction pass, tracked separately |
+| Team B22 not yet registered in the chipathon's multi-team GDS audit sheet | High (process) | Slot type/size unconfirmed; blocks chip-level integration planning |
+| Cell-name collision risk for chip-level GDS merge | Medium | Top cell named `top`; unprefixed OpenROAD via cells (`VIA_Via1_HV`, etc.) — both are generic names likely to collide with other teams' submissions |
 | Host-facing command bus not inside `top.v` boundary | Low | Documented as future work; testbench exercises via direct APB |
 | `proposal_outline.md` module table references stale module names | Low | Main `README.md` is accurate and up-to-date |
 
 ---
 
-*Updated after full simulation run confirming 100/100 checks passing — 2026-07-22*
+*Updated after completing the 3-stage LibreLane physical implementation flow
+(`S1_SYNTH` → `S2_DRT` → `S3_SIGNOFF`) with clean signoff metrics — 2026-08-22.*

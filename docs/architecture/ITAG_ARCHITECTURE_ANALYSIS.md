@@ -214,7 +214,7 @@ TOTAL                                                     ≈ +645 DFF
   instead of one. In absolute terms this is small: 12 extra active cycles per 375-cycle
   sample, all in the same narrow datapath.
 - Leakage rises in proportion to the +645 DFF (§2), i.e. ≈0.5–1% of a design whose cell
-  count is dominated by the multiplier and register bank. Immaterial at 180 nm / 1.8 V.
+  count is dominated by the multiplier and register bank. Immaterial at 180 nm / 5 V.
 - **Net:** a modest (~3×) increase in an already-tiny dynamic term, no change to the
   isolation strategy that keeps the multiplier dark. Power remains dominated by leakage,
   which grows <1%. A precise figure requires a post-synthesis `.lib`-based power run

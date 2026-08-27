@@ -254,7 +254,7 @@ At 10 MHz system clock / 26.667 kHz sensor ODR:
 | Node | 180 nm bulk CMOS |
 | RTL-to-GDS Flow | LibreLane open-source |
 | Standard Cell Library | `gf180mcu_fd_sc_mcl` |
-| Core supply | 1.8 V |
-| IO supply | 3.3 V |
+| Core supply | 5 V nominal (as signed off) |
+| IO supply | 5 V — same net as core; the padring ties DVDD to VDD |
 | Target clock | 5–10 MHz |
 | Die budget | ~600×600 µm |

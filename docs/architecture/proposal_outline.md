@@ -1,5 +1,10 @@
 # Space-Grade Mechanical Fault Detector
 
+> **Historical document.** The voltages below (1.8 V core / 3.3 V level-shifted I/O) were the
+> original proposal intent. The implemented chip is a **single 5 V supply** (padring ties DVDD to
+> VDD) signed off at 4.5 / 5.0 / 5.5 V, and gf180mcu ships no level-shifter cells. See
+> [`../specs/IO_SPECIFICATION.md`](../specs/IO_SPECIFICATION.md#voltage-domain-and-sensor-interface).
+
 > **SSCS Chipathon 2026 — Track B (Sensor Circuits)**  
 > Radiation-hardened by design (RHBD) ASIC for autonomous spacecraft vibration and mechanical fault detection using a mixed-precision Goertzel algorithm via the LibreLane standalone `gf180mcu` digital flow.
 

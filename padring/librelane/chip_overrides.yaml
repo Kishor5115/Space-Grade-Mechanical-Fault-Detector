@@ -1,0 +1,182 @@
+# SPDX-FileCopyrightText: 2026 Team B22 "Space Jam" -- SSCS Chipathon 2026
+# SPDX-License-Identifier: Apache-2.0
+#
+#=============================================================================
+# chip_overrides.yaml -- chip-top overrides for the Space-Grade Mechanical
+#                        Fault Detector on the wafer-space gf180mcu slot_1x1.
+#=============================================================================
+#
+# Passed to LibreLane as the THIRD positional config file:
+#
+#   librelane librelane/slots/slot_1x1.yaml \
+#             librelane/config.yaml \
+#             librelane/chip_overrides.yaml \
+#             --pdk gf180mcuD --pdk-root ./gf180mcu --manual-pdk ...
+#
+# LibreLane merges positional configs with later-wins on each top-level key,
+# so everything declared here replaces the vendored template's value wholesale.
+# The template's config.yaml is NOT rewritten -- the only in-place patch the
+# integration notebook applies is uncommenting the two KLayout.DRC lines under
+# meta.substituting_steps (see limitation 2 in the plan).
+#
+# `dir::` paths resolve relative to THIS file's directory, i.e.
+#   <workspace>/template/librelane/
+# so the macro views under <workspace>/macro/top/ are reached with ../../ .
+#
+#=============================================================================
+
+#-----------------------------------------------------------------------------
+# RTL. chip_top.sv is the padring (vendored, unmodified apart from re-enabling
+# the chip_id / logo instantiations). chip_core.sv is ours -- it maps the
+# hardened `top` macro onto the slot_1x1 pad boundary.
+#-----------------------------------------------------------------------------
+VERILOG_FILES:
+- dir::../src/chip_top.sv
+- dir::../src/chip_core.sv
+
+#-----------------------------------------------------------------------------
+# Clock.
+#
+# The vendored template hardcodes CLOCK_PERIOD: 40 (25 MHz). The `top` macro's
+# nine .lib views are characterised at 62.5 ns (16 MHz) and its internal paths
+# are closed at that period -- running chip-top STA at 40 ns would report
+# false setup failures through the macro. Override to the macro's real spec.
+#
+# CLOCK_PORT (clk_PAD) and CLOCK_NET (clk_pad/Y) are inherited from the
+# template: the clock is constrained at the *output of the Schmitt input pad*,
+# not at the bondpad, which is what makes the pad delay part of the source
+# latency rather than the data path.
+#-----------------------------------------------------------------------------
+CLOCK_PERIOD: 62.5
+
+#-----------------------------------------------------------------------------
+# Macros.
+#
+# Three placed macros:
+#   1. top                    -- our signed-off fault detector, 800 x 800 um
+#   2. gf180mcu_ws_ip__id     -- wafer.space chip ID. MANDATORY for tapeout.
+#   3. gf180mcu_ws_ip__logo   -- wafer.space logo. Optional but conventional.
+#
+# The vendored template ships all three commented out (`MACROS: {}`) because
+# its multimacro example disabled them. Both IP macros are re-enabled here and
+# their instantiations are re-enabled in src/chip_top.sv by the notebook.
+#
+# LibreLane v3 schema notes that bite here:
+#   * `lib` MUST be a per-corner mapping. A single "*" key silently collapses
+#     multi-corner STA down to one corner. All nine gf180 corners are listed
+#     explicitly for `top`. The two wafer.space IP blocks are non-timing
+#     placeholders and legitimately use "*" (that is how upstream ships them).
+#   * `vh` uses the generated power-aware blackbox (build/top/vh/top.vh, 20
+#     lines) rather than the 108k-line hardened netlist. Same port list,
+#     enormously faster elaboration, and it carries the USE_POWER_PINS guard.
+#   * `location` is the macro ORIGIN (lower-left corner) in absolute die
+#     coordinates, in um.
+#
+# Placement arithmetic for `top` -- top-left of the core, 80 um keep-out:
+#   CORE_AREA = [442, 442, 3490, 4680]   (slot_1x1.yaml)
+#   x0 = 442  + 80             = 522
+#   y0 = 4680 - 80 - 800       = 3800
+#   occupies x 522..1322, y 3800..4600
+# 80 um (not the 10 um FP_MACRO halo) because PDN_CORE_RING is enabled with
+# 25 um wide rings plus offset and spacing, consuming ~60 um inward from the
+# core boundary.
+#-----------------------------------------------------------------------------
+MACROS:
+  top:
+    gds:
+    - dir::../../macro/top/gds/top.gds
+    lef:
+    - dir::../../macro/top/lef/top.lef
+    vh:
+    - dir::../../macro/top/vh/top.vh
+    lib:
+      nom_tt_025C_5v00:
+      - dir::../../macro/top/lib/nom_tt_025C_5v00/top__nom_tt_025C_5v00.lib
+      nom_ss_125C_4v50:
+      - dir::../../macro/top/lib/nom_ss_125C_4v50/top__nom_ss_125C_4v50.lib
+      nom_ff_n40C_5v50:
+      - dir::../../macro/top/lib/nom_ff_n40C_5v50/top__nom_ff_n40C_5v50.lib
+      min_tt_025C_5v00:
+      - dir::../../macro/top/lib/min_tt_025C_5v00/top__min_tt_025C_5v00.lib
+      min_ss_125C_4v50:
+      - dir::../../macro/top/lib/min_ss_125C_4v50/top__min_ss_125C_4v50.lib
+      min_ff_n40C_5v50:
+      - dir::../../macro/top/lib/min_ff_n40C_5v50/top__min_ff_n40C_5v50.lib
+      max_tt_025C_5v00:
+      - dir::../../macro/top/lib/max_tt_025C_5v00/top__max_tt_025C_5v00.lib
+      max_ss_125C_4v50:
+      - dir::../../macro/top/lib/max_ss_125C_4v50/top__max_ss_125C_4v50.lib
+      max_ff_n40C_5v50:
+      - dir::../../macro/top/lib/max_ff_n40C_5v50/top__max_ff_n40C_5v50.lib
+    instances:
+      i_chip_core.u_fault_detector:
+        location: [522, 3800]
+        orientation: N
+
+  gf180mcu_ws_ip__id:
+    gds:
+    - dir::../ip/gf180mcu_ws_ip__id/gds/gf180mcu_ws_ip__id.gds
+    lef:
+    - dir::../ip/gf180mcu_ws_ip__id/lef/gf180mcu_ws_ip__id.lef
+    vh:
+    - dir::../ip/gf180mcu_ws_ip__id/vh/gf180mcu_ws_ip__id.v
+    lib:
+      "*":
+      - dir::../ip/gf180mcu_ws_ip__id/lib/gf180mcu_ws_ip__id.lib
+    instances:
+      chip_id:
+        location: [26, 26]
+        orientation: N
+
+  gf180mcu_ws_ip__logo:
+    gds:
+    - dir::../ip/gf180mcu_ws_ip__logo/gds/gf180mcu_ws_ip__logo.gds
+    lef:
+    - dir::../ip/gf180mcu_ws_ip__logo/lef/gf180mcu_ws_ip__logo.lef
+    vh:
+    - dir::../ip/gf180mcu_ws_ip__logo/vh/gf180mcu_ws_ip__logo.v
+    lib:
+      "*":
+      - dir::../ip/gf180mcu_ws_ip__logo/lib/gf180mcu_ws_ip__logo.lib
+    instances:
+      wafer_space_logo:
+        location: ["expr::$DIE_AREA[2] + -169.25", "expr::$DIE_AREA[3] + -169.25"]
+        orientation: N
+
+#-----------------------------------------------------------------------------
+# Macro power hookup.
+#
+# LibreLane v3 requires List[str] of
+#   "<instance regex> <vdd net> <vss net> <macro vdd pin> <macro vss pin>"
+# Dict-shaped entries are rejected with "Refusing to automatically convert
+# value to string".
+#
+# No per-macro pdn_cfg.tcl grid is needed: the vendored pdn_cfg.tcl already
+# declares `define_pdn_grid -macro -default -name macro` with
+# `add_pdn_connect -layers "$PDN_VERTICAL_LAYER $PDN_HORIZONTAL_LAYER"`.
+# On gf180 those default to Metal4 / Metal5. The `top` macro exposes VDD/VSS
+# on Metal4 and its routing obstruction stops at Metal4, so the chip's Metal5
+# straps land on the macro's Metal4 power pins and Metal5 stays available for
+# routing over the macro.
+#
+# chip_id and the logo are inert GDS placeholders with no power pins, so they
+# are deliberately absent from this list.
+#-----------------------------------------------------------------------------
+PDN_MACRO_CONNECTIONS:
+- "i_chip_core.u_fault_detector VDD VSS VDD VSS"
+
+#-----------------------------------------------------------------------------
+# Disconnected-module allow-list.
+#
+# gf180mcu_fd_io__bi_24t : the Y (receive) output is unused on every one of
+#                          our 40 bidir pads -- four are pure outputs and the
+#                          other 36 are parked high-Z with ie=0. Inherited
+#                          from the template, restated because this key is
+#                          replaced wholesale by the merge.
+# gf180mcu_ws_ip__id     : inert GDS, no functional ports.
+# gf180mcu_ws_ip__logo   : inert GDS, no functional ports.
+#-----------------------------------------------------------------------------
+IGNORE_DISCONNECTED_MODULES:
+- gf180mcu_fd_io__bi_24t
+- gf180mcu_ws_ip__id
+- gf180mcu_ws_ip__logo

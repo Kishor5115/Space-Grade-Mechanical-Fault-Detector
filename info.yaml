@@ -1,0 +1,53 @@
+# ----- ------ ----- ----- ------ ----- ----- ------ -----
+# Chipathon 2026: Project configuration
+# LICENSE: Apache License Version 2.0
+# http://www.apache.org/licenses/
+# ----- ------ ----- ----- ------ ----- ----- ------ -----
+# Data will be pulled from the main branch of the repo.
+# Please be sure that the main branch contains the data you want to submit.
+# ======================================================
+# Project metadata (used for documentation / review)
+# ======================================================
+project:
+  title: "Space-Grade Mechanical Fault Detector"
+  team: "B22 Space Jam"
+  discord: "kishor_phantom"
+  description: "Radiation-tolerant spacecraft vibration fault detector: 3-bin Interleaved Tri-Axis Goertzel (ITAG) fixed-point DSP core with TMR-hardened control FSMs and scrubbed config registers, driving an IIS3DWB MEMS sensor over SPI"
+  lvs_config: "lvs_config.json"
+  pins:
+  # --- supplies -------------------------------------------------------------
+  - name: VDD
+    io_type: power
+  - name: VSS
+    io_type: ground
+  # --- clock and reset (hard-wired pads at the SW corner of slot_1x1) -------
+  - name: clk
+    io_type: input_schmitt
+  - name: sys_rst_n
+    io_type: input_cmos
+  # --- IIS3DWB sensor SPI ---------------------------------------------------
+  # gf180mcu has no plain digital output pad: every output uses a bi_24t
+  # bidirectional cell with OE tied active. Hence io_type: bidirectional.
+  - name: c_miso
+    io_type: input_cmos
+  - name: c_csn
+    io_type: bidirectional
+  - name: c_sclk
+    io_type: bidirectional
+  - name: c_mosi
+    io_type: bidirectional
+  - name: sensor_drdy
+    io_type: input_cmos
+  # --- mode strap -----------------------------------------------------------
+  - name: tmr_forward_en
+    io_type: input_cmos
+  # --- host command SPI (write-only config channel) -------------------------
+  - name: cmd_sclk
+    io_type: input_cmos
+  - name: cmd_csn
+    io_type: input_cmos
+  - name: cmd_mosi
+    io_type: input_cmos
+  # --- fault alarm ----------------------------------------------------------
+  - name: fault_flag_out
+    io_type: bidirectional

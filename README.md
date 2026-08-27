@@ -226,7 +226,7 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 | RTL-to-GDS Flow | LibreLane open-source digital flow |
 | Standard Cell Library | `gf180mcu_fd_sc_mcu7t5v0` |
 | Source Language | Verilog HDL (IEEE 1364) |
-| Core Supply Voltage | 1.8 V |
+| Core / I/O Supply Voltage | 5 V nominal (signed off at 4.5 / 5.0 / 5.5 V) — see [Voltage Domain](docs/specs/IO_SPECIFICATION.md#voltage-domain-and-sensor-interface) |
 | Target Core Clock | 16 MHz (62.5 ns period) |
 | Sensor ODR | 26.667 kHz (IIS3DWB, fixed by boot configuration) |
 | Block Size | 512 samples (all three axes per block) |

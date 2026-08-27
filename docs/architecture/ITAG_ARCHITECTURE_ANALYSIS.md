@@ -25,8 +25,8 @@ microarchitecture vs. the current axis-sequential design.
 | goertzel_core FSM | `goertzel_core.v` | 7 states, 3-bit TMR (`state_a/b/c`, `vote3`) |
 | goertzel active cycles/sample (current) | `S_IDLE→B0_MUL…B2_UPD` | **6** |
 | goertzel state regs (current) | `v1_0…v2_2` | 6 × 24-bit |
-| magnitude FSM | `magnitude_compute.v` | 8 states, 3-bit TMR (`ms_a/b/c`, `vote3`) |
-| magnitude cycles per (axis,bin) pair | `M_SQV1…M_CV1_W` | **6** (+1 `M_ARM` per session) |
+| magnitude FSM | `magnitude_compute.v` | 9 states, 4-bit TMR (`ms_a/b/c`, `vote4`) |
+| magnitude cycles per (axis,bin) pair | `M_SQV1…M_CV1V2` | **7** (`M_SQV1/_W, M_SQV2/_W, M_CV1/_W, M_CV1V2`) + 1 `M_ARM` per session |
 | magnitude snapshot regs (current) | `sv1[0:2]`,`sv2[0:2]`,`sc[0:2]` | 9 × 24-bit |
 | axis rotation | `axis_sequencer.v` | `axis_a/b/c` (vote2) + 1024-cycle scrub |
 | **Integrated block size** | **`top.v` overrides `fault_flagger` `BLOCK_SIZE(512)`** | **512** |
@@ -34,9 +34,9 @@ microarchitecture vs. the current axis-sequential design.
 > ⚠️ **Block-size discrepancy (pre-existing, not introduced by ITAG).**
 > `fault_flagger.v`'s *default* parameter is `BLOCK_SIZE = 171`, but `top.v`
 > instantiates it as `fault_flagger #(.BLOCK_SIZE(512))`. The **effective** block
-> size in the integrated chip is therefore **512**, matching the target specification,
-> while `README.md` still describes 171. This should be reconciled in
-> Phase 4 docs. ITAG keeps the effective block size at 512 (§6).
+> size in the integrated chip is therefore **512**, matching the target specification.
+> `README.md` **already correctly states 512** throughout — no reconciliation needed.
+> ITAG keeps the effective block size at 512 (§6).
 
 ---
 
@@ -65,15 +65,18 @@ The current mag FSM costs **6 cycles per (axis,bin) pair** (`M_SQV1`, `M_SQV1_W`
 ITAG raises the pair count from 3 bins to **9 (axis,bin) pairs**:
 
 ```
-mag session = 1 (M_ARM) + 9 pairs × 6 cycles = 1 + 54 = 55 cycles
+mag session = 1 (M_ARM) + 9 pairs × 7 cycles = 1 + 63 = 64 cycles
 ```
 
-> 📝 **Clarification on initial design notes.** Some early design notes estimated "27 multiplies … 54
-> cycles". The multiply *count* is right (9 pairs × 3 multiplies), but the FSM
-> spends 6 cycles per pair (a WAIT state follows each of the 3 multiplies), so the
-> session is **55 cycles including `M_ARM`**, or 54 excluding it. The margin below
-> is dominated by the ~300-cycle idle tail, so this 1-cycle difference is immaterial
-> — but the doc should be precise.
+> 📝 **Clarification on initial design notes.** Some early design notes estimated "27 multiplies …
+> 54 cycles" (9 pairs × 3 multiplies, 6 cycles/pair). The RTL's `magnitude_compute.v` actually
+> performs **4** multiplies per pair — `v1²`, `v2²`, `C·v1`, and a dedicated `M_CV1V2` state for the
+> cross term `C·v1·v2` (`v1²+v2²−C·v1·v2` per the Fixed-Point Datapath table) — giving **7 cycles
+> per pair**, not 6. Session length is therefore **1 (`M_ARM`) + 9×7 = 64 cycles**, not 54/55. The
+> `M_CV1V2` state was added after the initial estimate to fix a real bug: without it, the cross
+> term used the *previous* bin's `cv1` (see the RTL header comment above `M_CV1V2`'s definition).
+> The margin below is dominated by the ~500-cycle idle tail at the signed-off 16 MHz clock (see
+> §9.1), so this correction changes no conclusion — but the doc should be precise.
 
 ### 1.3 Sequencing — is there multiplier contention?
 
@@ -118,12 +121,19 @@ Boundary sample     : 375 − 18 − 55       = 302 idle cycles (80.5% idle)
 The next sample's goertzel run (cycle 375) begins **~300 cycles after** the mag session
 finishes (~cycle 75). **The budget closes with very large margin.** ITAG is timing-safe.
 
+> **Note on the "Current" column.** The axis-sequential (pre-ITAG) `magnitude_compute.v` this
+> column describes no longer exists in the repository — the earliest commit still checked in
+> (`b65d180`, "implement Interleaved Tri-Axis Goertzel (ITAG) architecture") already carries the
+> ITAG version. The "Current" values below are therefore historical and cannot be independently
+> re-verified against RTL; the "ITAG" column has been corrected against the present RTL (7 cycles
+> and 4 multiplies per (axis,bin) pair, not 6/3) and is authoritative.
+
 | Metric | Current | ITAG |
 |---|---|---|
 | goertzel active | 6 | 18 |
-| mag session (boundary sample only) | 1 + 3×6 = 19 | 1 + 9×6 = 55 |
-| worst-case active (boundary sample) | 25 | 73 |
-| idle on boundary sample | 350 | 302 |
+| mag session (boundary sample only) | 1 + 3×7 = 22 | 1 + 9×7 = 64 |
+| worst-case active (boundary sample) | 28 | 82 |
+| idle on boundary sample | 347 | 293 |
 | idle % (boundary) | 93.3% | 80.5% |
 
 ---
@@ -154,7 +164,7 @@ DFF ≈ 2.5 µm² is used only for order-of-magnitude context.
 | `sv1`, `sv2` snapshots | 6 × 24 = 144 | 18 × 24 = 432 | **+288** |
 | `sc` coefficient snapshot | 3 × 24 = 72 | **keep 3 × 24 = 72** (coeffs shared across axes) | **0** |
 | `active_axis` counter | — | 2 bits | +2 |
-| FSM state (TMR ×3) | 3 bits × 3 = 9 | 3 bits × 3 = 9 | 0 |
+| FSM state (TMR ×3) | 3 bits × 3 = 9 | **4 bits × 3 = 12** | **+3** |
 
 **Recommendation:** keep `sc` as a 3-entry array (one coefficient set, shared by all
 three axes) rather than the `sc[0:2][0:2]` shown in the fixed-point skill. The skill
@@ -178,13 +188,13 @@ flops; the *logic* simplification — removed mux + scrub + advance FSM — is t
 
 ```
 goertzel_core       : +288 (v) +6 (state) +48 (xyz input) = +342
-magnitude_compute   : +288 (snapshots) +2 (axis cnt)      = +290
+magnitude_compute   : +288 (snapshots) +2 (axis cnt) +3 (FSM 3->4 bit) = +293
 axis_sequencer      :                                        +13
 --------------------------------------------------------------------
-TOTAL                                                     ≈ +645 DFF
+TOTAL                                                     ≈ +648 DFF
 ```
 
-> 📝 **Bottom line on area:** the honest number is **≈ +645 DFF**, roughly **2.2×**
+> 📝 **Bottom line on area:** the honest number is **≈ +648 DFF**, roughly **2.2×**
 > the initial estimate of "+294". The difference is almost entirely the `magnitude_compute`
 > snapshot expansion (+288), which the initial estimate did not account for.
 > At ~2.5 µm²/DFF this is ≈ 1600 µm² — still **negligible** against the shared 24×24
@@ -202,8 +212,8 @@ TOTAL                                                     ≈ +645 DFF
 | goertzel datapath switching | 1× | **≈3×** (three axes updated per sample) |
 | Multiplier idle fraction (non-boundary) | 98.4% | 95.2% |
 | mag sessions per **block** | 1 (of 3 bins) | 1 (of 9 pairs) |
-| mag multiplies per **block** | 9 | 27 |
-| mag active as fraction of block | 19 / (512×375) ≈ 0.01% | 55 / (512×375) ≈ 0.03% |
+| mag multiplies per **block** | 9 | 36 |
+| mag active as fraction of block | 22 / (512×375) ≈ 0.01% | 64 / (512×375) ≈ 0.03% |
 
 **Discussion.**
 - The dominant dynamic-power term is the shared multiplier, which stays **operand-isolated
@@ -213,7 +223,7 @@ TOTAL                                                     ≈ +645 DFF
 - goertzel datapath switching scales ~3× because three axes are now updated every sample
   instead of one. In absolute terms this is small: 12 extra active cycles per 375-cycle
   sample, all in the same narrow datapath.
-- Leakage rises in proportion to the +645 DFF (§2), i.e. ≈0.5–1% of a design whose cell
+- Leakage rises in proportion to the +648 DFF (§2), i.e. ≈0.5–1% of a design whose cell
   count is dominated by the multiplier and register bank. Immaterial at 180 nm / 5 V.
 - **Net:** a modest (~3×) increase in an already-tiny dynamic term, no change to the
   isolation strategy that keeps the multiplier dark. Power remains dominated by leakage,
@@ -266,7 +276,7 @@ detection gap that the README explicitly lists as an unresolved limitation.
 | goertzel illegal-state recovery | `default → S_IDLE` (7 of 8 codes legal) | `default → S_IDLE` (**19 of 32 codes legal → 13 illegal codes**) | Larger illegal-code space, but *all* map to `S_IDLE` in one clock (Invariant 4). Recovery guarantee unchanged. |
 | Datapath TMR | v-regs not triplicated (Rule C) | 18 v-regs not triplicated (Rule C) | Consistent. Tripling the datapath count does raise the *raw* SEU cross-section of unprotected state ~3×, but this is a **deliberate, documented** area/power tradeoff. See note below. |
 | axis_sequencer TMR | `axis_a/b/c` (vote2) + 1024-cycle scrub | **removed** | Net **reduction** in attack surface: the triplicated axis index + scrub machinery is deleted. Polling FSM `ps_a/b/c` TMR is **retained**. |
-| magnitude FSM TMR | 3-bit `vote3` ×3 | 3-bit `vote3` ×3 (unchanged; still 8 states) | No change. `active_axis`/`active_bin` counters are datapath (Rule C), same as today's `active_bin`. |
+| magnitude FSM TMR | 3-bit `vote3` ×3, 8 states | **4-bit `vote4` ×3, 9 states** | Widened by one state (`M_CV1V2`, the `C·v1·v2` cross-term multiply) and one TMR bit — see §2.2. `active_axis`/`active_bin` counters remain datapath (Rule C). |
 
 **Note on the 3× datapath cross-section.** ITAG triples the number of *unprotected*
 Goertzel state bits (144 → 432). Per the project's Rule C, v1/v2 are intentionally not
@@ -312,13 +322,18 @@ The proposal is sound and the timing/latency conclusions hold. Three numeric poi
 the initial projections should be corrected for accuracy (all in the "less optimistic" direction, none
 changes the go/no-go):
 
-1. **Area delta is ≈ +645 DFF, not +294.** The initial estimate counted goertzel's +12 v-regs (+288)
+1. **Area delta is ≈ +648 DFF, not +294.** The initial estimate counted goertzel's +12 v-regs (+288)
    and +6 state bits but omitted the `magnitude_compute` snapshot expansion (+288) and the
    two extra input-sample registers (+48). Still negligible vs. the shared multiplier.
-2. **Mag session is 55 cycles (1 `M_ARM` + 9×6), not 54.** The multiply *count* (27) is
-   correct; each multiply is followed by a WAIT state. Immaterial to the ~300-cycle margin.
+2. **Mag session is 64 cycles (1 `M_ARM` + 9×7), not 54 or 55.** The RTL performs 4 multiplies
+   per pair (`v1²`, `v2²`, `C·v1`, and the `M_CV1V2` cross term `C·v1·v2`), each followed by a WAIT
+   state, so the correct per-pair cost is 7 cycles and 36 multiplies per block, not 6/27. Immaterial
+   to the margin conclusion either way — see §9.1 for the signed-off-clock margin, which is even
+   larger (~500 idle cycles at 16 MHz vs. the ~300 assumed here at the originally-assumed 10 MHz).
 3. **Effective block size is 512 via `top.v` override**, while `fault_flagger.v`'s default
-   is 171 and `README.md` says 171. Pre-existing inconsistency to reconcile in Phase 4.
+   is 171. `README.md` **already correctly states 512** throughout (block size, detection
+   latency, and the Fixed-Point Datapath table) — the inconsistency this note originally flagged
+   has been resolved on the README side; no further reconciliation needed.
 
 Additionally recommended (area, not correctness): keep `sc` as a 3-entry coefficient
 snapshot indexed by bin (coefficients are shared across axes), avoiding an unnecessary
@@ -330,7 +345,7 @@ snapshot indexed by bin (coefficients are shared across axes), avoiding an unnec
 
 **GO.** ITAG:
 - fits the 375-cycle budget with ~300 idle cycles of margin (§1),
-- costs ≈ +645 DFF ≈ 1600 µm², negligible against the die and multiplier (§2),
+- costs ≈ +648 DFF ≈ 1600 µm², negligible against the die and multiplier (§2),
 - raises dynamic power by a small, isolation-bounded amount (§3),
 - eliminates the 38.4 ms worst-case inter-axis latency and closes the simultaneous-
   multi-axis detection gap the README lists as unresolved (§4),
@@ -386,16 +401,22 @@ triplicated copies during synthesis:
 | `tmr_inst.th` — fault threshold | 32 | intact ×3 |
 
 **8/8 groups, 375 total triplicated bits, 21.2% of the design's 1,767 flip-flops.** This is a
-structural confirmation (bit-width equality in the netlist), not a formal proof — `Yosys.EQY` was
-not run (see [`GATE_LEVEL_VERIFICATION_GAPS.md`](../verification/GATE_LEVEL_VERIFICATION_GAPS.md)
-§2.1), so the *voting logic's* correctness through synthesis is unverified beyond RTL simulation.
-The §5 architectural claims about voter width and illegal-state recovery are unaffected — they are
-RTL-level guarantees this check does not add to or subtract from, it only confirms the copies were
-not silently deduplicated.
+structural confirmation (bit-width equality in the netlist), not a formal proof of gate-level
+equivalence — a Yosys `EQY` config now exists
+([`verification/top.eqy`](../../verification/top.eqy)) but **has not completed on this design; no
+equivalence result is claimed.** See
+[`GATE_LEVEL_VERIFICATION_GAPS.md`](../verification/GATE_LEVEL_VERIFICATION_GAPS.md) §5.2.
+
+The *voting logic's* correctness, separately from netlist structure, is no longer RTL-inspection-only:
+[`tb/test_seu.py`](../../tb/test_seu.py) (`make test-seu`, **3/3 PASS**) injects single- and
+multi-bit upsets into `goertzel_core`'s triplicated FSM state and confirms the voter masks a single
+corrupted copy, the copies re-converge one clock after an upset, and a forced illegal encoding
+recovers to `S_IDLE` in one clock. This is an RTL-level fault-injection result, not a gate-level or
+physical-layout one — see §5.2 of the verification-gaps doc for what it does and does not cover.
 
 ### 9.3 Area: post-synthesis flip-flop count vs. the §2 DFF-count estimate
 
-§2 estimates a **≈ +645 DFF** delta from the pre-ITAG baseline using a ~2.5 µm²/DFF rule of thumb,
+§2 estimates a **≈ +648 DFF** delta from the pre-ITAG baseline using a ~2.5 µm²/DFF rule of thumb,
 concluding the impact is negligible against the shared multiplier and the then-assumed 600×600 µm
 die budget. The actual synthesized design (`S1_SYNTH`) contains:
 
@@ -419,16 +440,16 @@ reasoning was wrong.
 §3 declines to give a precise power figure, stating "a precise figure requires a post-synthesis
 `.lib`-based power run (LibreLane), out of scope for RTL Phase 1." That run has now happened:
 
-| Metric | Value (signoff, `S3_SIGNOFF`) |
+| Metric | Value (signoff, post pin-placement re-harden) |
 |---|---|
-| Total power | 46.4 mW |
-| Internal power | 35.0 mW |
+| Total power | 47.0 mW |
+| Internal power | 35.6 mW |
 | Switching power | 11.4 mW |
-| Leakage power | 5.2 µW |
+| Leakage power | 5.3 µW |
 
-§3's structural claim — that leakage (proportional to the +645 DFF) is immaterial relative to
+§3's structural claim — that leakage (proportional to the +648 DFF) is immaterial relative to
 dynamic power dominated by the shared multiplier's operand isolation — is consistent with this
-result: leakage is 5.2 µW against 46.4 mW total, i.e. **0.01% of total power**, matching the "leakage
+result: leakage is 5.3 µW against 47.0 mW total, i.e. **0.01% of total power**, matching the "leakage
 grows <1%" prediction in §3 in direction if not in the exact ratio predicted (the prediction was
 made relative to a different, smaller baseline design).
 

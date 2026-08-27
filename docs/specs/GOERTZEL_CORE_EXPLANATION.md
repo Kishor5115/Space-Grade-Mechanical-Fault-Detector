@@ -55,7 +55,7 @@ Encoded in Q8.15 (24-bit signed): C_k_q815 = round(C_k × 32768)
 |---|---|---|---|
 | 0 | 1000 Hz (fundamental) | 1.9438 | 63725 |
 | 1 | 5000 Hz (harmonic) | 0.7654 | 25080 |
-| 2 | 10000 Hz (resonance) | −1.4142 | −46341 |
+| 2 | 10000 Hz (resonance) | −1.4142 | −46340 |
 
 ---
 
@@ -63,7 +63,7 @@ Encoded in Q8.15 (24-bit signed): C_k_q815 = round(C_k × 32768)
 
 ### 3.1 The Core Innovation
 
-The standard Goertzel implementation processes one axis at a time. The **Interleaved Tri-Axis Goertzel (ITAG)** microarchitecture interleaves computation across all three axes (X, Y, Z) within a **single sample period**. At 10 MHz system clock / 26.667 kHz sensor ODR, each sample period is **375 clock cycles**. The ITAG core uses only **18 of those cycles** (4.8%) for active computation, leaving 95.2% idle.
+The standard Goertzel implementation processes one axis at a time. The **Interleaved Tri-Axis Goertzel (ITAG)** microarchitecture interleaves computation across all three axes (X, Y, Z) within a **single sample period**. At 16 MHz system clock / 26.667 kHz sensor ODR, each sample period is **600 clock cycles**. The ITAG core uses only **18 of those cycles** (3.0%) for active computation, leaving 97.0% idle.
 
 ### 3.2 The 19-State FSM
 
@@ -133,7 +133,7 @@ Arbitration (in magnitude_compute):
   mult_b_w   = core_mult_req ? core_mult_b : mag_mult_b
 ```
 
-**No contention occurs by construction:** `goertzel_core` holds `mult_req` high for 9 of 18 active cycles (only the `*_MUL` states). The magnitude engine only runs during the S_IDLE window (cycles 19–74 of each sample period), which is fully outside the 18-cycle Goertzel burst. The integration testbench (`tb_top.v`) includes a runtime assertion that fires if both ever request the multiplier simultaneously — this assertion has never triggered.
+**No contention occurs by construction:** `goertzel_core` holds `mult_req` high for 9 of 18 active cycles (only the `*_MUL` states). The magnitude engine only runs during the S_IDLE window (cycles 19-600 of each sample period), which is fully outside the 18-cycle Goertzel burst. The integration testbench (`tb_top.v`) includes a runtime assertion that fires if both ever request the multiplier simultaneously — this assertion has never triggered.
 
 ---
 
@@ -163,6 +163,18 @@ state_c <= next_state;
 A single-bit SEU flipping one copy is corrected on the **very next clock edge** because the flipped copy is overwritten with the voted-correct value. The upset never propagates.
 
 **SEU-safe default:** All 13 unreachable 5-bit codes (out of 32 total for 5 bits, with only 19 valid states) map to `S_IDLE` via the `default` case in the next-state always block. An SEU producing any illegal encoding recovers in one clock.
+
+**Empirical proof, not just RTL inspection.** All three claims above were only ever demonstrated by reading the RTL until [`tb/test_seu.py`](../../tb/test_seu.py) (`make test-seu`, 3/3 PASS) added fault-injection tests:
+
+| Property | Test | Result |
+|---|---|---|
+| Voter **masks** a single-bit upset | `test_seu_single_copy_is_masked` | **PASS** — all 5/5 single-bit upsets injected into `state_a` were absorbed; the voted state always followed the two uncorrupted copies |
+| **Self-scrubbing** repairs the corrupted copy | `test_seu_is_scrubbed_next_clock` | **PASS** — after a multi-bit corruption, all three copies agreed again exactly one clock later |
+| **Illegal-state recovery** | `test_seu_illegal_state_recovers_to_idle` | **PASS** — an unreachable 5-bit encoding (all three copies forced simultaneously, so the voter itself cannot help) returned to `S_IDLE` in one clock |
+
+These tests inject at the RTL level, so they prove the *logical* correctness of the voter and the
+self-scrubbing write-back — not the physical SEU cross-section of the layout (spatial separation of
+the three copies, guard rings, substrate tapping), which remains a chip-level physical-RHBD item.
 
 ### 5.2 Untriplicated v-State Registers (Rule C: datapath)
 
@@ -209,7 +221,7 @@ This single clean overflow clamp (one per update, after the multiply) prevents t
 ### 7.1 Unit Test — `tb_goertzel_core.v` (7/7 checks pass)
 
 **Test setup:**
-- 500 samples of a 2-tone stimulus (1 kHz + 5 kHz) at correct IIS3DWB timing (1 data_ready per 375 clk cycles)
+- 500 samples of a 2-tone stimulus (1 kHz + 5 kHz) at correct IIS3DWB timing (1 data_ready per 600 clk cycles)
 - Same two tones applied to all three axes, but at different amplitudes: **X=1.0×, Y=0.5×, Z=0.25×**
 - Coefficients tuned to 1 kHz (bin 0), 5 kHz (bin 1), 10 kHz off-target (bin 2)
 
@@ -226,7 +238,29 @@ Z (0.25×): B0=969.85   B1=347.77   B2≈0
 3. **On-target bin selectivity:** Bins 0 and 1 (tuned to stimulus frequencies) show substantial energy; bin 2 (off-target) shows near-zero energy — confirming the IIR filter's frequency selectivity.
 4. **sample_done timing:** Exactly 500 `sample_done` pulses for 500 input samples — the block-counter contract is satisfied.
 
-### 7.2 Integration Test — `tb_top.v` Case 2/3/4 (axis attribution)
+### 7.4 Post-synthesis (gate-level) evidence, and the two invariants that don't survive netlisting
+
+`make test-top-gl` re-runs the `tb_top.v` suite against the **signed-off netlist**
+(`build/top/nl/top.nl.v`) with the real `gf180mcu_fd_sc_mcu7t5v0` cell models. Result:
+**6 PASS / 2 FAIL.**
+
+All six *functional* cases pass — no-fault baseline, per-axis fault (X/Y/Z), simultaneous 3-axis
+fault, and fault-clear. The two failures are the ITAG structural invariants described in §4 above
+(`test_itag_9_mag_pulses_per_block`, `test_itag_no_multiplier_contention`): they probe the internal
+combinational wires `goertzel_inst.mult_req` and `mag_inst.mag_mult_req` directly, and synthesis
+eliminates both (`grep` for either name in `top.nl.v` returns **0 occurrences**), so cocotb cannot
+resolve the handle. **This is a testbench-portability limitation, not evidence that the two
+invariants stop holding after synthesis** — the "no contention" property they assert is structural
+(a scheduling guarantee that either wire exists or it doesn't; there is nothing for synthesis to
+change), and it is unaffected by the register renaming/flattening synthesis performs. Treat these
+two tests as **RTL-only** going forward.
+
+A formal RTL↔netlist equivalence check ([`verification/top.eqy`](../../verification/top.eqy),
+Yosys EQY) has been set up to close this gap properly — proving `top.v` and `top.nl.v` behave
+identically for *all* input sequences rather than the ones a testbench happens to exercise — but it
+has **not yet completed on this design**; no equivalence result is claimed here.
+
+
 
 The top-level integration test injects a fault tone on **one axis at a time** and checks both that `fault_flag_out` asserts AND that `FAULT_BIN[3:2]` (the axis field in the FAULT_BIN register) reports the **correct axis**.
 
@@ -261,7 +295,7 @@ Injects small bin-0 tones on **all three axes simultaneously** (amp_x=0.04, amp_
 | TMR copies | 3 | state_a, state_b, state_c — all driven from voted next-state |
 | v-state registers | 18 | 3 axes × 3 bins × {v1, v2} — each 24-bit, not triplicated |
 | Active cycles/sample | 18 | 6 per axis (2 per bin × 3 bins) |
-| Idle cycles/sample | 357 | 375 − 18 = ~95.2% idle |
+| Idle cycles/sample | 582 | 600 − 18 = ~97.0% idle |
 
 ---
 

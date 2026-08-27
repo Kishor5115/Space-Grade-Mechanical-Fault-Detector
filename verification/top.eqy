@@ -1,0 +1,55 @@
+# ---------------------------------------------------------------------------
+# top.eqy -- formal RTL <-> netlist equivalence check for the `top` macro
+# 
+# WHY: gate-level simulation is the wrong tool for proving that synthesis
+# preserved function. It is 10-1000x slower than RTL sim and only ever covers
+# the vectors you happen to write. Formal equivalence checking proves
+# RTL == netlist for ALL input sequences, which is what industry PD teams rely
+# on (Conformal / Formality commercially; EQY in the open-source flow).
+# 
+# Gate-level sim is then reserved for what LEC structurally cannot see:
+# power-up / X-propagation, reset sequencing, and SDF-annotated timing.
+# 
+# RUN:
+#   docker exec gf180 bash -lc 'cd /foss/designs/space-jam && eqy -f verification/top.eqy'
+# 
+# The netlist under test is the SAME one that produced the signed-off GDS
+# (build/top/nl/top.nl.v), so a pass here certifies the taped-out logic.
+# ---------------------------------------------------------------------------
+
+[gold]
+read_verilog -sv rtl/multiplier.v
+read_verilog -sv rtl/clk_divider.v
+read_verilog -sv rtl/ff_2_sync.v
+read_verilog -sv rtl/apb_arb2.v
+read_verilog -sv rtl/cmd_spi_slave.v
+read_verilog -sv rtl/apb.v
+read_verilog -sv rtl/spi_master.v
+read_verilog -sv rtl/spi_apb_interface.v
+read_verilog -sv rtl/tmr_reg_bank.v
+read_verilog -sv rtl/axis_sequencer.v
+read_verilog -sv rtl/goertzel_core.v
+read_verilog -sv rtl/magnitude_compute.v
+read_verilog -sv rtl/fault_flagger.v
+read_verilog -sv rtl/top.v
+prep -top top
+memory_map
+flatten
+opt -full
+
+[gate]
+read_liberty -lib /foss/pdks/gf180mcuD/libs.ref/gf180mcu_fd_sc_mcu7t5v0/lib/gf180mcu_fd_sc_mcu7t5v0__tt_025C_5v00.lib
+read_verilog build/top/nl/top.nl.v
+prep -top top
+memory_map
+flatten
+opt -full
+
+[strategy sat]
+use sat
+depth 5
+
+[strategy sby]
+use sby
+engine smtbmc z3
+depth 10

@@ -8,34 +8,52 @@
 
 This document describes the detailed system architecture of the Space-Grade Mechanical Fault Detector ASIC. The chip connects to an off-chip STMicroelectronics **IIS3DWB** digital MEMS vibration sensor via SPI, computes frequency-domain energy for three programmable fault frequencies across all three physical sensor axes (X, Y, Z) simultaneously, and asserts a **sticky digital fault flag** when any (bin, axis) energy exceeds a configurable threshold.
 
-The key microarchitectural innovation is the **Interleaved Tri-Axis Goertzel (ITAG)** core, which processes all three axes every sample period using a single shared hardware multiplier — eliminating inter-axis detection latency while remaining within the ~600×600 µm die budget of the GF180MCU node.
+The key microarchitectural innovation is the **Interleaved Tri-Axis Goertzel (ITAG)** core, which processes all three axes every sample period using a single shared hardware multiplier — eliminating inter-axis detection latency. The signed-off `top` macro closes timing cleanly at **800×800 µm** (see [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](../architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md)); a ~600×600 µm figure appears elsewhere in the project history as the original design-time area budget, not the signed-off die size.
 
 ---
 
 ## 2. Chip-Level Boundary
 
+`top.v` has **12 signal pins** (plus `VDD`/`VSS`): 8 inputs, 4 outputs. There **is** a host-facing command-SPI bus inside this boundary — `cmd_spi_slave` → `apb` → `apb_arb2` → `tmr_reg_bank` — so coefficients and threshold are programmed by a real external SPI master, not only by testbench force.
+
 ```
                 ┌────────────────────────────────────────────────────────────────────┐
 SATELLITE       │                        rtl/top.v (chip boundary)                   │
 STRUCTURAL      │                                                                    │
-MEMBER          │  Pin        Direction  Description                                 │
-   │            │  ─────────────────────────────────────────────────────────────    │
-   ▼            │  clk        IN         System clock (5–10 MHz)                     │
- [IIS3DWB]──────│  sys_rst_n  IN         Active-low synchronous reset                │
- MEMS Sensor    │  c_miso     IN         SPI MISO (sensor → ASIC)                   │
-   │  │  │  │   │  c_csn      OUT        SPI chip-select, active-low                 │
-   │  │  │  │   │  c_sclk     OUT        SPI bit clock (Mode 3, idles high)          │
-   │  │  │  │   │  c_mosi     OUT        SPI MOSI (ASIC → sensor)                   │
-   │  │  │  └───│  sensor_drdy IN        DRDY interrupt from sensor (async)          │
-   │  │  └──────│─────────────────────────────────────────────────────────          │
-   │  └─────────│─ (SPI bus)                                                        │
-   └────────────│─────────────────────────────────────────────────────────          │
-                │  tmr_forward_en IN     0=Option A (local only), 1=Option B        │
-                │  fault_flag_out OUT    Sticky digital fault flag → host/RISC      │
+MEMBER          │  Pin             Direction  Description                            │
+   │            │  ──────────────────────────────────────────────────────────────    │
+   ▼            │  clk             IN         System clock, 16 MHz (signed-off)      │
+ [IIS3DWB]──────│  sys_rst_n       IN         Active-low asynchronous reset          │
+ MEMS Sensor    │  c_miso          IN         SPI MISO (sensor → ASIC)               │
+   │  │  │  │   │  c_csn           OUT        SPI chip-select, active-low            │
+   │  │  │  │   │  c_sclk          OUT        SPI bit clock (Mode 3, idles high)      │
+   │  │  │  │   │  c_mosi          OUT        SPI MOSI (ASIC → sensor)               │
+   │  │  │  └───│  sensor_drdy     IN         DRDY interrupt from sensor (async)      │
+   │  │  └──────│─────────────────────────────────────────────────────────           │
+   │  └─────────│─ (SPI bus)                                                         │
+   └────────────│─────────────────────────────────────────────────────────           │
+                │  tmr_forward_en  IN         0=Option A (local only), 1=Option B    │
+                │                                                                     │
+ host/RISC ─────│► cmd_sclk        IN         Command-SPI clock (host ≤ clk/4)        │
+ (config path)  │► cmd_csn         IN         Command-SPI chip-select                 │
+                │► cmd_mosi        IN         Command-SPI data in (write-only, 40-bit │
+                │                              {addr[7:0],data[31:0]} frames)         │
+                │                                                                     │
+                │  fault_flag_out  OUT        Sticky digital fault flag → host/RISC   │
                 └────────────────────────────────────────────────────────────────────┘
 ```
 
-The chip has **no external command/configuration bus** within the `top.v` boundary. Coefficients and threshold are programmed via the internal APB bus — in the final silicon a host-facing SPI-to-APB bridge sits outside this boundary. During simulation, the internal APB bus is driven directly by the testbench.
+**Read-back is not available.** The command-SPI path is **write-only** by construction
+(`cmd_spi_slave.v` and `spi_apb_interface.v`'s Option-B forwarder both hard-wire
+`req_write = 1'b1`), and there is no `cmd_miso` pin. The only fault information observable off-chip
+is the single `fault_flag_out` bit — `STATUS`/`FAULT_MAG`/`FAULT_BIN` inside `tmr_reg_bank` are not
+reachable from outside the chip. See
+[`IO_SPECIFICATION.md` §Read-back accessibility](../specs/IO_SPECIFICATION.md#read-back-accessibility-in-silicon)
+for the full explanation and a bench-level workaround (threshold bisection).
+
+Testbenches may still drive the internal APB bus directly via hierarchical force for convenience —
+`tb_top.v` does this to set up coefficients quickly — but a real host now has a proper,
+silicon-legal path onto the chip via the command-SPI pins that does not require that trick.
 
 ---
 
@@ -134,7 +152,7 @@ The chip has **no external command/configuration bus** within the `top.v` bounda
                               │  0x08 CFG_C1     Q8.15 Goertzel coeff bin 1  │
                               │  0x0C CFG_C2     Q8.15 Goertzel coeff bin 2  │
                               │  0x10 CFG_THRESHOLD Fault magnitude threshold │
-                              │  0x14 STATUS     fault_flag (read-only)      │
+                              │  0x14 STATUS     fault_flag (read-only; not off-chip-readable) │
                               │  0x18 FAULT_MAG  Latched tripping magnitude  │
                               │  0x1C FAULT_BIN  {axis[1:0], bin[1:0]}       │
                               └──────────────────────────────────────────────┘
@@ -151,11 +169,15 @@ The chip has **no external command/configuration bus** within the `top.v` bounda
 top (rtl/top.v)
 ├── spi_apb_interface (rtl/spi_apb_interface.v)
 │   ├── spi_master (rtl/spi_master.v)
-│   │   ├── clk_divider_5 (rtl/clk_divider_5.v)  — SPI clock generation
+│   │   ├── clk_divider (rtl/clk_divider.v, DIV_LOG2=3, ÷8) — SPI clock generation
 │   │   ├── ff_2_sync (rtl/ff_2_sync.v)           — sensor_drdy CDC
 │   │   └── ff_2_sync (rtl/ff_2_sync.v)           — s_miso CDC
-│   └── apb (rtl/apb.v)                            — APB master (Option B)
-├── tmr_reg_bank (rtl/tmr_reg_bank.v)             — APB slave, config/status
+│   └── apb (rtl/apb.v)                            — APB master (Option B sample forwarding)
+├── cmd_spi_slave (rtl/cmd_spi_slave.v)            — host-facing command-SPI receiver (write-only)
+│   └── (uses ff_2_sync (rtl/ff_2_sync.v) x3 for cmd_sclk/cmd_csn/cmd_mosi CDC)
+├── apb (rtl/apb.v)                                — APB master (command-SPI config path)
+├── apb_arb2 (rtl/apb_arb2.v)                      — 2-master/1-slave APB arbiter (cmd priority)
+├── tmr_reg_bank (rtl/tmr_reg_bank.v)              — APB slave, config/status
 ├── axis_sequencer (rtl/axis_sequencer.v)          — SPI sample demuxing
 ├── goertzel_core (rtl/goertzel_core.v)            — ITAG IIR engine
 ├── magnitude_compute (rtl/magnitude_compute.v)    — owns multiplier.v
@@ -184,7 +206,7 @@ top (rtl/top.v)
 | 13 | `magnitude_compute` snapshots all 18 v1/v2 values on `block_clear_in` | snapshot registers |
 | 14 | `magnitude_compute` computes `|X|² = v1² + v2² - C·v1·v2` for 9 (axis,bin) pairs | 9 × `mag_out_valid` pulses |
 | 15 | `fault_flagger` compares each `mag_out` to `cfg_threshold`; sets sticky `fault_flag` on first trip | `fault_flag`, `fault_axis_latched` |
-| 16 | `fault_flag_out` asserts to host/RISC core; readable via `tmr_reg_bank` `STATUS` register | `fault_flag_out` |
+| 16 | `fault_flag_out` asserts to host/RISC core. `STATUS`/`FAULT_MAG`/`FAULT_BIN` in `tmr_reg_bank` are **not readable off-chip** (see [`IO_SPECIFICATION.md`](../specs/IO_SPECIFICATION.md#read-back-accessibility-in-silicon)) — only this single bit is externally observable | `fault_flag_out` |
 
 ---
 
@@ -215,17 +237,17 @@ v2_new = v1_old
 
 ## 7. Timing Budget
 
-At 10 MHz system clock / 26.667 kHz sensor ODR:
+At the signed-off 16 MHz system clock / 26.667 kHz sensor ODR:
 
 | Period | Value |
 |---|---|
-| System clock period | 100 ns |
+| System clock period | 62.5 ns |
 | Sensor sample period | 37.5 µs |
-| Clock cycles per sample | 375 cycles |
-| Goertzel active cycles per sample | 18 cycles (4.8%) |
-| Magnitude computation (block boundary) | 55 cycles (14.7%) |
-| Idle cycles (non-boundary sample) | 357 cycles (95.2%) |
-| Worst-case margin (boundary sample) | 302 idle cycles |
+| Clock cycles per sample | 600 cycles |
+| Goertzel active cycles per sample | 18 cycles (3.0%) |
+| Magnitude computation (block boundary) | 55 cycles (9.2%) |
+| Idle cycles (non-boundary sample) | 582 cycles (97.0%) |
+| Worst-case margin (boundary sample) | 527 idle cycles |
 | Detection latency | ≤ 19.2 ms (one block) |
 
 ---
@@ -235,14 +257,24 @@ At 10 MHz system clock / 26.667 kHz sensor ODR:
 | Technique | Implementation | Targeted Failure Mode |
 |---|---|---|
 | TMR on `goertzel_core` FSM | 3×5-bit state (vote5), all copies driven from voted next-state | SEU flipping FSM state bit |
-| TMR on `magnitude_compute` FSM | 3×4-bit state (vote4) | SEU flipping FSM state bit |
+| TMR on `magnitude_compute` FSM | 3×4-bit state (vote4), 9 states | SEU flipping FSM state bit |
 | TMR on `axis_sequencer` polling FSM | 3×3-bit state (vote3) | SEU flipping polling state |
 | TMR + scrub on `tmr_reg_bank` config registers | 3 physical register copies + 1024-cycle periodic scrub | SEU flipping config bit |
 | SEU-safe default states | All FSMs default→S_IDLE for any illegal encoding | Multi-bit SEU producing illegal code |
 | Sticky fault flag with explicit clear | `fault_flag` only clears on `cfg_fault_clear` write | SET glitch on comparator |
-| Async signal CDC | 2-stage D-FF synchronizer on `sensor_drdy` and `s_miso` | Metastability |
+| Async signal CDC | 2-stage D-FF synchronizer on `sensor_drdy`, `s_miso`, and the three command-SPI pins | Metastability |
 | SRAM-free design | All state in flip-flops only | Heavy-ion SRAM macro upsets |
 | Block-period scrub on Goertzel state | `block_clear` zeroes all 18 v-regs every 512 samples | SEU on unprotected v-state |
+
+**Empirical evidence.** The masking/self-scrubbing/illegal-state-recovery claims for the TMR rows
+above were verified only by RTL inspection until
+[`tb/test_seu.py`](../../tb/test_seu.py) added fault-injection tests against `goertzel_core`
+(`make test-seu`, **3/3 PASS**): the voter absorbed all 5/5 single-bit upsets injected into one
+copy, the triplet re-converged one clock after a multi-bit corruption, and a forced illegal
+5-bit encoding recovered to `S_IDLE` in one clock. See
+[`GOERTZEL_CORE_EXPLANATION.md` §5.1](GOERTZEL_CORE_EXPLANATION.md#51-triplicated-fsm-rule-a-protect-control-state)
+for detail. These tests inject at RTL, so they prove logical correctness, not the physical SEU
+cross-section of the layout.
 
 ---
 
@@ -253,8 +285,8 @@ At 10 MHz system clock / 26.667 kHz sensor ODR:
 | Foundry | GlobalFoundries GF180MCU |
 | Node | 180 nm bulk CMOS |
 | RTL-to-GDS Flow | LibreLane open-source |
-| Standard Cell Library | `gf180mcu_fd_sc_mcl` |
-| Core supply | 5 V nominal (as signed off) |
+| Standard Cell Library | `gf180mcu_fd_sc_mcu7t5v0` |
+| Core supply | 5 V nominal (signed off at 4.5 / 5.0 / 5.5 V) |
 | IO supply | 5 V — same net as core; the padring ties DVDD to VDD |
-| Target clock | 5–10 MHz |
-| Die budget | ~600×600 µm |
+| Target / signed-off clock | 16 MHz (62.5 ns period) |
+| Signed-off macro die | 800×800 µm (640,000 µm², 60.9% core utilization) |

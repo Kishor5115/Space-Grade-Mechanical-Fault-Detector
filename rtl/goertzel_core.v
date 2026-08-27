@@ -49,8 +49,8 @@
 //       -> YB0_MUL -> YB0_UPD -> YB1_MUL -> YB1_UPD -> YB2_MUL -> YB2_UPD  [Y]
 //       -> ZB0_MUL -> ZB0_UPD -> ZB1_MUL -> ZB1_UPD -> ZB2_MUL -> ZB2_UPD  [Z]
 //       -> S_IDLE
-//     => 18 active cycles per sample (6 per axis). 375 clk/sample @ 10 MHz,
-//        26.667 kHz -> 357 idle cycles remain (~95.2% idle). The magnitude
+//     => 18 active cycles per sample (6 per axis). 600 clk/sample @ 16 MHz,
+//        26.667 kHz -> 582 idle cycles remain (~97.0% idle). The magnitude
 //        engine steals that idle window for its 9-pair mag computation using
 //        the SAME shared multiplier (no contention: this core holds
 //        mult_req=0 for the whole idle window).
@@ -61,7 +61,7 @@
 //     * The fused add is "(x - v2) + mult_q". (x - v2) is a parallel SHORT
 //       path (register->register); mult_q is the only operand on the long
 //       (post-multiplier) path -> critical path == multiplier + 1 add,
-//       identical to the legacy core. No timing penalty at 10 MHz.
+//       identical to the legacy core. No timing penalty at 16 MHz.
 //     * The expensive multiplier is SHARED across all 9 recurrences AND the
 //       magnitude engine: full 3-axis x 3-bin spectral coverage on ONE
 //       multiplier.

@@ -72,12 +72,19 @@ be stated explicitly rather than silently treated as "DRC clean" without qualifi
 ### 2.4 IR drop analysis is not chip-representative
 
 The flow log warns: `'VSRC_LOC_FILES' was not given a value, which may make the results of IR drop
-analysis inaccurate.` No real voltage-source/pad locations were supplied, because this macro is not
-yet placed in a chip-level padring. The reported worst IR drop (109 µV) assumes power delivered
-uniformly at the macro's boundary — it reflects LibreLane's default, not any actual pad geometry.
+analysis inaccurate.` No real voltage-source/pad locations were supplied. The reported worst IR drop
+(**131 µV** at macro level, post-re-harden) assumes power delivered uniformly at the macro's
+boundary — it reflects LibreLane's default, not any actual pad geometry.
 
-**This must be re-run once the macro's position in the chip-level padring and its actual power/ground
-pad locations are known.** Treat the current number as a placeholder, not a sign-off result.
+**This has since been made worse, not better, by the padring integration.** The macro is now placed
+in a chip-level padring (`slot_1x1`, top-left, signed off clean — see
+[`padring/README.md`](../../padring/README.md)), but `VSRC_LOC_FILES` was never set at chip level
+either. The chip-top run reports `ir__drop__worst = 0.5 µV` and `power__total = 0.255 mW` — the
+latter is *below* the macro's own 47 mW, because the macro is a `.lib` black box at chip level with
+no activity annotation, so chip-level power/IR analysis cannot see inside it. **Neither figure
+(macro's 131 µV nor chip's 0.5 µV) should be treated as a sign-off result.** Closing this properly
+requires setting `VSRC_LOC_FILES` to the real pad coordinates at chip level, with the macro's actual
+power profile annotated.
 
 ### 2.5 Reset-path DRV violations: retracted — and the one thing that remains open
 
@@ -132,3 +139,68 @@ Given the stated plan to add cocotb support next, the highest-leverage sequence 
 
 *Companion to [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](../architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md).
 Last verified: 2026-08-22.*
+
+---
+
+## 5. Status update (2026-08-27) — gate-level sim run, SEU coverage added
+
+### 5.1 Gate-level simulation: 6 / 8 pass, and the 2 failures are testbench-only
+
+`make test-top-gl` was run to completion against the signed-off netlist
+(`build/top/nl/top.nl.v`) with the real `gf180mcu_fd_sc_mcu7t5v0` cell models
+(`-DFUNCTIONAL -DUNIT_DELAY=#1`). Result: **TESTS=8 PASS=6 FAIL=2**, 17.5 min wall time.
+
+| Test | Gate-level | Note |
+|---|---|---|
+| `test_case1_no_fault_baseline` | **PASS** | |
+| `test_case2_fault_on_x` | **PASS** | |
+| `test_case3_fault_on_y` | **PASS** | |
+| `test_case4_fault_on_z` | **PASS** | |
+| `test_case5_simultaneous_3axis_fault` | **PASS** | |
+| `test_case6_fault_clear` | **PASS** | |
+| `test_itag_9_mag_pulses_per_block` | FAIL | probes `dut.mag_inst.mag_mult_req` |
+| `test_itag_no_multiplier_contention` | FAIL | probes `dut.goertzel_inst.mult_req` |
+
+**Root cause of both failures: testbench portability, not a silicon defect.** Those two tests are
+structural invariants that probe *internal combinational wires*. Synthesis eliminates them —
+`grep` for `mult_req` and `mag_mult_req` in `top.nl.v` returns **0 occurrences each**. cocotb
+therefore cannot resolve the handle. The six *functional* tests probe only top-level pins
+(`fault_flag_out`, `c_csn`, `sensor_drdy`, `clk`), all of which survive synthesis, and all six pass.
+
+**Disposition:** mark tests 7-8 **RTL-only**. They are valid RTL assertions about the shared-
+multiplier schedule and should keep running in the pre-synthesis suite; they are not portable to a
+flattened netlist and should not be counted as gate-level failures.
+
+### 5.2 Why more gate-level simulation is the wrong investment
+
+GL sim took **17.5 minutes for 6 tests** versus ~148 s for the same tests at RTL — roughly 7x
+slower here, and far worse on larger designs. Industry PD practice is *not* to re-run the
+functional regression at gate level. The equivalence guarantee comes from **formal logic
+equivalence checking** (Conformal / Formality commercially; **Yosys EQY** in the open-source flow),
+which proves RTL == netlist for all input sequences rather than for the vectors you happened to
+write. GL sim is then reserved for what LEC structurally cannot see: power-up and X-propagation,
+reset sequencing, and SDF-back-annotated timing on a handful of critical vectors.
+
+An EQY setup now exists at [`verification/top.eqy`](../../verification/top.eqy). Note that the
+`hpretl/iic-osic-tools:chipathon26` image ships EQY with its Yosys plugins in
+`/foss/tools/yosys/share/yosys/plugins/` while the `eqy` driver looks for them in
+`/foss/tools/bin/` — symlinking them there is required before EQY will get past its `combine`
+step. **EQY has been launched but has not yet completed on this design; no equivalence result is
+claimed.**
+
+### 5.3 SEU / TMR coverage — gap closed
+
+§2 previously noted that the RHBD claim was only verified *structurally* (the Stage-1 netlist check
+proves the three copies survive synthesis). [`tb/test_seu.py`](../../tb/test_seu.py) now closes
+that gap with **3/3 passing** fault-injection tests against `goertzel_core` (`make test-seu`):
+
+| Property | Test | Result |
+|---|---|---|
+| Voter **masks** a single upset | `test_seu_single_copy_is_masked` | **PASS** — all 5/5 single-bit upsets in copy A absorbed; the voted state always followed the two healthy copies |
+| **Self-scrubbing** repairs the copy | `test_seu_is_scrubbed_next_clock` | **PASS** — triplet re-converged one clock after a multi-bit corruption |
+| **Illegal state** recovers | `test_seu_illegal_state_recovers_to_idle` | **PASS** — unreachable encoding `0x13` returned to `S_IDLE` in one clock |
+
+What these tests do **not** prove: they inject at RTL, so they establish the *logical* correctness
+of the voter and the self-scrubbing write-back — not the physical SEU cross-section of the layout
+(spatial separation of the three copies, guard rings, substrate tapping), which remains a
+chip-level physical-RHBD item.

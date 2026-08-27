@@ -1,7 +1,7 @@
 # Space-Grade Mechanical Fault Detector — Project Tracker
 
 > **SSCS Chipathon 2026 — Track B (Sensor Circuits) | Team B22 — Team Space Jam**
-> Last updated: 2026-08-22
+> Last updated: 2026-08-27
 
 ---
 
@@ -53,7 +53,7 @@ few chip-integration-dependent items).
 |---|---|---|---|
 | `spi_master.v` | ✅ DONE | Async signal CDC (2-FF sync) | IIS3DWB boot sequence + SPI Mode 3 burst read |
 | `ff_2_sync.v` | ✅ DONE | CDC primitive | 2-stage D-FF synchronizer |
-| `clk_divider_5.v` | ✅ DONE | — | SPI clock generation (÷5) |
+| `clk_divider.v` | ✅ DONE | — | SPI clock generation (parameterized, `DIV_LOG2=3` → ÷8) |
 | `spi_apb_interface.v` | ✅ DONE | Edge-qualified req_valid | Option A/B sample delivery |
 | `apb.v` | ✅ DONE | — | Minimal APB master FSM |
 | `axis_sequencer.v` | ✅ DONE | TMR polling FSM (3-bit vote3) | ITAG: simultaneous X/Y/Z presentation |
@@ -86,7 +86,7 @@ few chip-integration-dependent items).
 | `docs/specs/GOERTZEL_CORE_EXPLANATION.md` | ✅ DONE | Reviewer item #7: core module explanation |
 | `docs/project/PROJECT_TRACKER.md` | ✅ DONE | Reviewer item #8: this tracker |
 
-### Phase 5 — Physical Implementation 🔄 IN PROGRESS (macro hardened, chip integration + gate-level sim remain)
+### Phase 5 — Physical Implementation 🔄 IN PROGRESS (macro + chip-top signed off clean; formal equivalence and physical RHBD remain)
 
 The flow is split into three independently re-runnable LibreLane stages
 (`S1_SYNTH` → `S2_DRT` → `S3_SIGNOFF`), driven from `librelane/01_fault_detector_macro.ipynb`. Full
@@ -102,18 +102,20 @@ results: [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](../architecture/PHYSICAL_IMPLEME
 | Final GDS produced | ✅ DONE | `build/top/gds/top.gds` + LEF + 9-corner LIB + netlist + SPEF/SDF/DEF/SPICE |
 | Die size vs. original 600×600 µm budget | ⚠️ REVISED | Actual signed-off die is **800×800 µm** — see note below and ITAG analysis addendum |
 | DRV cleanup: max-slew/max-cap violations | ✅ RESOLVED | **Self-imposed SDC limits, not foundry violations.** Liberty-limits-only OpenSTA re-check of the signed-off netlist reports 0 slew / 0 cap / 0 fanout; the 2864 slew + 196 cap counts are against the project's `set_max_transition 3.0` / `set_max_capacitance 0.2` vs the library's 7 ns / per-pin 0.058–4.9 pF. Worst slew 6.64 ns is inside the 0.02–7 ns characterisation range (interpolated, not extrapolated). Waived with evidence — [`PHYSICAL_IMPLEMENTATION_RESULTS.md` §4.3](../architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md). Earlier attribution to the `sys_rst_n` fanout tree was wrong: `grep rst checks.rpt` → 0 hits |
-| Chip-top padring integration (`slot_1x1`, top-left) | 🟨 READY, NOT LAUNCHED | `padring/` complete: `chip_core.sv` wrapper, `chip_overrides.yaml` (9 corners, PDN hookup), driver notebook. **52/52 pre-flight checks pass** and the LibreLane 3-file config dry-run resolves clean with 0 lint errors. The 2–4 h chip-top flow itself has not been run — see [`padring/README.md`](../../padring/README.md) |
-| Macro re-harden after pin-placement fix | ⬜ REQUIRED NEXT | `librelane/pins.cfg` corrected against the real `slot_1x1` pad lists: 5 of 12 pins faced away from their pad (`clk`, `sys_rst_n`, `c_miso`, `sensor_drdy` on N; `fault_flag_out` on W). New rule — all 4 outputs on N, all 8 inputs on W, `clk`/`sys_rst_n` at the south end of W (−20 % Manhattan to their SW-corner pads). **Stages 2–3 must re-run** (Stage 1 valid: pin placement does not affect synthesis), then re-stage via padring Step 1c. Enforced by padring notebook Step 3.3a, which currently fails by design. [`PIN_PLACEMENT_RATIONALE.md` §7](../specs/PIN_PLACEMENT_RATIONALE.md) |
-| Formal RTL↔netlist equivalence (Yosys EQY) | ⬜ TODO | Gated off in both synthesis and signoff runs |
-| Gate-level / post-synthesis simulation | ⬜ TODO | 9-corner SDF exists (`build/top/sdf/`) but unused — **this is the next planned step (cocotb)** |
-| Physical RHBD (guard rings, substrate tapping) | ⬜ TODO | Not yet reflected in LibreLane config; no padring/chip-top yet to apply it against |
+| Chip-top padring integration (`slot_1x1`, top-left) | ✅ DONE, SIGNED OFF CLEAN | Full Chip flow: Magic DRC 0, LVS 0 (the documented `slot_1x1` `VDD`-port LVS quirk did **not** occur), XOR 0, antenna 0. 245,704 instances, die 20.14 mm² (3932×5122 µm). ⚠️ Chip-level STA is boundary-only (macro is a `.lib` black box) — the reported +31.99 ns setup / +17.14 ns hold are **not** the design's internal margin, which is the macro's own +10.04 ns / +0.103 ns. Chip-level `ir__drop`/`power__total` are invalid (see row below). KLayout DRC/density were skipped at chip level too. See [`padring/README.md`](../../padring/README.md) |
+| Macro re-harden after pin-placement fix | ✅ DONE | `librelane/pins.cfg` corrected against the real `slot_1x1` pad lists: all 4 outputs on N, all 8 inputs on W, `clk`/`sys_rst_n` at the south end of W. Stages 2–3 re-run clean and margins **improved**: setup +10.04 ns (was +11.84 ns), hold +0.103 ns (was +0.127 ns), all 9 corners, 0 violations. All 12 pins verified on the correct edge (padring notebook Step 3.3a: 3/3 checks pass). [`PIN_PLACEMENT_RATIONALE.md` §7](../specs/PIN_PLACEMENT_RATIONALE.md) |
+| Formal RTL↔netlist equivalence (Yosys EQY) | 🔄 IN PROGRESS | [`verification/top.eqy`](../../verification/top.eqy) config created and launched against the signed-off netlist. A real image bug was found and fixed along the way (EQY's Yosys plugins ship in `/foss/tools/yosys/share/yosys/plugins/` but the `eqy` driver looks in `/foss/tools/bin/`). **Has not completed on this design; no equivalence result is claimed yet.** |
+| Gate-level / post-synthesis simulation | 🔄 RUN, 6/8 PASS | `make test-top-gl`: all 6 functional cases pass against the signed-off netlist with real `gf180mcu_fd_sc_mcu7t5v0` cell models. The 2 failures (`test_itag_9_mag_pulses_per_block`, `test_itag_no_multiplier_contention`) are **testbench-only** — they probe internal wires `mult_req`/`mag_mult_req` with 0 occurrences in `top.nl.v` post-synthesis, not a silicon defect. Marked RTL-only going forward. See [`GATE_LEVEL_VERIFICATION_GAPS.md` §5.1](../verification/GATE_LEVEL_VERIFICATION_GAPS.md) |
+| SEU / TMR fault-injection test | ✅ DONE | [`tb/test_seu.py`](../../tb/test_seu.py) (`make test-seu`, **3/3 PASS**): voter masks a single-bit upset, self-scrubs within one clock, and a forced illegal FSM encoding recovers to `S_IDLE` within one clock. Closes the "structural-only" RHBD verification gap for `goertzel_core`'s TMR. RTL-level result, not gate-level or physical. |
+| Physical RHBD (guard rings, substrate tapping) | ⬜ TODO | Not yet reflected in LibreLane config — a chip-level concern now that the padring integration is signed off |
 | Chip-audit registration (multi-team padring) | ⬜ TODO | Team B22 not yet present in the chipathon's GDS audit sheet; slot size/type unconfirmed |
 | Cell-name collision cleanup for chip-level merge | ⬜ TODO | Top cell currently named `top`; OpenROAD-generated via cells are unprefixed — both are collision risks in a merged multi-team GDS |
-| IR drop analysis at chip scale | ⬜ BLOCKED | Current 109 µV figure has no real supply-pad locations (`VSRC_LOC_FILES` unset) — must re-run once padring position is known |
+| IR drop analysis at chip scale | ⬜ **STILL INVALID** | `VSRC_LOC_FILES` unset in BOTH the macro and chip runs. Macro reports 131 µV; chip reports **0.5 µV** and a chip `power__total` of **0.255 mW** which is *below* the macro's own 47 mW — off by ~184x, because the macro is a `.lib` black box with no activity annotation. Chip IR drop is **unverified, not verified-good**. Set `VSRC_LOC_FILES` to real pad coordinates and re-run |
+| Fault status read-back accessibility | ⬜ **KNOWN LIMITATION, DOCUMENTED** | `STATUS`/`FAULT_MAG`/`FAULT_BIN` in `tmr_reg_bank` are **not readable off-chip**: both APB masters are hard-wired write-only (`req_write = 1'b1` in `cmd_spi_slave.v` and `spi_apb_interface.v`), and there is no `cmd_miso` pin. Only `fault_flag_out` (1 bit) is observable externally. A latent APB read bug also exists (`tmr_reg_bank` latches `prdata` on the SETUP phase that `apb_arb2`'s registered grant skips) — harmless today only because no master ever reads. See [`IO_SPECIFICATION.md` §Read-back accessibility](../specs/IO_SPECIFICATION.md#read-back-accessibility-in-silicon) for the bench-level workaround (threshold bisection) |
 | Final GDS submission | ⬜ TODO | Pending audit registration + slot confirmation above |
 
 **Die size note:** the original architecture documentation targeted a ~600×600 µm die budget as a
-design-time estimate. The actual macro requires 391,518 µm² of core area at achievable placement
+design-time estimate. The actual macro requires 632,332 µm² of core area at achievable placement
 density, and closes timing cleanly at 800×800 µm; a 650×650 µm attempt failed setup timing by
 −19.0 ns. Reaching 600×600 µm would require a dedicated area-reduction pass, not a floorplan
 adjustment — tracked as an open decision, not a regression.
@@ -123,8 +125,8 @@ adjustment — tracked as an open decision, not a regression.
 | Task | Status | Notes |
 |---|---|---|
 | Host-facing command/config bus bridge (SPI-to-APB) | ⬜ TODO | Currently exercised via testbench APB direct writes |
-| Power characterization (post-synthesis switching activity) | ✅ DONE | Measured at signoff: 46.4 mW total — see [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](../architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md) §4.6 |
-| Formal property verification | ⬜ TODO | FSM reachability, SEU recovery properties — see [`GATE_LEVEL_VERIFICATION_GAPS.md`](../verification/GATE_LEVEL_VERIFICATION_GAPS.md) §2.6 |
+| Power characterization (post-synthesis switching activity) | ✅ DONE | Measured at signoff: 47.0 mW total — see [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](../architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md) §4.6 |
+| Formal property verification | 🔄 PARTIAL | SEU recovery properties now have an empirical test: [`tb/test_seu.py`](../../tb/test_seu.py) (3/3 PASS, RTL-level fault injection). FSM reachability and gate-level formal equivalence remain open — see [`GATE_LEVEL_VERIFICATION_GAPS.md`](../verification/GATE_LEVEL_VERIFICATION_GAPS.md) §2.6, §5 |
 
 ---
 
@@ -134,7 +136,7 @@ adjustment — tracked as an open decision, not a regression.
 |---|---|
 | RTL modules implemented | 12 |
 | Total testbench check assertions | 100/100 PASS |
-| Estimated flip-flop count (RTL) | ~645 DFF above baseline (ITAG delta) |
+| Estimated flip-flop count (RTL) | ~648 DFF above baseline (ITAG delta) |
 | Shared hardware multipliers | 1 (structural, grep-auditable) |
 | Goertzel bins per axis | 3 (programmable frequencies) |
 | Axes processed per sample period | 3 (X, Y, Z — zero inter-axis latency) |
@@ -148,11 +150,11 @@ adjustment — tracked as an open decision, not a regression.
 | **TMR triplicated state bits (gate netlist)** | **375 bits, 8/8 groups intact** |
 | **Signed-off die size** | **800 × 800 µm (640,000 µm²)** |
 | **Core utilization** | **60.9%** |
-| **Setup slack, worst corner** | **+11.84 ns @ max_ss_125C_4v50** |
-| **Hold slack, worst corner** | **+0.127 ns @ min_ff_n40C_5v50** |
+| **Setup slack, worst corner** | **+10.04 ns @ max_ss_125C_4v50** (post pin-placement re-harden; was +11.84 ns) |
+| **Hold slack, worst corner** | **+0.103 ns @ min_ff_n40C_5v50** (post pin-placement re-harden; was +0.127 ns) |
 | **Timing violations (9 corners)** | **0 setup, 0 hold, 0 TNS** |
 | **DRC / LVS / XOR / antenna** | **0 / 0 / 0 / 0** |
-| **Total power (signoff)** | **46.4 mW** (35.0 internal + 11.4 switching + 5.2 µW leakage) |
+| **Total power (signoff)** | **47.0 mW** (35.6 internal + 11.4 switching + 5.3 µW leakage) |
 
 ---
 
@@ -165,7 +167,7 @@ adjustment — tracked as an open decision, not a regression.
 | ~~Reset-net max-slew/max-cap DRV violations~~ — **closed** | None | Re-verified: the counts are measured against the project's own SDC limits (3.0 ns / 0.2 pF), which are tighter than the library's (7 ns / per-pin 0.058–4.9 pF). A liberty-limits-only OpenSTA re-check of the signed-off netlist returns **0 slew, 0 cap, 0 fanout** violators. The earlier root-cause attribution to the `sys_rst_n` fanout tree was incorrect — the violators are in the Goertzel datapath and the flow's own CTS/repair cells. See [`PHYSICAL_IMPLEMENTATION_RESULTS.md` §4.3](../architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md) |
 | TMR reset recovery/removal timing never analysed | Low | `sys_rst_n` is false-pathed in all three SDC views, so recovery/removal between the three copies of each triplicated register is not checked. The self-scrubbing voter re-converges within one clock, so this is not a correctness risk, but it should be stated explicitly in the RHBD documentation |
 | KLayout DRC did not run (ruleset unavailable for gf180mcuD) | Low–Medium | Magic DRC (0 errors) + KLayout XOR cross-check (0 differences) are the current DRC evidence; independent rule-check coverage is incomplete |
-| IR drop analysis not chip-representative | Low (for now) | `VSRC_LOC_FILES` unset — no real pad locations yet; current 109 µV figure must be re-run once padring position is known |
+| IR drop analysis not chip-representative | Low (for now) | `VSRC_LOC_FILES` unset in both the macro and chip runs. Macro reports 131 µV (caveated estimate); chip reports 0.5 µV and a chip `power__total` of 0.255 mW that is *below* the macro's own 47 mW (~184x off — the macro is a `.lib` black box at chip level). Chip IR drop is unverified, not verified-good. Re-run with real pad coordinates |
 | Die size grew from ~600×600 µm target to signed-off 800×800 µm | Medium | 650×650 µm failed setup by −19 ns; 800×800 closes cleanly. Reaching 600×600 needs a dedicated area-reduction pass, tracked separately |
 | Team B22 not yet registered in the chipathon's multi-team GDS audit sheet | High (process) | Slot type/size unconfirmed; blocks chip-level integration planning |
 | Cell-name collision risk for chip-level GDS merge | Medium | Top cell named `top`; unprefixed OpenROAD via cells (`VIA_Via1_HV`, etc.) — both are generic names likely to collide with other teams' submissions |
@@ -174,5 +176,6 @@ adjustment — tracked as an open decision, not a regression.
 
 ---
 
-*Updated after completing the 3-stage LibreLane physical implementation flow
-(`S1_SYNTH` → `S2_DRT` → `S3_SIGNOFF`) with clean signoff metrics — 2026-08-22.*
+*Updated after the pin-placement re-harden, chip-top padring signoff (`slot_1x1`, top-left, clean
+DRC/LVS/XOR/antenna), the gate-level cocotb regression (6/8 pass, 2 testbench-only), and the
+`tb/test_seu.py` TMR fault-injection suite (3/3 pass) — 2026-08-27.*

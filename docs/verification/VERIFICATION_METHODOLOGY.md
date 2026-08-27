@@ -120,7 +120,7 @@ Verifies the Interleaved Tri-Axis Goertzel (ITAG) core's arithmetic correctness 
 `goertzel_core` (standalone, with a local multiplier model)
 
 ### Stimulus
-- 500 samples of a **two-tone stimulus** (1 kHz + 5 kHz) at real IIS3DWB timing (one `data_ready` every 375 clock cycles at 10 MHz)
+- 500 samples of a **two-tone stimulus** (1 kHz + 5 kHz) at real IIS3DWB timing (one `data_ready` every 600 clock cycles at the signed-off 16 MHz)
 - **Same tone applied to all three axes, but at different amplitudes**: X=1.0×, Y=0.5×, Z=0.25×
 - This amplitude ordering proves that:
   - The per-axis datapaths are independent (no cross-talk)
@@ -132,7 +132,7 @@ Verifies the Interleaved Tri-Axis Goertzel (ITAG) core's arithmetic correctness 
 |---|---|---|---|
 | bin 0 | 1000 Hz | `C0 = 2·cos(2π·1000/26667) ≈ 63725` | On-target (measured) |
 | bin 1 | 5000 Hz | `C1 = 2·cos(2π·5000/26667) ≈ 25080` | On-target (measured) |
-| bin 2 | 10000 Hz | `C2 = 2·cos(2π·10000/26667) ≈ -46339` | Off-target (noise bin) |
+| bin 2 | 10000 Hz | `C2 = 2·cos(2π·10000/26667) ≈ -46340` | Off-target (noise bin) |
 
 ### What Each Simulation Step Demonstrates
 
@@ -152,7 +152,7 @@ Verifies the Interleaved Tri-Axis Goertzel (ITAG) core's arithmetic correctness 
 ### Simulation output excerpt
 ```
 Goertzel ITAG Tri-Axis Testbench Summary (N=500)
-  Coeffs (Q8.15): C0=63725  C1=25080  C2=-46339
+  Coeffs (Q8.15): C0=63725  C1=25080  C2=-46340
   X (1.00x):  B0=828.27  B1=5564.81  B2=0.36
   Y (0.50x):  B0=173.67  B1=1391.18  B2=0.09
   Z (0.25x):  B0=969.85  B1=347.77   B2=0.02
@@ -189,6 +189,13 @@ The internal APB bus is driven directly via hierarchical force/release statement
 - `CTRL[0]=1` (start, enabling `run_enable`)
 
 ### Test Cases and Expected Results
+
+> ⚠️ **`FAULT_BIN[3:2]` axis attribution below is verified in simulation only.** The testbench
+> reads it via hierarchical force on the internal APB bus (`apb_read_reg`). In silicon, `tmr_reg_bank`
+> is **not readable off-chip** — both APB masters are hard-wired write-only and there is no
+> `cmd_miso` pin. The sole externally observable signal is `fault_flag_out` (1 bit). See
+> [`IO_SPECIFICATION.md` §Read-back accessibility](../specs/IO_SPECIFICATION.md#read-back-accessibility-in-silicon)
+> for the bench-level workaround (threshold bisection).
 
 | Case | Stimulus Description | SPI Input | Expected `fault_flag_out` | Expected Axis Attribution | Purpose |
 |---|---|---|---|---|---|
@@ -267,5 +274,7 @@ Each target compiles all RTL sources, runs the simulation, and prints pass/fail 
 | Single-multiplier no-contention | Integration TB | ✅ |
 | Block counter cadence (512:1) | Integration TB | ✅ |
 | ITAG 9-pulse/block invariant | Integration TB | ✅ |
-| Gate-level / post-synthesis simulation | — | ⬜ Planned |
+| Gate-level / post-synthesis simulation | `make test-top-gl` | ✅ **6/8 pass.** All 6 functional cases pass against the signed-off netlist with real `gf180mcu_fd_sc_mcu7t5v0` cell models. The 2 failures (`test_itag_9_mag_pulses_per_block`, `test_itag_no_multiplier_contention`) are testbench-only — they probe internal wires `mult_req`/`mag_mult_req` with 0 occurrences in `top.nl.v`, not a silicon defect |
+| SEU / TMR fault-injection | `tb/test_seu.py` (`make test-seu`) | ✅ **3/3 pass.** Voter masks a single-bit upset, self-scrubs within one clock, illegal FSM encoding recovers to `S_IDLE` within one clock |
+| Formal RTL↔netlist equivalence (Yosys EQY) | [`verification/top.eqy`](../../verification/top.eqy) | 🔄 Launched, **not yet complete — no result claimed** |
 | Formal property verification (FSM reachability) | — | ⬜ Planned |

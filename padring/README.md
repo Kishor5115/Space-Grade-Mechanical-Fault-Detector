@@ -220,6 +220,28 @@ violations, and setup **and** hold across all 9 corners — plus LVS, judged sep
 
 GDS at `~/eda/designs/space-jam-chip/final/gds/chip_top.gds`.
 
+> ⚠️ **Chip-level IR drop and power are NOT valid — do not quote them.**
+> `final/metrics.json` reports `ir__drop__worst = 5.06e-07 V` (0.5 µV) and
+> `power__total = 0.255 mW`. Both are meaningless:
+> - `VSRC_LOC_FILES` was never set, so OpenROAD's PSM had no supply injection points to compute a
+>   drop against. The flow log warns about this explicitly.
+> - The 0.255 mW figure is **less than the macro's own 47 mW**, which the chip contains — off by
+>   ~184x. Chip-level power analysis cannot see inside the `top` macro (it is a `.lib` black box)
+>   and no switching activity (VCD/SAIF) was annotated.
+>
+> The correct statement is that **chip-level IR drop is unverified, not verified-good.** Physics
+> strongly suggests it is fine — roughly 9.4 mA total draw (47 mW / 5 V) spread across 8 DVDD +
+> 10 DVSS pads each rated 60 mA DC, with a 25 µm core ring — but that is an argument, not a
+> measurement. To close it properly, set `VSRC_LOC_FILES` to the real pad coordinates and re-run
+> `OpenROAD.IRDropReport`.
+
+> ⚠️ **Chip-level STA is boundary-only.** The reported setup slack of +31.99 ns covers
+> macro-pin-to-pad paths only: STA's startpoint is `i_chip_core.u_fault_detector` as a `.lib` black
+> box, so the macro's internal paths are **not** re-analysed at chip level. **The design's real
+> timing margin is the macro's own +10.04 ns.** CTS was also skipped at chip level (`clk_PAD2CORE`
+> has 1 sink), so the chip clock is ideal in STA. Both are correct hierarchical practice, but
+> +31.99 ns must not be quoted as the design margin.
+
 > **KLayout density check disabled.** On the first attempt (`C1_CHIP`) the flow ran cleanly through
 > routing, Magic-stream, render, XOR and antenna, then the KLayout **density** step was SIGKILL'd by
 > the OS out-of-memory killer: it loads ~9.5M via3 + ~1M dummy-fill polygons single-threaded on this

@@ -71,6 +71,13 @@ test-goertzel:
 	    VERILOG_SOURCES="$(RTL)/multiplier.v $(RTL)/goertzel_core.v" \
 	    SIM_BUILD=sim_build_goertzel
 
+test-seu:
+	$(MAKE) -f Makefile.cocotb \
+	    TOPLEVEL=goertzel_core \
+	    MODULE=test_seu \
+	    VERILOG_SOURCES="$(RTL)/multiplier.v $(RTL)/goertzel_core.v" \
+	    SIM_BUILD=sim_build_seu
+
 test-top:
 	$(MAKE) -f Makefile.cocotb \
 	    TOPLEVEL=top \

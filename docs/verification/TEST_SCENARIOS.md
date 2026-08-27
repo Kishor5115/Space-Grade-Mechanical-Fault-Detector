@@ -143,7 +143,7 @@ Write 2:  addr = 0x00001004 (tmr_sample_base + 0x4)
 ```
 bin 0 tuned to 1000 Hz:  C0 = 63725 (Q8.15)
 bin 1 tuned to 5000 Hz:  C1 = 25080 (Q8.15)
-bin 2 tuned to 10000 Hz: C2 = −46339 (Q8.15, off-target)
+bin 2 tuned to 10000 Hz: C2 = −46340 (Q8.15, off-target)
 ```
 
 **SPI Input (synthesized, no real SPI):**
@@ -170,12 +170,18 @@ Applied for 500 samples (> 1 block; allows state to build up).
 
 ## 6. Scenario Suite 4 — Full-Chip Integration (`tb_top.v`, 14/14 PASS)
 
+> ⚠️ **Every `FAULT_BIN`/`FAULT_MAG`/`STATUS` read in this suite is via hierarchical force on the
+> internal APB bus, not a silicon-observable path.** Both APB masters (`cmd_spi_slave`,
+> `spi_apb_interface`'s Option-B forwarder) are hard-wired write-only in the real design, and there
+> is no `cmd_miso` pin. Off-chip, only `fault_flag_out` (1 bit) is observable — see
+> [`IO_SPECIFICATION.md` §Read-back accessibility](../specs/IO_SPECIFICATION.md#read-back-accessibility-in-silicon).
+
 ### System Configuration (Applied Before All Cases)
 
 ```
-APB Write: CFG_C0 = q815_coeff(1041.7 Hz) ≈ 63970  // block-coherent bin 0
+APB Write: CFG_C0 = q815_coeff(1041.7 Hz) ≈ 63572  // block-coherent bin 0
 APB Write: CFG_C1 = q815_coeff(5000.0 Hz) = 25080
-APB Write: CFG_C2 = q815_coeff(10000.0 Hz) = -46341
+APB Write: CFG_C2 = q815_coeff(10000.0 Hz) = -46340
 APB Write: CFG_THRESHOLD = 14  // above quiet floor (~0); below fault-tone magnitude
 APB Write: CTRL[0] = 1  // cfg_start → run_enable = 1
 ```
@@ -343,7 +349,15 @@ These checks run continuously during the integration test and validate internal 
 | `tb_spi_apb_interface.v` | 8 | ✅ 8/8 PASS |
 | `tb_goertzel_core.v` | 7 | ✅ 7/7 PASS |
 | `tb_top.v` | 14 | ✅ 14/14 PASS |
-| **TOTAL** | **100** | **✅ 100/100 PASS** |
+| **TOTAL (Icarus self-checking)** | **100** | **✅ 100/100 PASS** |
+
+The table above is the Icarus self-checking suite (`testing/`, `make sim_all`). Two additional,
+independent suites exist outside this document's scope:
+
+| Suite | What it checks | Result |
+|---|---|---|
+| `make test-top-gl` (cocotb, gate-level) | Same `tb_top.v`-equivalent cases against the **signed-off netlist** with real `gf180mcu_fd_sc_mcu7t5v0` cell models | ✅ 6/8 pass — the 2 failures probe internal wires absent post-synthesis (testbench-only, not a defect) |
+| `make test-seu` (cocotb, `tb/test_seu.py`) | TMR voter masking, self-scrubbing, illegal-state recovery via RTL fault injection into `goertzel_core` | ✅ 3/3 pass |
 
 ---
 

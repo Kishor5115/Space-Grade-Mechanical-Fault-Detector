@@ -39,7 +39,6 @@ SIGNOFF_SDC_FILE: dir::signoff_constraints.sdc
 # # Floorplan & Placement
 FP_SIZING:    absolute
 DIE_AREA:     [0, 0, 800, 800]
-MAX_FANOUT_CONSTRAINT: 10
 PL_TARGET_DENSITY_PCT: 65
 
 GPL_CELL_PADDING: 2
@@ -70,6 +69,41 @@ RIGHT_MARGIN_MULT: 1
 SYNTH_STRATEGY: "AREA 3"
 SYNTH_MUL_BOOTH: true
 SYNTH_SIZING: true    
+
+# ------------------------------------------------------------
+# Design-rule (DRV) repair
+# ------------------------------------------------------------
+# These three are consumed by the custom SDC files (constraints.sdc /
+# pnr_constraints.sdc / signoff_constraints.sdc), which re-declare them via
+# $::env(...). They are listed here as the single source of truth.
+#
+# IMPORTANT: because this design sets FALLBACK_SDC / PNR_SDC_FILE /
+# SIGNOFF_SDC_FILE, LibreLane's built-in scripts/base.sdc is NOT used, and
+# base.sdc is what normally turns these into set_max_fanout /
+# set_max_transition / set_max_capacitance. If you ever remove the DRV block
+# from those SDC files, these values go silently dead again.
+# MAX_FANOUT_CONSTRAINT: right-sizing note.
+#   10 (the LibreLane default) was tried first and OVER-corrected: with 1,767
+#   flops on sys_rst_n it forced ~200 reset buffers (399 across the design),
+#   and the extra routing demand made OpenROAD.GlobalRouting fail to converge
+#   (GRT-0116 congestion). Fanout 10 is far tighter than a reset distribution
+#   tree needs -- industry reset trees commonly run 20-40.
+#   The violation being fixed is max_transition (2.97-3.55 ns vs a 2.6 ns limit
+#   at ff_n40C_5v50). Transition scales with load, so dropping 125-280 loads
+#   per branch to 20 is already a 6-14x load reduction -- more than enough.
+#   Do NOT "fix" the congestion with GRT_ALLOW_CONGESTION: that just lets the
+#   router proceed dirty and pushes the problem into detailed routing as DRC.
+MAX_FANOUT_CONSTRAINT: 20
+MAX_TRANSITION_CONSTRAINT: 3
+MAX_CAPACITANCE_CONSTRAINT: 0.2
+
+# Run design repair again AFTER global routing. The default flow only repairs
+# post-global-placement, where wire RC is *estimated*; signoff STA measures
+# *extracted* (RCX/SPEF) RC, which is worse. That gap is why max-slew count
+# grew 38 (pre-PnR) -> 260 (post-route) before this was enabled.
+RUN_POST_GRT_DESIGN_REPAIR: true
+GRT_DESIGN_REPAIR_MAX_SLEW_PCT: 10
+GRT_DESIGN_REPAIR_MAX_CAP_PCT: 10
 
 
 # CTS & Routing

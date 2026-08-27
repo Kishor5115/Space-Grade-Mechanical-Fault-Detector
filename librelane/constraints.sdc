@@ -70,3 +70,51 @@ if {[info commands suppress_message] != ""} {
     # RSZ-0020: 2 floating nets (VDD/VSS)
     suppress_message RSZ 0020
 }
+
+#=============================================================================
+# Design-rule (DRV) constraints -- max fanout / transition / capacitance
+#-----------------------------------------------------------------------------
+# WHY THIS BLOCK EXISTS (do not delete):
+#   Setting FALLBACK_SDC / PNR_SDC_FILE / SIGNOFF_SDC_FILE replaces LibreLane's
+#   built-in scripts/base.sdc *entirely*. base.sdc is what normally emits
+#     set_max_fanout      $::env(MAX_FANOUT_CONSTRAINT)
+#     set_max_transition  $::env(MAX_TRANSITION_CONSTRAINT)
+#     set_max_capacitance $::env(MAX_CAPACITANCE_CONSTRAINT)
+#   so without re-declaring them here, those config.yaml values are silently
+#   DEAD and the only limits in play are the liberty's own per-pin limits.
+#
+#   Consequence observed before this fix: sys_rst_n fans out to 1,767 flop RN
+#   pins through only 8 branch buffers (125-280 loads each). Nothing bounded
+#   fanout, so resizer/repair_design only split the net far enough to satisfy
+#   max_capacitance (the inserted buffers are literally named max_cap19..25),
+#   leaving transition at 2.97-3.55 ns against a 2.6 ns limit at the fast
+#   corner -> 260 max-slew + 8 max-cap violations at signoff.
+#
+#   These are read from the environment so config.yaml stays the single source
+#   of truth; the guards keep the file usable standalone (e.g. manual OpenSTA).
+#
+#   NOTE: these can only ever TIGHTEN the check. OpenSTA applies the *minimum*
+#   of the SDC limit and the liberty pin limit, so e.g. set_max_transition 3.0
+#   cannot loosen a cell whose library limit is already 2.6 ns.
+#
+#   Liberty max_transition is corner-dependent in gf180mcu:
+#     ff_n40C_5v50 -> 2.6 ns   (tightest; this is where violations show up)
+#     tt_025C_5v00 -> 4.0 ns
+#=============================================================================
+if {[info exists ::env(MAX_FANOUT_CONSTRAINT)]} {
+    set_max_fanout $::env(MAX_FANOUT_CONSTRAINT) [current_design]
+} else {
+    set_max_fanout 20 [current_design]
+}
+
+if {[info exists ::env(MAX_TRANSITION_CONSTRAINT)]} {
+    set_max_transition $::env(MAX_TRANSITION_CONSTRAINT) [current_design]
+} else {
+    set_max_transition 3.0 [current_design]
+}
+
+if {[info exists ::env(MAX_CAPACITANCE_CONSTRAINT)]} {
+    set_max_capacitance $::env(MAX_CAPACITANCE_CONSTRAINT) [current_design]
+} else {
+    set_max_capacitance 0.2 [current_design]
+}

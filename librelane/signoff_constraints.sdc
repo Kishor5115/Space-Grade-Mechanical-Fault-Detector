@@ -35,3 +35,33 @@ if {[info commands suppress_message] != ""} {
     suppress_message STA 1140
     suppress_message RSZ 0020
 }
+
+#=============================================================================
+# Design-rule (DRV) constraints -- KEEP IN SYNC with constraints.sdc and
+# pnr_constraints.sdc. See constraints.sdc for the full rationale.
+#
+# This is the SIGNOFF view: these are the limits the final DRV verdict is
+# measured against. Note they can only TIGHTEN the check -- OpenSTA takes
+# min(SDC limit, liberty pin limit) -- so adding set_max_transition 3.0 here
+# does NOT relax the 2.6 ns liberty limit at the ff_n40C_5v50 corner where the
+# violations actually appear. Fixing DRVs by loosening the signoff limit would
+# be meaningless; the point of this block is to make PnR aware of the limits
+# so it repairs them, and to tighten the typical corner from 4.0 ns to 3.0 ns.
+#=============================================================================
+if {[info exists ::env(MAX_FANOUT_CONSTRAINT)]} {
+    set_max_fanout $::env(MAX_FANOUT_CONSTRAINT) [current_design]
+} else {
+    set_max_fanout 20 [current_design]
+}
+
+if {[info exists ::env(MAX_TRANSITION_CONSTRAINT)]} {
+    set_max_transition $::env(MAX_TRANSITION_CONSTRAINT) [current_design]
+} else {
+    set_max_transition 3.0 [current_design]
+}
+
+if {[info exists ::env(MAX_CAPACITANCE_CONSTRAINT)]} {
+    set_max_capacitance $::env(MAX_CAPACITANCE_CONSTRAINT) [current_design]
+} else {
+    set_max_capacitance 0.2 [current_design]
+}

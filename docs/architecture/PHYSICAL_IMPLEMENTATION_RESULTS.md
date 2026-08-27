@@ -124,31 +124,88 @@ strategy resolved that closure problem.
 
 ### 4.3 DRV (design rule violations) — max-slew / max-cap
 
-| Metric | Value | Root cause |
+**Status: resolved. These are self-imposed SDC violations, not foundry-rule violations. The design
+is clean against every limit the `gf180mcu_fd_sc_mcu7t5v0` library actually declares.**
+
+| Metric | Worst corner | Count |
 |---|---|---|
-| Max-fanout violations | 0 | — |
-| Max-cap violations | 8 (worst corner) | see below |
-| Max-slew violations | 260 (worst corner: `max_ff_n40C_5v50`) | see below |
+| Max-fanout violations | all corners | **0** |
+| Max-cap violations | `max_ss_125C_4v50` | 196 |
+| Max-slew violations | `max_ss_125C_4v50` | 2864 |
 
-**Root cause, traced to source:** `signoff_constraints.sdc` and `pnr_constraints.sdc` both apply
-`set_false_path -from [get_ports sys_rst_n]`. Because the reset is excluded from timing analysis, it
-is *also* excluded from fanout-driven buffering/DRV repair. The netlist shows the reset distributed
-through branches with **125–280 flip-flops each** on the `/RN` pin — far above
-`MAX_FANOUT_CONSTRAINT: 10` (which reports 0 violations because the false-pathed net is never
-checked). The resulting transitions measure 2.97–3.55 ns against the library's 2.6 ns max-slew limit.
-All 260 slew violations and all 8 cap violations are on this one net's fanout tree — confirmed by
-inspecting `checks.rpt` in `S3_SIGNOFF/11-openroad-stapostpnr/`.
+Corner distribution is the first clue that these are limit-relative rather than structural:
 
-This is benign at 62.5 ns (worst overshoot is ~5% of the clock period and reset is asynchronous by
-design), but two things follow from it and are **not yet addressed**:
-1. It should be fixed (buffer the reset tree) or explicitly waived in writing with this root-cause
-   note, rather than left as an unexplained non-zero metric.
-2. Because reset is false-pathed, **recovery/removal timing between the three TMR copies is never
-   analyzed.** A wide, slow reset tree means the three copies of a triplicated register could
-   theoretically exit reset on different clock edges. The self-scrubbing voter (all three copies
-   rewritten from the majority vote every cycle) recovers this within one cycle, so it is not a
-   correctness risk — but it should be stated explicitly in the RHBD documentation rather than
-   left implicit.
+| corner group | max-slew count |
+|---|---|
+| `*_ff_n40C_5v50` (all three) | **0** |
+| `*_tt_025C_5v00` | 0 – 77 |
+| `*_ss_125C_4v50` | 1729 – 2864 |
+
+#### The limits being violated are ours, not the foundry's
+
+| Limit | Project SDC (`MAX_*_CONSTRAINT`) | `gf180mcu_fd_sc_mcu7t5v0` liberty |
+|---|---|---|
+| max transition | **3.0 ns** | **7 ns**, uniform across all 836 timing pins |
+| max capacitance | **0.2 pF** | per-output-pin, **0.058 … 4.9 pF** |
+| max fanout | 20 | not declared |
+
+The liberty declares no `default_max_transition` or `default_max_capacitance`; every limit is
+per-pin. OpenSTA always reports against `min(SDC limit, liberty pin limit)`, so with a 3 ns SDC
+ceiling every pin in the design is judged against a bound **2.3× tighter than the process allows**.
+
+#### Verification: the same database, checked twice
+
+OpenSTA was re-run standalone on the signed-off artifacts — the post-fill netlist
+(`S3_SIGNOFF/08-openroad-fillinsertion/top.nl.v`) plus the extracted `max` SPEF
+(`S3_SIGNOFF/10-openroad-rcx/max/top.max.spef`) against
+`gf180mcu_fd_sc_mcu7t5v0__ss_125C_4v50.lib`, with `report_check_types -max_slew -max_cap
+-max_fanout -violators`:
+
+| Run | `set_max_transition` / `set_max_capacitance` applied | Violators reported |
+|---|---|---|
+| **A** | none — liberty pin limits only | **0 slew, 0 cap, 0 fanout** |
+| **B** | `3.0` / `0.2`, i.e. the project SDC | reproduces the signoff list exactly (worst slew 6.64 ns, worst cap 0.336 pF) |
+
+#### Accuracy cross-check
+
+Reported delays are only trustworthy if the operating point sits inside the liberty's
+characterisation range. The cell timing tables use `index_1 = 0.02 … 7 ns` input slew, and
+`max_transition = 7` is exactly the top of that axis. Worst observed slew, 6.64 ns, is therefore at
+**94.9 % of the characterised range — interpolated, not extrapolated.** Capacitance likewise: run A
+passing means every output load sits inside its own pin's `max_capacitance`, which is the top of
+that pin's `index_2` load axis.
+
+#### Disposition: waive, with this evidence. Do not loosen the SDC.
+
+The 3 ns / 0.2 pF limits are doing useful work — they are what drove `RUN_POST_GRT_DESIGN_REPAIR`
+and the fanout-20 reset distribution, and they are why setup closes with +8.16 ns of margin at the
+worst corner. Driving 6.64 ns down to 3 ns at `ss_125C_4v50` would mean a large buffer-insertion
+campaign for no foundry-rule benefit. The non-zero count is best read as a **quality-margin
+indicator**, not a failure.
+
+#### Correction to earlier revisions of this document
+
+Earlier revisions attributed these violations to the false-pathed `sys_rst_n` fanout tree and quoted
+260 slew + 8 cap against "the library's 2.6 ns max-slew limit". All three claims were wrong:
+
+- **Not the reset net.** `grep rst` over
+  `S3_SIGNOFF/11-openroad-stapostpnr/max_ss_125C_4v50/checks.rpt` returns **0 hits**. The violators
+  are distributed across the Goertzel datapath and the CTS/repair cells inserted by the flow itself
+  (`clkbuf_*`, `fanout*`, `load_slew*`, `max_cap*`, `wire*`).
+- **Not 2.6 ns.** The library limit is 7 ns; 3 ns is the project's own SDC value.
+- **Counts were from a superseded run.** The current signoff reports 2864 / 196.
+
+`MAX_FANOUT_CONSTRAINT: 20` reports 0 violations on every corner, so the reset distribution is
+within its declared bound.
+
+#### One genuinely open item, unrelated to the above
+
+Because `sys_rst_n` is false-pathed in all three SDC views, **recovery/removal timing between the
+three TMR copies of each register is never analysed.** A wide reset tree means the three copies of a
+triplicated register could in principle exit reset on different clock edges. The self-scrubbing
+voter (all three copies rewritten from the majority vote every cycle) recovers this within one
+clock, so it is not a correctness risk — but it should be stated explicitly in the RHBD
+documentation rather than left implicit.
 
 ### 4.4 The "5 unconstrained endpoints" warning
 

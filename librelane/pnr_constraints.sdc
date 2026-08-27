@@ -38,3 +38,32 @@ if {[info commands suppress_message] != ""} {
     suppress_message STA 1140
     suppress_message RSZ 0020
 }
+
+#=============================================================================
+# Design-rule (DRV) constraints -- KEEP IN SYNC with constraints.sdc and
+# signoff_constraints.sdc. See constraints.sdc for the full rationale.
+#
+# Short version: a custom *_SDC_FILE replaces LibreLane's base.sdc, which is
+# what normally emits these three. Without them, MAX_FANOUT_CONSTRAINT /
+# MAX_TRANSITION_CONSTRAINT / MAX_CAPACITANCE_CONSTRAINT in config.yaml are
+# dead, and nothing bounds the fanout of high-fanout nets like sys_rst_n
+# (1,767 sinks). This is the PnR view, so these constraints are what actually
+# drive resizer/repair_design buffer insertion during placement and routing.
+#=============================================================================
+if {[info exists ::env(MAX_FANOUT_CONSTRAINT)]} {
+    set_max_fanout $::env(MAX_FANOUT_CONSTRAINT) [current_design]
+} else {
+    set_max_fanout 20 [current_design]
+}
+
+if {[info exists ::env(MAX_TRANSITION_CONSTRAINT)]} {
+    set_max_transition $::env(MAX_TRANSITION_CONSTRAINT) [current_design]
+} else {
+    set_max_transition 3.0 [current_design]
+}
+
+if {[info exists ::env(MAX_CAPACITANCE_CONSTRAINT)]} {
+    set_max_capacitance $::env(MAX_CAPACITANCE_CONSTRAINT) [current_design]
+} else {
+    set_max_capacitance 0.2 [current_design]
+}

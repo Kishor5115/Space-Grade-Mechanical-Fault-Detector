@@ -40,6 +40,7 @@ The following documents directly address each point of reviewer feedback. Start 
 | 🔬 **ITAG Architecture Analysis** — pre-implementation timing, area, power, RHBD, tradeoff analysis | [`docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md`](docs/architecture/ITAG_ARCHITECTURE_ANALYSIS.md) |
 | 🏭 **Physical Implementation Results** — actual LibreLane synthesis/PnR/signoff metrics, TMR survival, timing closure | [`docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md`](docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md) |
 | 🔍 **Gate-Level Verification Gaps** — what physical verification was and wasn't done, ahead of gate-level cocotb work | [`docs/verification/GATE_LEVEL_VERIFICATION_GAPS.md`](docs/verification/GATE_LEVEL_VERIFICATION_GAPS.md) |
+| 🧷 **Chip-Top Padring Integration** — `slot_1x1` pad map, macro placement, template patches, LVS caveat | [`padring/README.md`](padring/README.md) |
 
 **Current verification result: 100/100 self-checking simulation assertions PASS** across all four testbench suites. **Physical implementation (synthesis → place & route → signoff) is complete for the `top` macro**, with clean DRC/LVS/XOR/antenna and timing closed (0 setup/hold violations) across all 9 PVT corners — see the Physical Implementation Results doc above for full metrics.
 
@@ -293,6 +294,13 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 │                                 #    not present on this branch; see Known Open Issues
 │                                 #    in docs/project/PROJECT_TRACKER.md
 │
+├── padring/                   # Chip-top padring integration (wafer-space slot_1x1)
+│   ├── README.md              # Pad map, patches applied, LVS caveat, how to drive it
+│   ├── 02_chip_top_padring.ipynb   # Staging → pre-flight (52 checks) → Chip flow → signoff gate
+│   ├── src/chip_core.sv       # Maps top.v's 12 pins onto the slot_1x1 pad boundary
+│   └── librelane/
+│       └── chip_overrides.yaml     # MACROS (9 corners), PDN_MACRO_CONNECTIONS, CLOCK_PERIOD
+│
 ├── tb/                        # (reserved for additional bus-functional models)
 ├── sim/                       # (reserved for simulation configs)
 ├── verification/              # (reserved for golden fixed-point reference models)
@@ -346,7 +354,9 @@ SSCS Chipathon 2026, Track B (Sensor Circuits)
 - [ ] Command-SPI testbench (`tb_cmd_spi.v`) — written and passing on the `asic` git branch, **not present on this branch**; no `sim_cmd_spi` Makefile target exists on either branch (see [Verification Status](#verification-status))
 - [ ] Gate-level / post-synthesis simulation (SDF back-annotated; planned next via cocotb — see [`GATE_LEVEL_VERIFICATION_GAPS.md`](docs/verification/GATE_LEVEL_VERIFICATION_GAPS.md))
 - [ ] Formal RTL↔netlist equivalence check (Yosys EQY)
-- [ ] Reset-net max-slew/max-cap DRV violations — root-caused, fix-or-waive decision pending
+- [x] Max-slew/max-cap DRV violations — **resolved: self-imposed SDC limits, not foundry-rule violations.** A liberty-limits-only re-check of the signed-off netlist reports **0 slew / 0 cap / 0 fanout** violators; the reported 2864/196 are measured against the project's own `set_max_transition 3.0` / `set_max_capacitance 0.2`, which are 2.3× tighter than the library's 7 ns / per-pin 0.058–4.9 pF. Waived with evidence — see [`PHYSICAL_IMPLEMENTATION_RESULTS.md` §4.3](docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md)
+- [x] Chip-top padring integration (`slot_1x1`, macro top-left) — **complete and signed off clean.** Full Chip flow through Magic DRC / LVS / XOR / antenna, all **0**, setup +31.99 ns / hold +17.14 ns across all 9 corners, 245,704 instances on a 20.14 mm² die. LVS clean (the documented `slot_1x1` `VDD`-port quirk did not occur). GDS at `~/eda/designs/space-jam-chip/final/gds/chip_top.gds`. KLayout density check disabled (OOM on this die; advisory, not a gate). See [`padring/README.md`](padring/README.md)
+- [x] **Macro re-harden after the pin-placement fix** — done. `librelane/pins.cfg` corrected against the real `slot_1x1` pad map (all 4 outputs on N, all 8 inputs on W, `clk`/`sys_rst_n` at the south end of W); macro re-hardened clean (setup improved to +10.04 ns) and all 12 pins verified on the correct edge. See [`PIN_PLACEMENT_RATIONALE.md` §7](docs/specs/PIN_PLACEMENT_RATIONALE.md)
 - [ ] Physical-level RHBD (guard rings, substrate tapping, routing density constraints) — chip-level, pending padring integration
 - [ ] Chip-audit registration and slot assignment (multi-team padring)
 - [ ] Final GDS submission

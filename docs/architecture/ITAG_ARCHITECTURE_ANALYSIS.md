@@ -437,14 +437,19 @@ made relative to a different, smaller baseline design).
 §5 discusses SEU recovery via illegal-state defaults and the sticky-fault fail-safe philosophy, but
 does not discuss reset distribution timing, because that is a physical-implementation concern that
 does not exist at the RTL level. Physical implementation surfaced one: `sys_rst_n` is false-pathed
-in both `pnr_constraints.sdc` and `signoff_constraints.sdc`, which excludes it from fanout-driven
-buffering. The synthesized reset tree has branches of 125–280 flip-flops on `/RN`, causing 260
-max-slew and 8 max-cap DRV violations (benign relative to the 62.5 ns period, but unaddressed as of
-this writing). This means **reset recovery/removal skew between the three copies of any triplicated
+in both `pnr_constraints.sdc` and `signoff_constraints.sdc`, which excludes it from timing analysis
+entirely. This means **reset recovery/removal skew between the three copies of any triplicated
 register has never been analyzed** — an omission relevant to §5's TMR discussion that RTL-level
-analysis could not have caught. See
-[`GATE_LEVEL_VERIFICATION_GAPS.md`](../verification/GATE_LEVEL_VERIFICATION_GAPS.md) §2.5 for the
-fix-or-waive decision this requires.
+analysis could not have caught. The self-scrubbing voter re-converges all three copies within one
+clock, so it is not a correctness risk, but it should be stated explicitly rather than left implicit.
+See [`GATE_LEVEL_VERIFICATION_GAPS.md`](../verification/GATE_LEVEL_VERIFICATION_GAPS.md) §2.5.
+
+> **Note.** Earlier revisions of this section also blamed the reset tree for the signoff run's
+> max-slew/max-cap DRV counts. That attribution was wrong and has been retracted: those counts are
+> measured against the project's own SDC limits (3.0 ns / 0.2 pF), not the library's (7 ns /
+> per-pin 0.058–4.9 pF), and a liberty-limits-only re-check of the signed-off netlist reports
+> **0 slew, 0 cap and 0 fanout violators**. `grep rst` over the STA `checks.rpt` returns 0 hits.
+> See [`PHYSICAL_IMPLEMENTATION_RESULTS.md` §4.3](PHYSICAL_IMPLEMENTATION_RESULTS.md).
 
 ### 9.6 Net assessment
 

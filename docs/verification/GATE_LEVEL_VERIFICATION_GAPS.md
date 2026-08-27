@@ -79,17 +79,29 @@ uniformly at the macro's boundary — it reflects LibreLane's default, not any a
 **This must be re-run once the macro's position in the chip-level padring and its actual power/ground
 pad locations are known.** Treat the current number as a placeholder, not a sign-off result.
 
-### 2.5 Reset-path DRV violations: root-caused but not fixed or waived
+### 2.5 Reset-path DRV violations: retracted — and the one thing that remains open
 
-260 max-slew and 8 max-cap violations (worst corner) trace directly to `sys_rst_n`'s fanout tree
-(125–280 flip-flops per branch on `/RN`), which is excluded from buffering/repair because
-`set_false_path -from [get_ports sys_rst_n]` also exempts it from DRV analysis. Root cause is
-confirmed (see `PHYSICAL_IMPLEMENTATION_RESULTS.md` §4.3). Two things remain open:
-1. **Decide:** buffer the reset tree to close these violations, or document a formal waiver with the
-   root-cause explanation above (timing margin is generous — worst slew overshoot is ~1 ns against a
-   62.5 ns period).
-2. **Analyze:** reset recovery/removal timing between the three TMR copies has never been checked
-   (it's outside the false-pathed net's timing analysis by definition). The self-scrubbing voter
+**The DRV half of this gap is closed.** Earlier revisions claimed 260 max-slew and 8 max-cap
+violations traceable to `sys_rst_n`'s fanout tree. That was wrong on three counts, all verified:
+
+- The counts are measured against the project's own SDC limits (`set_max_transition 3.0`,
+  `set_max_capacitance 0.2`), which are tighter than the library's own (7 ns uniform, and per-pin
+  0.058–4.9 pF). A liberty-limits-only OpenSTA re-check of the signed-off netlist plus extracted
+  `max` SPEF reports **0 slew, 0 cap, 0 fanout violators**.
+- The violators are not on the reset net at all — `grep rst` over
+  `S3_SIGNOFF/11-openroad-stapostpnr/max_ss_125C_4v50/checks.rpt` returns **0 hits**. They are
+  spread across the Goertzel datapath and the flow's own CTS/repair cells.
+- The counts quoted (260 / 8) were from a superseded run; the current signoff reports 2864 / 196
+  against the SDC limits, and 0 / 0 against the library's.
+
+See [`PHYSICAL_IMPLEMENTATION_RESULTS.md` §4.3](../architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md)
+for the full experiment and the waiver rationale. `MAX_FANOUT_CONSTRAINT: 20` reports 0 violations
+on every corner, so the reset distribution is within its declared bound.
+
+**What remains genuinely open** is the analysis gap, which is independent of the DRV question:
+reset recovery/removal timing between the three TMR copies has never been checked, because
+`set_false_path -from [get_ports sys_rst_n]` removes the net from timing analysis by definition. The
+self-scrubbing voter
    architecture makes a skew-induced correctness bug unlikely, but this should be stated as an
    explicit, reasoned RHBD claim rather than left unaddressed.
 

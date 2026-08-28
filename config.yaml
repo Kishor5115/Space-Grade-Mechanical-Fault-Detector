@@ -38,13 +38,14 @@ SIGNOFF_SDC_FILE: dir::signoff_constraints.sdc
 
 # # Floorplan & Placement
 FP_SIZING:    absolute
-DIE_AREA:     [0, 0, 800, 800]
+DIE_AREA:     [0, 0, 810, 810]
 MAX_FANOUT_CONSTRAINT: 10
 PL_TARGET_DENSITY_PCT: 65
 
 GPL_CELL_PADDING: 2
 DPL_CELL_PADDING: 2
 
+RUN_POST_GRT_DESIGN_REPAIR: true
 
 VDD_NETS: [VDD]
 GND_NETS: [VSS]
@@ -79,6 +80,9 @@ CTS_DISTANCE_BETWEEN_BUFFERS: 0
 CTS_SINK_CLUSTERING_SIZE: 20
 CTS_SINK_CLUSTERING_MAX_DIAMETER: 60
 #GRT_ALLOW_CONGESTION:  true
+
+# KLAYOUT_DRC_RUNSET: <pathname>/klayout_drc_runset.lydrc
+RUN_KLAYOUT_DRC: true
 
 # Linter warnings suppressed
 

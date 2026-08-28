@@ -13,6 +13,10 @@
 set clk_period_ns 55.0
 create_clock -name clk -period $clk_period_ns [get_ports clk]
 
+# Virtual clock — not a real clock, purely so TritonCTS builds sys_rst_n a proper balanced buffer tree instead of leaving it as one flat 1740-sink net.
+create_clock -name rst_tree -period 62.5 [get_ports sys_rst_n]
+
+
 create_generated_clock -name c_sclk -source [get_ports clk] -divide_by 8 \
     [get_ports c_sclk]
 
@@ -25,7 +29,7 @@ set_false_path -from [get_ports tmr_forward_en]
 set_false_path -from [get_ports cmd_sclk]
 set_false_path -from [get_ports cmd_csn]
 set_false_path -from [get_ports cmd_mosi]
-set_false_path -from [get_ports sys_rst_n]
+#set_false_path -from [get_ports sys_rst_n]
 set_false_path -to [get_ports fault_flag_out]
 
 set io_delay [expr {$clk_period_ns * 0.30}]

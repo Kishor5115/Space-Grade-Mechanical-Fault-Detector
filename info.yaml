@@ -14,12 +14,13 @@ project:
   discord: "kishor_phantom"
   description: "Radiation-tolerant spacecraft vibration fault detector: 3-bin Interleaved Tri-Axis Goertzel (ITAG) fixed-point DSP core with TMR-hardened control FSMs and scrubbed config registers, driving an IIS3DWB MEMS sensor over SPI"
   lvs_config: "lvs_config.json"
-  pins:
+
+pins:
   # --- supplies -------------------------------------------------------------
+  - name: VSS
+    io_type: ground   # the first pin must be a ground connection
   - name: VDD
     io_type: power
-  - name: VSS
-    io_type: ground
   # --- clock and reset (hard-wired pads at the SW corner of slot_1x1) -------
   - name: clk
     io_type: input_schmitt

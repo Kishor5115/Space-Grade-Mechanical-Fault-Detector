@@ -16,39 +16,32 @@ project:
   lvs_config: "lvs_config.json"
 
 pins:
-  # --- supplies -------------------------------------------------------------
-  - name: VSS
-    io_type: ground   # the first pin must be a ground connection
-  - name: VDD
-    io_type: power
-  # --- clock and reset (hard-wired pads at the SW corner of slot_1x1) -------
+  # --- clock and reset ------------------------------------------------------
   - name: clk
-    io_type: input_schmitt
+    io_type: input
   - name: sys_rst_n
-    io_type: input_cmos
+    io_type: input
   # --- IIS3DWB sensor SPI ---------------------------------------------------
-  # gf180mcu has no plain digital output pad: every output uses a bi_24t
-  # bidirectional cell with OE tied active. Hence io_type: bidirectional.
   - name: c_miso
-    io_type: input_cmos
+    io_type: input
   - name: c_csn
-    io_type: bidirectional
+    io_type: output
   - name: c_sclk
-    io_type: bidirectional
+    io_type: output
   - name: c_mosi
-    io_type: bidirectional
+    io_type: output
   - name: sensor_drdy
-    io_type: input_cmos
+    io_type: input
   # --- mode strap -----------------------------------------------------------
   - name: tmr_forward_en
-    io_type: input_cmos
+    io_type: input
   # --- host command SPI (write-only config channel) -------------------------
   - name: cmd_sclk
-    io_type: input_cmos
+    io_type: input
   - name: cmd_csn
-    io_type: input_cmos
+    io_type: input
   - name: cmd_mosi
-    io_type: input_cmos
+    io_type: input
   # --- fault alarm ----------------------------------------------------------
   - name: fault_flag_out
-    io_type: bidirectional
+    io_type: output

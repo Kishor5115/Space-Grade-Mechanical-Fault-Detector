@@ -1,7 +1,7 @@
 {
     "STD_CELL_LIBRARY": "gf180mcu_fd_sc_mcu7t5v0",
     "INCLUDE_CONFIGS": ["$LVS_ROOT/tech/$PDK/lvs_config.base.json"],
-    "TOP_SOURCE": "chip_top",
+    "TOP_SOURCE": "top",
     "TOP_LAYOUT": "$TOP_SOURCE",
     "EXTRACT_FLATGLOB": [""],
     "EXTRACT_ABSTRACT": [""],
@@ -9,6 +9,6 @@
     "LVS_NOFLATTEN": [""],
     "LVS_IGNORE": [""],
     "LVS_SPICE_FILES": [""],
-    "LVS_VERILOG_FILES": ["$UPRJ_ROOT/verilog/gl/chip_top.nl.v"],
-    "LAYOUT_FILE": "$UPRJ_ROOT/gds/$TOP_LAYOUT.gds"
+    "LVS_VERILOG_FILES": ["$UPRJ_ROOT/ip/top/top.vh"],
+    "LAYOUT_FILE": "$UPRJ_ROOT/ip/top/$TOP_LAYOUT.gds"
 }

@@ -1,0 +1,9 @@
+min_ff_n40C_5v50: 
+min_ss_125C_4v50: 
+min_tt_025C_5v00: 
+nom_ff_n40C_5v50: 
+nom_ss_125C_4v50: 
+nom_tt_025C_5v00: 
+max_ff_n40C_5v50: 
+max_ss_125C_4v50: 
+max_tt_025C_5v00: 

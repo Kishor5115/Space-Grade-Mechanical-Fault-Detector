@@ -189,9 +189,9 @@ The 18 v-state registers are **intentionally not triplicated**. An SEU in a v-re
 The 16-bit Q1.15 sensor samples are sign-extended into the 24-bit Q8.15 datapath on input registration:
 
 ```verilog
-x_q15_r <= {{(DATA_W-SAMPLE_W){x_n[SAMPLE_W-1]}}, x_n};
-// = {8{x_n[15]}, x_n[15:0]}  — sign-extend from 16 to 24 bits
-// Binary point stays at bit 15; no shift required.
+x_q15_r <= {{(DATA_W-SAMPLE_W+INPUT_SHIFT){x_n[SAMPLE_W-1]}}, x_n[SAMPLE_W-1:INPUT_SHIFT]};
+// INPUT_SHIFT = 4: an on-bin tone grows the state to 256/sin(w) of the input,
+// so a full-scale tone near 1 kHz would overflow Q8.15 without this headroom.
 ```
 
 ### 6.2 Fused Saturating Update

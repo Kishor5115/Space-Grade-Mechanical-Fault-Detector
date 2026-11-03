@@ -152,31 +152,6 @@ VNW                                        |VNW
 Cell pin lists are equivalent.
 Device classes gf180mcu_fd_sc_mcu7t5v0__nand2_2 and gf180mcu_fd_sc_mcu7t5v0__nand2_2 are equivalent.
 
-Class gf180mcu_fd_sc_mcu7t5v0__clkbuf_3 (0):  Merged 7 parallel devices.
-Class gf180mcu_fd_sc_mcu7t5v0__clkbuf_3 (1):  Merged 7 parallel devices.
-Subcircuit summary:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__clkbuf |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__clkbuf 
--------------------------------------------|-------------------------------------------
-pfet_05v0 (6->2)                           |pfet_05v0 (6->2)                           
-nfet_05v0 (5->2)                           |nfet_05v0 (5->2)                           
-Number of devices: 4                       |Number of devices: 4                       
-Number of nets: 7                          |Number of nets: 7                          
----------------------------------------------------------------------------------------
-Netlists match uniquely.
-
-Subcircuit pins:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__clkbuf |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__clkbuf 
--------------------------------------------|-------------------------------------------
-VSS                                        |VSS                                        
-I                                          |I                                          
-VPW                                        |VPW                                        
-Z                                          |Z                                          
-VDD                                        |VDD                                        
-VNW                                        |VNW                                        
----------------------------------------------------------------------------------------
-Cell pin lists are equivalent.
-Device classes gf180mcu_fd_sc_mcu7t5v0__clkbuf_3 and gf180mcu_fd_sc_mcu7t5v0__clkbuf_3 are equivalent.
-
 Class gf180mcu_fd_sc_mcu7t5v0__nand2_4 (0):  Merged 6 parallel devices.
 Class gf180mcu_fd_sc_mcu7t5v0__nand2_4 (1):  Merged 6 parallel devices.
 Subcircuit summary:
@@ -640,31 +615,6 @@ I                                          |I
 Cell pin lists are equivalent.
 Device classes gf180mcu_fd_sc_mcu7t5v0__inv_3 and gf180mcu_fd_sc_mcu7t5v0__inv_3 are equivalent.
 
-Class gf180mcu_fd_sc_mcu7t5v0__buf_4 (0):  Merged 8 parallel devices.
-Class gf180mcu_fd_sc_mcu7t5v0__buf_4 (1):  Merged 8 parallel devices.
-Subcircuit summary:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__buf_4  |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__buf_4  
--------------------------------------------|-------------------------------------------
-pfet_05v0 (6->2)                           |pfet_05v0 (6->2)                           
-nfet_05v0 (6->2)                           |nfet_05v0 (6->2)                           
-Number of devices: 4                       |Number of devices: 4                       
-Number of nets: 7                          |Number of nets: 7                          
----------------------------------------------------------------------------------------
-Netlists match uniquely.
-
-Subcircuit pins:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__buf_4  |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__buf_4  
--------------------------------------------|-------------------------------------------
-I                                          |I                                          
-VSS                                        |VSS                                        
-VPW                                        |VPW                                        
-Z                                          |Z                                          
-VDD                                        |VDD                                        
-VNW                                        |VNW                                        
----------------------------------------------------------------------------------------
-Cell pin lists are equivalent.
-Device classes gf180mcu_fd_sc_mcu7t5v0__buf_4 and gf180mcu_fd_sc_mcu7t5v0__buf_4 are equivalent.
-
 Class gf180mcu_fd_sc_mcu7t5v0__oai21_4 (0):  Merged 12 parallel devices.
 Class gf180mcu_fd_sc_mcu7t5v0__oai21_4 (1):  Merged 12 parallel devices.
 Subcircuit summary:
@@ -840,6 +790,31 @@ VNW                                        |VNW
 Cell pin lists are equivalent.
 Device classes gf180mcu_fd_sc_mcu7t5v0__clkbuf_2 and gf180mcu_fd_sc_mcu7t5v0__clkbuf_2 are equivalent.
 
+Class gf180mcu_fd_sc_mcu7t5v0__buf_4 (0):  Merged 8 parallel devices.
+Class gf180mcu_fd_sc_mcu7t5v0__buf_4 (1):  Merged 8 parallel devices.
+Subcircuit summary:
+Circuit 1: gf180mcu_fd_sc_mcu7t5v0__buf_4  |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__buf_4  
+-------------------------------------------|-------------------------------------------
+pfet_05v0 (6->2)                           |pfet_05v0 (6->2)                           
+nfet_05v0 (6->2)                           |nfet_05v0 (6->2)                           
+Number of devices: 4                       |Number of devices: 4                       
+Number of nets: 7                          |Number of nets: 7                          
+---------------------------------------------------------------------------------------
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: gf180mcu_fd_sc_mcu7t5v0__buf_4  |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__buf_4  
+-------------------------------------------|-------------------------------------------
+I                                          |I                                          
+VSS                                        |VSS                                        
+VPW                                        |VPW                                        
+Z                                          |Z                                          
+VDD                                        |VDD                                        
+VNW                                        |VNW                                        
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes gf180mcu_fd_sc_mcu7t5v0__buf_4 and gf180mcu_fd_sc_mcu7t5v0__buf_4 are equivalent.
+
 Class gf180mcu_fd_sc_mcu7t5v0__aoi21_2 (0):  Merged 4 parallel devices.
 Class gf180mcu_fd_sc_mcu7t5v0__aoi21_2 (1):  Merged 4 parallel devices.
 Subcircuit summary:
@@ -967,6 +942,31 @@ VDD                                        |VDD
 ---------------------------------------------------------------------------------------
 Cell pin lists are equivalent.
 Device classes gf180mcu_fd_sc_mcu7t5v0__or2_2 and gf180mcu_fd_sc_mcu7t5v0__or2_2 are equivalent.
+
+Class gf180mcu_fd_sc_mcu7t5v0__clkbuf_3 (0):  Merged 7 parallel devices.
+Class gf180mcu_fd_sc_mcu7t5v0__clkbuf_3 (1):  Merged 7 parallel devices.
+Subcircuit summary:
+Circuit 1: gf180mcu_fd_sc_mcu7t5v0__clkbuf |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__clkbuf 
+-------------------------------------------|-------------------------------------------
+pfet_05v0 (6->2)                           |pfet_05v0 (6->2)                           
+nfet_05v0 (5->2)                           |nfet_05v0 (5->2)                           
+Number of devices: 4                       |Number of devices: 4                       
+Number of nets: 7                          |Number of nets: 7                          
+---------------------------------------------------------------------------------------
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: gf180mcu_fd_sc_mcu7t5v0__clkbuf |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__clkbuf 
+-------------------------------------------|-------------------------------------------
+VSS                                        |VSS                                        
+I                                          |I                                          
+VPW                                        |VPW                                        
+Z                                          |Z                                          
+VDD                                        |VDD                                        
+VNW                                        |VNW                                        
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes gf180mcu_fd_sc_mcu7t5v0__clkbuf_3 and gf180mcu_fd_sc_mcu7t5v0__clkbuf_3 are equivalent.
 
 Subcircuit summary:
 Circuit 1: gf180mcu_fd_sc_mcu7t5v0__aoi22_ |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__aoi22_ 
@@ -1098,6 +1098,53 @@ VPW                                        |VPW
 ---------------------------------------------------------------------------------------
 Cell pin lists are equivalent.
 Device classes gf180mcu_fd_sc_mcu7t5v0__nor2_4 and gf180mcu_fd_sc_mcu7t5v0__nor2_4 are equivalent.
+
+Subcircuit summary:
+Circuit 1: gf180mcu_fd_sc_mcu7t5v0__clkbuf |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__clkbuf 
+-------------------------------------------|-------------------------------------------
+pfet_05v0 (2)                              |pfet_05v0 (2)                              
+nfet_05v0 (2)                              |nfet_05v0 (2)                              
+Number of devices: 4                       |Number of devices: 4                       
+Number of nets: 7                          |Number of nets: 7                          
+---------------------------------------------------------------------------------------
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: gf180mcu_fd_sc_mcu7t5v0__clkbuf |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__clkbuf 
+-------------------------------------------|-------------------------------------------
+VSS                                        |VSS                                        
+I                                          |I                                          
+VPW                                        |VPW                                        
+Z                                          |Z                                          
+VDD                                        |VDD                                        
+VNW                                        |VNW                                        
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes gf180mcu_fd_sc_mcu7t5v0__clkbuf_1 and gf180mcu_fd_sc_mcu7t5v0__clkbuf_1 are equivalent.
+
+Subcircuit summary:
+Circuit 1: gf180mcu_fd_sc_mcu7t5v0__fillca |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__fillca 
+-------------------------------------------|-------------------------------------------
+nfet_05v0 (16)                             |nfet_05v0 (16)                             
+pfet_05v0 (16)                             |pfet_05v0 (16)                             
+Number of devices: 32                      |Number of devices: 32                      
+Number of nets: 36                         |Number of nets: 36                         
+---------------------------------------------------------------------------------------
+Resolving symmetries by property value.
+Resolving symmetries by pin name.
+Resolving symmetries by net name.
+Netlists match with 4 symmetries.
+
+Subcircuit pins:
+Circuit 1: gf180mcu_fd_sc_mcu7t5v0__fillca |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__fillca 
+-------------------------------------------|-------------------------------------------
+VSS                                        |VSS                                        
+VPW                                        |VPW                                        
+VDD                                        |VDD                                        
+VNW                                        |VNW                                        
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes gf180mcu_fd_sc_mcu7t5v0__fillcap_64 and gf180mcu_fd_sc_mcu7t5v0__fillcap_64 are equivalent.
 
 Class gf180mcu_fd_sc_mcu7t5v0__buf_12 (0):  Merged 32 parallel devices.
 Class gf180mcu_fd_sc_mcu7t5v0__buf_12 (1):  Merged 32 parallel devices.
@@ -1250,29 +1297,6 @@ VDD                                        |VDD
 ---------------------------------------------------------------------------------------
 Cell pin lists are equivalent.
 Device classes gf180mcu_fd_sc_mcu7t5v0__xnor2_1 and gf180mcu_fd_sc_mcu7t5v0__xnor2_1 are equivalent.
-
-Subcircuit summary:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__clkbuf |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__clkbuf 
--------------------------------------------|-------------------------------------------
-pfet_05v0 (2)                              |pfet_05v0 (2)                              
-nfet_05v0 (2)                              |nfet_05v0 (2)                              
-Number of devices: 4                       |Number of devices: 4                       
-Number of nets: 7                          |Number of nets: 7                          
----------------------------------------------------------------------------------------
-Netlists match uniquely.
-
-Subcircuit pins:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__clkbuf |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__clkbuf 
--------------------------------------------|-------------------------------------------
-VSS                                        |VSS                                        
-I                                          |I                                          
-VPW                                        |VPW                                        
-Z                                          |Z                                          
-VDD                                        |VDD                                        
-VNW                                        |VNW                                        
----------------------------------------------------------------------------------------
-Cell pin lists are equivalent.
-Device classes gf180mcu_fd_sc_mcu7t5v0__clkbuf_1 and gf180mcu_fd_sc_mcu7t5v0__clkbuf_1 are equivalent.
 
 Subcircuit summary:
 Circuit 1: gf180mcu_fd_sc_mcu7t5v0__fillca |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__fillca 
@@ -1480,31 +1504,6 @@ VNW                                        |VNW
 Cell pin lists are equivalent.
 Device classes gf180mcu_fd_sc_mcu7t5v0__buf_8 and gf180mcu_fd_sc_mcu7t5v0__buf_8 are equivalent.
 
-Class gf180mcu_fd_sc_mcu7t5v0__inv_4 (0):  Merged 6 parallel devices.
-Class gf180mcu_fd_sc_mcu7t5v0__inv_4 (1):  Merged 6 parallel devices.
-Subcircuit summary:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__inv_4  |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__inv_4  
--------------------------------------------|-------------------------------------------
-pfet_05v0 (4->1)                           |pfet_05v0 (4->1)                           
-nfet_05v0 (4->1)                           |nfet_05v0 (4->1)                           
-Number of devices: 2                       |Number of devices: 2                       
-Number of nets: 6                          |Number of nets: 6                          
----------------------------------------------------------------------------------------
-Netlists match uniquely.
-
-Subcircuit pins:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__inv_4  |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__inv_4  
--------------------------------------------|-------------------------------------------
-VSS                                        |VSS                                        
-VPW                                        |VPW                                        
-VDD                                        |VDD                                        
-VNW                                        |VNW                                        
-ZN                                         |ZN                                         
-I                                          |I                                          
----------------------------------------------------------------------------------------
-Cell pin lists are equivalent.
-Device classes gf180mcu_fd_sc_mcu7t5v0__inv_4 and gf180mcu_fd_sc_mcu7t5v0__inv_4 are equivalent.
-
 Class gf180mcu_fd_sc_mcu7t5v0__inv_8 (0):  Merged 14 parallel devices.
 Class gf180mcu_fd_sc_mcu7t5v0__inv_8 (1):  Merged 14 parallel devices.
 Subcircuit summary:
@@ -1529,6 +1528,31 @@ I                                          |I
 ---------------------------------------------------------------------------------------
 Cell pin lists are equivalent.
 Device classes gf180mcu_fd_sc_mcu7t5v0__inv_8 and gf180mcu_fd_sc_mcu7t5v0__inv_8 are equivalent.
+
+Class gf180mcu_fd_sc_mcu7t5v0__inv_4 (0):  Merged 6 parallel devices.
+Class gf180mcu_fd_sc_mcu7t5v0__inv_4 (1):  Merged 6 parallel devices.
+Subcircuit summary:
+Circuit 1: gf180mcu_fd_sc_mcu7t5v0__inv_4  |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__inv_4  
+-------------------------------------------|-------------------------------------------
+pfet_05v0 (4->1)                           |pfet_05v0 (4->1)                           
+nfet_05v0 (4->1)                           |nfet_05v0 (4->1)                           
+Number of devices: 2                       |Number of devices: 2                       
+Number of nets: 6                          |Number of nets: 6                          
+---------------------------------------------------------------------------------------
+Netlists match uniquely.
+
+Subcircuit pins:
+Circuit 1: gf180mcu_fd_sc_mcu7t5v0__inv_4  |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__inv_4  
+-------------------------------------------|-------------------------------------------
+VSS                                        |VSS                                        
+VPW                                        |VPW                                        
+VDD                                        |VDD                                        
+VNW                                        |VNW                                        
+ZN                                         |ZN                                         
+I                                          |I                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes gf180mcu_fd_sc_mcu7t5v0__inv_4 and gf180mcu_fd_sc_mcu7t5v0__inv_4 are equivalent.
 
 Cell gf180mcu_fd_sc_mcu7t5v0__antenna (0) disconnected node: VSS
 Cell gf180mcu_fd_sc_mcu7t5v0__antenna (0) disconnected node: VDD
@@ -1607,31 +1631,6 @@ C                                          |C
 Cell pin lists are equivalent.
 Device classes gf180mcu_fd_sc_mcu7t5v0__oai211_1 and gf180mcu_fd_sc_mcu7t5v0__oai211_1 are equivalent.
 
-Class gf180mcu_fd_sc_mcu7t5v0__inv_16 (0):  Merged 30 parallel devices.
-Class gf180mcu_fd_sc_mcu7t5v0__inv_16 (1):  Merged 30 parallel devices.
-Subcircuit summary:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__inv_16 |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__inv_16 
--------------------------------------------|-------------------------------------------
-pfet_05v0 (16->1)                          |pfet_05v0 (16->1)                          
-nfet_05v0 (16->1)                          |nfet_05v0 (16->1)                          
-Number of devices: 2                       |Number of devices: 2                       
-Number of nets: 6                          |Number of nets: 6                          
----------------------------------------------------------------------------------------
-Netlists match uniquely.
-
-Subcircuit pins:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__inv_16 |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__inv_16 
--------------------------------------------|-------------------------------------------
-VSS                                        |VSS                                        
-VPW                                        |VPW                                        
-VDD                                        |VDD                                        
-VNW                                        |VNW                                        
-ZN                                         |ZN                                         
-I                                          |I                                          
----------------------------------------------------------------------------------------
-Cell pin lists are equivalent.
-Device classes gf180mcu_fd_sc_mcu7t5v0__inv_16 and gf180mcu_fd_sc_mcu7t5v0__inv_16 are equivalent.
-
 Subcircuit summary:
 Circuit 1: gf180mcu_fd_sc_mcu7t5v0__xor2_1 |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__xor2_1 
 -------------------------------------------|-------------------------------------------
@@ -1687,36 +1686,30 @@ VSS                                        |VSS
 Cell pin lists are equivalent.
 Device classes gf180mcu_fd_sc_mcu7t5v0__aoi211_2 and gf180mcu_fd_sc_mcu7t5v0__aoi211_2 are equivalent.
 
-Class gf180mcu_fd_sc_mcu7t5v0__nand4_2 (0):  Merged 4 parallel devices.
-Class gf180mcu_fd_sc_mcu7t5v0__nand4_2 (1):  Merged 4 parallel devices.
+Class gf180mcu_fd_sc_mcu7t5v0__clkinv_3 (0):  Merged 4 parallel devices.
+Class gf180mcu_fd_sc_mcu7t5v0__clkinv_3 (1):  Merged 4 parallel devices.
 Subcircuit summary:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__nand4_ |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__nand4_ 
+Circuit 1: gf180mcu_fd_sc_mcu7t5v0__clkinv |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__clkinv 
 -------------------------------------------|-------------------------------------------
-nfet_05v0 (8)                              |nfet_05v0 (8)                              
-pfet_05v0 (8->4)                           |pfet_05v0 (8->4)                           
-Number of devices: 12                      |Number of devices: 12                      
-Number of nets: 15                         |Number of nets: 15                         
+pfet_05v0 (3->1)                           |pfet_05v0 (3->1)                           
+nfet_05v0 (3->1)                           |nfet_05v0 (3->1)                           
+Number of devices: 2                       |Number of devices: 2                       
+Number of nets: 6                          |Number of nets: 6                          
 ---------------------------------------------------------------------------------------
-Resolving symmetries by property value.
-Resolving symmetries by pin name.
-Resolving symmetries by net name.
-Netlists match with 7 symmetries.
+Netlists match uniquely.
 
 Subcircuit pins:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__nand4_ |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__nand4_ 
+Circuit 1: gf180mcu_fd_sc_mcu7t5v0__clkinv |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__clkinv 
 -------------------------------------------|-------------------------------------------
-ZN                                         |ZN                                         
+VSS                                        |VSS                                        
+VPW                                        |VPW                                        
 VDD                                        |VDD                                        
 VNW                                        |VNW                                        
-VPW                                        |VPW                                        
-A2                                         |A2                                         
-A4                                         |A4                                         
-A3                                         |A3                                         
-A1                                         |A1                                         
-VSS                                        |VSS                                        
+ZN                                         |ZN                                         
+I                                          |I                                          
 ---------------------------------------------------------------------------------------
 Cell pin lists are equivalent.
-Device classes gf180mcu_fd_sc_mcu7t5v0__nand4_2 and gf180mcu_fd_sc_mcu7t5v0__nand4_2 are equivalent.
+Device classes gf180mcu_fd_sc_mcu7t5v0__clkinv_3 and gf180mcu_fd_sc_mcu7t5v0__clkinv_3 are equivalent.
 
 Class gf180mcu_fd_sc_mcu7t5v0__aoi22_2 (0):  Merged 4 parallel devices.
 Class gf180mcu_fd_sc_mcu7t5v0__aoi22_2 (1):  Merged 4 parallel devices.
@@ -1748,34 +1741,6 @@ VDD                                        |VDD
 ---------------------------------------------------------------------------------------
 Cell pin lists are equivalent.
 Device classes gf180mcu_fd_sc_mcu7t5v0__aoi22_2 and gf180mcu_fd_sc_mcu7t5v0__aoi22_2 are equivalent.
-
-Class gf180mcu_fd_sc_mcu7t5v0__and4_2 (0):  Merged 2 parallel devices.
-Class gf180mcu_fd_sc_mcu7t5v0__and4_2 (1):  Merged 2 parallel devices.
-Subcircuit summary:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__and4_2 |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__and4_2 
--------------------------------------------|-------------------------------------------
-nfet_05v0 (6->5)                           |nfet_05v0 (6->5)                           
-pfet_05v0 (6->5)                           |pfet_05v0 (6->5)                           
-Number of devices: 10                      |Number of devices: 10                      
-Number of nets: 13                         |Number of nets: 13                         
----------------------------------------------------------------------------------------
-Netlists match uniquely.
-
-Subcircuit pins:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__and4_2 |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__and4_2 
--------------------------------------------|-------------------------------------------
-VPW                                        |VPW                                        
-VDD                                        |VDD                                        
-VNW                                        |VNW                                        
-A1                                         |A1                                         
-VSS                                        |VSS                                        
-A4                                         |A4                                         
-A2                                         |A2                                         
-A3                                         |A3                                         
-Z                                          |Z                                          
----------------------------------------------------------------------------------------
-Cell pin lists are equivalent.
-Device classes gf180mcu_fd_sc_mcu7t5v0__and4_2 and gf180mcu_fd_sc_mcu7t5v0__and4_2 are equivalent.
 
 Class gf180mcu_fd_sc_mcu7t5v0__xnor2_2 (0):  Merged 2 parallel devices.
 Class gf180mcu_fd_sc_mcu7t5v0__xnor2_2 (1):  Merged 2 parallel devices.
@@ -1852,33 +1817,6 @@ I                                          |I
 Cell pin lists are equivalent.
 Device classes gf180mcu_fd_sc_mcu7t5v0__inv_12 and gf180mcu_fd_sc_mcu7t5v0__inv_12 are equivalent.
 
-Class gf180mcu_fd_sc_mcu7t5v0__dffrnq_2 (0):  Merged 2 parallel devices.
-Class gf180mcu_fd_sc_mcu7t5v0__dffrnq_2 (1):  Merged 2 parallel devices.
-Subcircuit summary:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__dffrnq |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__dffrnq 
--------------------------------------------|-------------------------------------------
-nfet_05v0 (15->14)                         |nfet_05v0 (15->14)                         
-pfet_05v0 (15->14)                         |pfet_05v0 (15->14)                         
-Number of devices: 28                      |Number of devices: 28                      
-Number of nets: 20                         |Number of nets: 20                         
----------------------------------------------------------------------------------------
-Netlists match uniquely.
-
-Subcircuit pins:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__dffrnq |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__dffrnq 
--------------------------------------------|-------------------------------------------
-RN                                         |RN                                         
-VDD                                        |VDD                                        
-VPW                                        |VPW                                        
-VNW                                        |VNW                                        
-CLK                                        |CLK                                        
-D                                          |D                                          
-Q                                          |Q                                          
-VSS                                        |VSS                                        
----------------------------------------------------------------------------------------
-Cell pin lists are equivalent.
-Device classes gf180mcu_fd_sc_mcu7t5v0__dffrnq_2 and gf180mcu_fd_sc_mcu7t5v0__dffrnq_2 are equivalent.
-
 Class gf180mcu_fd_sc_mcu7t5v0__clkbuf_16 (0):  Merged 42 parallel devices.
 Class gf180mcu_fd_sc_mcu7t5v0__clkbuf_16 (1):  Merged 42 parallel devices.
 Subcircuit summary:
@@ -1930,36 +1868,6 @@ ZN                                         |ZN
 ---------------------------------------------------------------------------------------
 Cell pin lists are equivalent.
 Device classes gf180mcu_fd_sc_mcu7t5v0__oai32_1 and gf180mcu_fd_sc_mcu7t5v0__oai32_1 are equivalent.
-
-Class gf180mcu_fd_sc_mcu7t5v0__nor3_4 (0):  Merged 11 parallel devices.
-Class gf180mcu_fd_sc_mcu7t5v0__nor3_4 (1):  Merged 11 parallel devices.
-Subcircuit summary:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__nor3_4 |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__nor3_4 
--------------------------------------------|-------------------------------------------
-pfet_05v0 (12->10)                         |pfet_05v0 (12->10)                         
-nfet_05v0 (12->3)                          |nfet_05v0 (12->3)                          
-Number of devices: 13                      |Number of devices: 13                      
-Number of nets: 14                         |Number of nets: 14                         
----------------------------------------------------------------------------------------
-Resolving symmetries by property value.
-Resolving symmetries by pin name.
-Resolving symmetries by net name.
-Netlists match with 3 symmetries.
-
-Subcircuit pins:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__nor3_4 |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__nor3_4 
--------------------------------------------|-------------------------------------------
-VSS                                        |VSS                                        
-VPW                                        |VPW                                        
-A1                                         |A1                                         
-VNW                                        |VNW                                        
-VDD                                        |VDD                                        
-ZN                                         |ZN                                         
-A2                                         |A2                                         
-A3                                         |A3                                         
----------------------------------------------------------------------------------------
-Cell pin lists are equivalent.
-Device classes gf180mcu_fd_sc_mcu7t5v0__nor3_4 and gf180mcu_fd_sc_mcu7t5v0__nor3_4 are equivalent.
 
 Class gf180mcu_fd_sc_mcu7t5v0__nand3_4 (0):  Merged 11 parallel devices.
 Class gf180mcu_fd_sc_mcu7t5v0__nand3_4 (1):  Merged 11 parallel devices.
@@ -2129,6 +2037,35 @@ VDD                                        |VDD
 Cell pin lists are equivalent.
 Device classes gf180mcu_fd_sc_mcu7t5v0__nor3_2 and gf180mcu_fd_sc_mcu7t5v0__nor3_2 are equivalent.
 
+Class gf180mcu_fd_sc_mcu7t5v0__or2_4 (0):  Merged 8 parallel devices.
+Class gf180mcu_fd_sc_mcu7t5v0__or2_4 (1):  Merged 8 parallel devices.
+Subcircuit summary:
+Circuit 1: gf180mcu_fd_sc_mcu7t5v0__or2_4  |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__or2_4  
+-------------------------------------------|-------------------------------------------
+nfet_05v0 (8->3)                           |nfet_05v0 (8->3)                           
+pfet_05v0 (8->5)                           |pfet_05v0 (8->5)                           
+Number of devices: 8                       |Number of devices: 8                       
+Number of nets: 10                         |Number of nets: 10                         
+---------------------------------------------------------------------------------------
+Resolving symmetries by property value.
+Resolving symmetries by pin name.
+Resolving symmetries by net name.
+Netlists match with 3 symmetries.
+
+Subcircuit pins:
+Circuit 1: gf180mcu_fd_sc_mcu7t5v0__or2_4  |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__or2_4  
+-------------------------------------------|-------------------------------------------
+VNW                                        |VNW                                        
+A2                                         |A2                                         
+VSS                                        |VSS                                        
+VPW                                        |VPW                                        
+A1                                         |A1                                         
+VDD                                        |VDD                                        
+Z                                          |Z                                          
+---------------------------------------------------------------------------------------
+Cell pin lists are equivalent.
+Device classes gf180mcu_fd_sc_mcu7t5v0__or2_4 and gf180mcu_fd_sc_mcu7t5v0__or2_4 are equivalent.
+
 Subcircuit summary:
 Circuit 1: gf180mcu_fd_sc_mcu7t5v0__or4_1  |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__or4_1  
 -------------------------------------------|-------------------------------------------
@@ -2182,217 +2119,177 @@ Z                                          |Z
 Cell pin lists are equivalent.
 Device classes gf180mcu_fd_sc_mcu7t5v0__and3_2 and gf180mcu_fd_sc_mcu7t5v0__and3_2 are equivalent.
 
-Class gf180mcu_fd_sc_mcu7t5v0__buf_16 (0):  Merged 44 parallel devices.
-Class gf180mcu_fd_sc_mcu7t5v0__buf_16 (1):  Merged 44 parallel devices.
-Subcircuit summary:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__buf_16 |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__buf_16 
--------------------------------------------|-------------------------------------------
-nfet_05v0 (24->2)                          |nfet_05v0 (24->2)                          
-pfet_05v0 (24->2)                          |pfet_05v0 (24->2)                          
-Number of devices: 4                       |Number of devices: 4                       
-Number of nets: 7                          |Number of nets: 7                          
----------------------------------------------------------------------------------------
-Netlists match uniquely.
-
-Subcircuit pins:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__buf_16 |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__buf_16 
--------------------------------------------|-------------------------------------------
-I                                          |I                                          
-VSS                                        |VSS                                        
-VPW                                        |VPW                                        
-Z                                          |Z                                          
-VDD                                        |VDD                                        
-VNW                                        |VNW                                        
----------------------------------------------------------------------------------------
-Cell pin lists are equivalent.
-Device classes gf180mcu_fd_sc_mcu7t5v0__buf_16 and gf180mcu_fd_sc_mcu7t5v0__buf_16 are equivalent.
-
-Class gf180mcu_fd_sc_mcu7t5v0__oai211_2 (0):  Merged 4 parallel devices.
-Class gf180mcu_fd_sc_mcu7t5v0__oai211_2 (1):  Merged 4 parallel devices.
-Subcircuit summary:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__oai211 |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__oai211 
--------------------------------------------|-------------------------------------------
-nfet_05v0 (8->6)                           |nfet_05v0 (8->6)                           
-pfet_05v0 (8->6)                           |pfet_05v0 (8->6)                           
-Number of devices: 12                      |Number of devices: 12                      
-Number of nets: 14                         |Number of nets: 14                         
----------------------------------------------------------------------------------------
-Resolving symmetries by property value.
-Resolving symmetries by pin name.
-Resolving symmetries by net name.
-Netlists match with 6 symmetries.
-
-Subcircuit pins:
-Circuit 1: gf180mcu_fd_sc_mcu7t5v0__oai211 |Circuit 2: gf180mcu_fd_sc_mcu7t5v0__oai211 
--------------------------------------------|-------------------------------------------
-ZN                                         |ZN                                         
-VPW                                        |VPW                                        
-VNW                                        |VNW                                        
-VDD                                        |VDD                                        
-A2                                         |A2                                         
-A1                                         |A1                                         
-B                                          |B                                          
-C                                          |C                                          
-VSS                                        |VSS                                        
----------------------------------------------------------------------------------------
-Cell pin lists are equivalent.
-Device classes gf180mcu_fd_sc_mcu7t5v0__oai211_2 and gf180mcu_fd_sc_mcu7t5v0__oai211_2 are equivalent.
-
-Class top (0):  Merged 9950 parallel devices.
-Class top (1):  Merged 9950 parallel devices.
+Cell top (0) disconnected node: c_csn_IN
+Cell top (0) disconnected node: c_mosi_IN
+Cell top (0) disconnected node: c_sclk_IN
+Cell top (0) disconnected node: fault_flag_out_IN
+Cell top (1) disconnected node: c_csn_IN
+Cell top (1) disconnected node: c_mosi_IN
+Cell top (1) disconnected node: c_sclk_IN
+Cell top (1) disconnected node: fault_flag_out_IN
+Class top (0):  Merged 10403 parallel devices.
+Class top (1):  Merged 10403 parallel devices.
+Cell top (0) disconnected node: c_csn_IN
+Cell top (0) disconnected node: c_mosi_IN
+Cell top (0) disconnected node: c_sclk_IN
+Cell top (0) disconnected node: fault_flag_out_IN
+Cell top (1) disconnected node: c_csn_IN
+Cell top (1) disconnected node: c_mosi_IN
+Cell top (1) disconnected node: c_sclk_IN
+Cell top (1) disconnected node: fault_flag_out_IN
 Subcircuit summary:
 Circuit 1: top                             |Circuit 2: top                             
 -------------------------------------------|-------------------------------------------
-gf180mcu_fd_sc_mcu7t5v0__fillcap_4 (6678-> |gf180mcu_fd_sc_mcu7t5v0__fillcap_4 (6678-> 
-gf180mcu_fd_sc_mcu7t5v0__clkinv_1 (1721)   |gf180mcu_fd_sc_mcu7t5v0__clkinv_1 (1721)   
-gf180mcu_fd_sc_mcu7t5v0__oai21_1 (1220)    |gf180mcu_fd_sc_mcu7t5v0__oai21_1 (1220)    
-gf180mcu_fd_sc_mcu7t5v0__dffrnq_1 (1772)   |gf180mcu_fd_sc_mcu7t5v0__dffrnq_1 (1772)   
-gf180mcu_fd_sc_mcu7t5v0__nand2_2 (136)     |gf180mcu_fd_sc_mcu7t5v0__nand2_2 (136)     
-gf180mcu_fd_sc_mcu7t5v0__clkbuf_3 (150)    |gf180mcu_fd_sc_mcu7t5v0__clkbuf_3 (150)    
-gf180mcu_fd_sc_mcu7t5v0__nand2_4 (95)      |gf180mcu_fd_sc_mcu7t5v0__nand2_4 (95)      
-gf180mcu_fd_sc_mcu7t5v0__nand3_1 (1360)    |gf180mcu_fd_sc_mcu7t5v0__nand3_1 (1360)    
-gf180mcu_fd_sc_mcu7t5v0__nand2_1 (6115)    |gf180mcu_fd_sc_mcu7t5v0__nand2_1 (6115)    
-gf180mcu_fd_sc_mcu7t5v0__or2_1 (290)       |gf180mcu_fd_sc_mcu7t5v0__or2_1 (290)       
-gf180mcu_fd_sc_mcu7t5v0__fillcap_16 (577-> |gf180mcu_fd_sc_mcu7t5v0__fillcap_16 (577-> 
-gf180mcu_fd_sc_mcu7t5v0__clkbuf_4 (5)      |gf180mcu_fd_sc_mcu7t5v0__clkbuf_4 (5)      
-gf180mcu_fd_sc_mcu7t5v0__oai22_1 (413)     |gf180mcu_fd_sc_mcu7t5v0__oai22_1 (413)     
+gf180mcu_fd_sc_mcu7t5v0__fillcap_4 (6841-> |gf180mcu_fd_sc_mcu7t5v0__fillcap_4 (6841-> 
+gf180mcu_fd_sc_mcu7t5v0__clkinv_1 (1647)   |gf180mcu_fd_sc_mcu7t5v0__clkinv_1 (1647)   
+gf180mcu_fd_sc_mcu7t5v0__oai21_1 (1170)    |gf180mcu_fd_sc_mcu7t5v0__oai21_1 (1170)    
+gf180mcu_fd_sc_mcu7t5v0__dffrnq_1 (1723)   |gf180mcu_fd_sc_mcu7t5v0__dffrnq_1 (1723)   
+gf180mcu_fd_sc_mcu7t5v0__nand2_2 (159)     |gf180mcu_fd_sc_mcu7t5v0__nand2_2 (159)     
+gf180mcu_fd_sc_mcu7t5v0__nand2_4 (54)      |gf180mcu_fd_sc_mcu7t5v0__nand2_4 (54)      
+gf180mcu_fd_sc_mcu7t5v0__nand3_1 (1364)    |gf180mcu_fd_sc_mcu7t5v0__nand3_1 (1364)    
+gf180mcu_fd_sc_mcu7t5v0__nand2_1 (6343)    |gf180mcu_fd_sc_mcu7t5v0__nand2_1 (6343)    
+gf180mcu_fd_sc_mcu7t5v0__or2_1 (279)       |gf180mcu_fd_sc_mcu7t5v0__or2_1 (279)       
+gf180mcu_fd_sc_mcu7t5v0__fillcap_16 (630-> |gf180mcu_fd_sc_mcu7t5v0__fillcap_16 (630-> 
+gf180mcu_fd_sc_mcu7t5v0__clkbuf_4 (1)      |gf180mcu_fd_sc_mcu7t5v0__clkbuf_4 (1)      
+gf180mcu_fd_sc_mcu7t5v0__oai22_1 (438)     |gf180mcu_fd_sc_mcu7t5v0__oai22_1 (438)     
 gf180mcu_fd_sc_mcu7t5v0__aoi221_1 (12)     |gf180mcu_fd_sc_mcu7t5v0__aoi221_1 (12)     
 gf180mcu_fd_sc_mcu7t5v0__clkinv_4 (3)      |gf180mcu_fd_sc_mcu7t5v0__clkinv_4 (3)      
-gf180mcu_fd_sc_mcu7t5v0__nand3_2 (44)      |gf180mcu_fd_sc_mcu7t5v0__nand3_2 (44)      
-gf180mcu_fd_sc_mcu7t5v0__nor2_1 (658)      |gf180mcu_fd_sc_mcu7t5v0__nor2_1 (658)      
-gf180mcu_fd_sc_mcu7t5v0__fillcap_8 (2658-> |gf180mcu_fd_sc_mcu7t5v0__fillcap_8 (2658-> 
-gf180mcu_fd_sc_mcu7t5v0__nor3_1 (39)       |gf180mcu_fd_sc_mcu7t5v0__nor3_1 (39)       
-gf180mcu_fd_sc_mcu7t5v0__clkbuf_8 (316)    |gf180mcu_fd_sc_mcu7t5v0__clkbuf_8 (316)    
-gf180mcu_fd_sc_mcu7t5v0__buf_3 (39)        |gf180mcu_fd_sc_mcu7t5v0__buf_3 (39)        
-gf180mcu_fd_sc_mcu7t5v0__oai22_2 (135)     |gf180mcu_fd_sc_mcu7t5v0__oai22_2 (135)     
-gf180mcu_fd_sc_mcu7t5v0__buf_2 (776)       |gf180mcu_fd_sc_mcu7t5v0__buf_2 (776)       
+gf180mcu_fd_sc_mcu7t5v0__nand3_2 (52)      |gf180mcu_fd_sc_mcu7t5v0__nand3_2 (52)      
+gf180mcu_fd_sc_mcu7t5v0__nor2_1 (670)      |gf180mcu_fd_sc_mcu7t5v0__nor2_1 (670)      
+gf180mcu_fd_sc_mcu7t5v0__fillcap_8 (2882-> |gf180mcu_fd_sc_mcu7t5v0__fillcap_8 (2882-> 
+gf180mcu_fd_sc_mcu7t5v0__nor3_1 (34)       |gf180mcu_fd_sc_mcu7t5v0__nor3_1 (34)       
+gf180mcu_fd_sc_mcu7t5v0__clkbuf_8 (312)    |gf180mcu_fd_sc_mcu7t5v0__clkbuf_8 (312)    
+gf180mcu_fd_sc_mcu7t5v0__buf_3 (42)        |gf180mcu_fd_sc_mcu7t5v0__buf_3 (42)        
+gf180mcu_fd_sc_mcu7t5v0__oai22_2 (105)     |gf180mcu_fd_sc_mcu7t5v0__oai22_2 (105)     
+gf180mcu_fd_sc_mcu7t5v0__buf_2 (816)       |gf180mcu_fd_sc_mcu7t5v0__buf_2 (816)       
 gf180mcu_fd_sc_mcu7t5v0__inv_3 (49)        |gf180mcu_fd_sc_mcu7t5v0__inv_3 (49)        
-gf180mcu_fd_sc_mcu7t5v0__buf_4 (114)       |gf180mcu_fd_sc_mcu7t5v0__buf_4 (114)       
-gf180mcu_fd_sc_mcu7t5v0__oai21_4 (14)      |gf180mcu_fd_sc_mcu7t5v0__oai21_4 (14)      
-gf180mcu_fd_sc_mcu7t5v0__inv_2 (88)        |gf180mcu_fd_sc_mcu7t5v0__inv_2 (88)        
-gf180mcu_fd_sc_mcu7t5v0__aoi21_1 (486)     |gf180mcu_fd_sc_mcu7t5v0__aoi21_1 (486)     
-gf180mcu_fd_sc_mcu7t5v0__buf_1 (765)       |gf180mcu_fd_sc_mcu7t5v0__buf_1 (765)       
-gf180mcu_fd_sc_mcu7t5v0__and2_1 (322)      |gf180mcu_fd_sc_mcu7t5v0__and2_1 (322)      
-gf180mcu_fd_sc_mcu7t5v0__inv_1 (278)       |gf180mcu_fd_sc_mcu7t5v0__inv_1 (278)       
-gf180mcu_fd_sc_mcu7t5v0__clkbuf_2 (100)    |gf180mcu_fd_sc_mcu7t5v0__clkbuf_2 (100)    
-gf180mcu_fd_sc_mcu7t5v0__aoi21_2 (15)      |gf180mcu_fd_sc_mcu7t5v0__aoi21_2 (15)      
-gf180mcu_fd_sc_mcu7t5v0__dlyb_1 (258)      |gf180mcu_fd_sc_mcu7t5v0__dlyb_1 (258)      
-gf180mcu_fd_sc_mcu7t5v0__clkinv_8 (11)     |gf180mcu_fd_sc_mcu7t5v0__clkinv_8 (11)     
+gf180mcu_fd_sc_mcu7t5v0__oai21_4 (13)      |gf180mcu_fd_sc_mcu7t5v0__oai21_4 (13)      
+gf180mcu_fd_sc_mcu7t5v0__inv_2 (87)        |gf180mcu_fd_sc_mcu7t5v0__inv_2 (87)        
+gf180mcu_fd_sc_mcu7t5v0__aoi21_1 (511)     |gf180mcu_fd_sc_mcu7t5v0__aoi21_1 (511)     
+gf180mcu_fd_sc_mcu7t5v0__buf_1 (754)       |gf180mcu_fd_sc_mcu7t5v0__buf_1 (754)       
+gf180mcu_fd_sc_mcu7t5v0__and2_1 (315)      |gf180mcu_fd_sc_mcu7t5v0__and2_1 (315)      
+gf180mcu_fd_sc_mcu7t5v0__inv_1 (318)       |gf180mcu_fd_sc_mcu7t5v0__inv_1 (318)       
+gf180mcu_fd_sc_mcu7t5v0__clkbuf_2 (85)     |gf180mcu_fd_sc_mcu7t5v0__clkbuf_2 (85)     
+gf180mcu_fd_sc_mcu7t5v0__buf_4 (100)       |gf180mcu_fd_sc_mcu7t5v0__buf_4 (100)       
+gf180mcu_fd_sc_mcu7t5v0__aoi21_2 (10)      |gf180mcu_fd_sc_mcu7t5v0__aoi21_2 (10)      
+gf180mcu_fd_sc_mcu7t5v0__dlyb_1 (229)      |gf180mcu_fd_sc_mcu7t5v0__dlyb_1 (229)      
+gf180mcu_fd_sc_mcu7t5v0__clkinv_8 (10)     |gf180mcu_fd_sc_mcu7t5v0__clkinv_8 (10)     
 gf180mcu_fd_sc_mcu7t5v0__tiel (36)         |gf180mcu_fd_sc_mcu7t5v0__tiel (36)         
-gf180mcu_fd_sc_mcu7t5v0__or2_2 (45)        |gf180mcu_fd_sc_mcu7t5v0__or2_2 (45)        
-gf180mcu_fd_sc_mcu7t5v0__aoi22_1 (177)     |gf180mcu_fd_sc_mcu7t5v0__aoi22_1 (177)     
-gf180mcu_fd_sc_mcu7t5v0__tieh (5)          |gf180mcu_fd_sc_mcu7t5v0__tieh (5)          
+gf180mcu_fd_sc_mcu7t5v0__or2_2 (28)        |gf180mcu_fd_sc_mcu7t5v0__or2_2 (28)        
+gf180mcu_fd_sc_mcu7t5v0__clkbuf_3 (132)    |gf180mcu_fd_sc_mcu7t5v0__clkbuf_3 (132)    
+gf180mcu_fd_sc_mcu7t5v0__aoi22_1 (178)     |gf180mcu_fd_sc_mcu7t5v0__aoi22_1 (178)     
+gf180mcu_fd_sc_mcu7t5v0__tieh (6)          |gf180mcu_fd_sc_mcu7t5v0__tieh (6)          
 gf180mcu_fd_sc_mcu7t5v0__aoi211_1 (9)      |gf180mcu_fd_sc_mcu7t5v0__aoi211_1 (9)      
-gf180mcu_fd_sc_mcu7t5v0__oai31_1 (5)       |gf180mcu_fd_sc_mcu7t5v0__oai31_1 (5)       
-gf180mcu_fd_sc_mcu7t5v0__nor2_4 (15)       |gf180mcu_fd_sc_mcu7t5v0__nor2_4 (15)       
-gf180mcu_fd_sc_mcu7t5v0__buf_12 (3)        |gf180mcu_fd_sc_mcu7t5v0__buf_12 (3)        
-gf180mcu_fd_sc_mcu7t5v0__nor4_1 (7)        |gf180mcu_fd_sc_mcu7t5v0__nor4_1 (7)        
-gf180mcu_fd_sc_mcu7t5v0__clkinv_2 (49)     |gf180mcu_fd_sc_mcu7t5v0__clkinv_2 (49)     
-gf180mcu_fd_sc_mcu7t5v0__nand4_1 (41)      |gf180mcu_fd_sc_mcu7t5v0__nand4_1 (41)      
-gf180mcu_fd_sc_mcu7t5v0__and4_1 (6)        |gf180mcu_fd_sc_mcu7t5v0__and4_1 (6)        
-gf180mcu_fd_sc_mcu7t5v0__xnor2_1 (9)       |gf180mcu_fd_sc_mcu7t5v0__xnor2_1 (9)       
-gf180mcu_fd_sc_mcu7t5v0__clkbuf_1 (223)    |gf180mcu_fd_sc_mcu7t5v0__clkbuf_1 (223)    
-gf180mcu_fd_sc_mcu7t5v0__fillcap_32 (41->1 |gf180mcu_fd_sc_mcu7t5v0__fillcap_32 (41->1 
-gf180mcu_fd_sc_mcu7t5v0__oai221_1 (34)     |gf180mcu_fd_sc_mcu7t5v0__oai221_1 (34)     
+gf180mcu_fd_sc_mcu7t5v0__oai31_1 (6)       |gf180mcu_fd_sc_mcu7t5v0__oai31_1 (6)       
+gf180mcu_fd_sc_mcu7t5v0__nor2_4 (12)       |gf180mcu_fd_sc_mcu7t5v0__nor2_4 (12)       
+gf180mcu_fd_sc_mcu7t5v0__clkbuf_1 (245)    |gf180mcu_fd_sc_mcu7t5v0__clkbuf_1 (245)    
+gf180mcu_fd_sc_mcu7t5v0__fillcap_64 (1)    |gf180mcu_fd_sc_mcu7t5v0__fillcap_64 (1)    
+gf180mcu_fd_sc_mcu7t5v0__buf_12 (2)        |gf180mcu_fd_sc_mcu7t5v0__buf_12 (2)        
+gf180mcu_fd_sc_mcu7t5v0__nor4_1 (8)        |gf180mcu_fd_sc_mcu7t5v0__nor4_1 (8)        
+gf180mcu_fd_sc_mcu7t5v0__clkinv_2 (43)     |gf180mcu_fd_sc_mcu7t5v0__clkinv_2 (43)     
+gf180mcu_fd_sc_mcu7t5v0__nand4_1 (34)      |gf180mcu_fd_sc_mcu7t5v0__nand4_1 (34)      
+gf180mcu_fd_sc_mcu7t5v0__and4_1 (9)        |gf180mcu_fd_sc_mcu7t5v0__and4_1 (9)        
+gf180mcu_fd_sc_mcu7t5v0__xnor2_1 (5)       |gf180mcu_fd_sc_mcu7t5v0__xnor2_1 (5)       
+gf180mcu_fd_sc_mcu7t5v0__fillcap_32 (54->1 |gf180mcu_fd_sc_mcu7t5v0__fillcap_32 (54->1 
+gf180mcu_fd_sc_mcu7t5v0__oai221_1 (22)     |gf180mcu_fd_sc_mcu7t5v0__oai221_1 (22)     
 gf180mcu_fd_sc_mcu7t5v0__nor2_2 (26)       |gf180mcu_fd_sc_mcu7t5v0__nor2_2 (26)       
 gf180mcu_fd_sc_mcu7t5v0__dffsnq_1 (9)      |gf180mcu_fd_sc_mcu7t5v0__dffsnq_1 (9)      
-gf180mcu_fd_sc_mcu7t5v0__xor3_1 (3)        |gf180mcu_fd_sc_mcu7t5v0__xor3_1 (3)        
-gf180mcu_fd_sc_mcu7t5v0__or3_1 (4)         |gf180mcu_fd_sc_mcu7t5v0__or3_1 (4)         
-gf180mcu_fd_sc_mcu7t5v0__and2_2 (7)        |gf180mcu_fd_sc_mcu7t5v0__and2_2 (7)        
-gf180mcu_fd_sc_mcu7t5v0__buf_8 (23)        |gf180mcu_fd_sc_mcu7t5v0__buf_8 (23)        
-gf180mcu_fd_sc_mcu7t5v0__inv_4 (97)        |gf180mcu_fd_sc_mcu7t5v0__inv_4 (97)        
-gf180mcu_fd_sc_mcu7t5v0__inv_8 (4)         |gf180mcu_fd_sc_mcu7t5v0__inv_8 (4)         
-gf180mcu_fd_sc_mcu7t5v0__antenna (16)      |gf180mcu_fd_sc_mcu7t5v0__antenna (16)      
-gf180mcu_fd_sc_mcu7t5v0__and3_1 (11)       |gf180mcu_fd_sc_mcu7t5v0__and3_1 (11)       
-gf180mcu_fd_sc_mcu7t5v0__oai211_1 (49)     |gf180mcu_fd_sc_mcu7t5v0__oai211_1 (49)     
-gf180mcu_fd_sc_mcu7t5v0__inv_16 (3)        |gf180mcu_fd_sc_mcu7t5v0__inv_16 (3)        
+gf180mcu_fd_sc_mcu7t5v0__xor3_1 (2)        |gf180mcu_fd_sc_mcu7t5v0__xor3_1 (2)        
+gf180mcu_fd_sc_mcu7t5v0__or3_1 (3)         |gf180mcu_fd_sc_mcu7t5v0__or3_1 (3)         
+gf180mcu_fd_sc_mcu7t5v0__and2_2 (14)       |gf180mcu_fd_sc_mcu7t5v0__and2_2 (14)       
+gf180mcu_fd_sc_mcu7t5v0__buf_8 (18)        |gf180mcu_fd_sc_mcu7t5v0__buf_8 (18)        
+gf180mcu_fd_sc_mcu7t5v0__inv_8 (7)         |gf180mcu_fd_sc_mcu7t5v0__inv_8 (7)         
+gf180mcu_fd_sc_mcu7t5v0__inv_4 (74)        |gf180mcu_fd_sc_mcu7t5v0__inv_4 (74)        
+gf180mcu_fd_sc_mcu7t5v0__antenna (9)       |gf180mcu_fd_sc_mcu7t5v0__antenna (9)       
+gf180mcu_fd_sc_mcu7t5v0__and3_1 (13)       |gf180mcu_fd_sc_mcu7t5v0__and3_1 (13)       
+gf180mcu_fd_sc_mcu7t5v0__oai211_1 (46)     |gf180mcu_fd_sc_mcu7t5v0__oai211_1 (46)     
 gf180mcu_fd_sc_mcu7t5v0__xor2_1 (1)        |gf180mcu_fd_sc_mcu7t5v0__xor2_1 (1)        
 gf180mcu_fd_sc_mcu7t5v0__aoi211_2 (1)      |gf180mcu_fd_sc_mcu7t5v0__aoi211_2 (1)      
-gf180mcu_fd_sc_mcu7t5v0__nand4_2 (1)       |gf180mcu_fd_sc_mcu7t5v0__nand4_2 (1)       
-gf180mcu_fd_sc_mcu7t5v0__aoi22_2 (26)      |gf180mcu_fd_sc_mcu7t5v0__aoi22_2 (26)      
-gf180mcu_fd_sc_mcu7t5v0__and4_2 (1)        |gf180mcu_fd_sc_mcu7t5v0__and4_2 (1)        
+gf180mcu_fd_sc_mcu7t5v0__clkinv_3 (3)      |gf180mcu_fd_sc_mcu7t5v0__clkinv_3 (3)      
+gf180mcu_fd_sc_mcu7t5v0__aoi22_2 (29)      |gf180mcu_fd_sc_mcu7t5v0__aoi22_2 (29)      
 gf180mcu_fd_sc_mcu7t5v0__xnor2_2 (1)       |gf180mcu_fd_sc_mcu7t5v0__xnor2_2 (1)       
 gf180mcu_fd_sc_mcu7t5v0__dffq_1 (10)       |gf180mcu_fd_sc_mcu7t5v0__dffq_1 (10)       
-gf180mcu_fd_sc_mcu7t5v0__inv_12 (3)        |gf180mcu_fd_sc_mcu7t5v0__inv_12 (3)        
-gf180mcu_fd_sc_mcu7t5v0__dffrnq_2 (1)      |gf180mcu_fd_sc_mcu7t5v0__dffrnq_2 (1)      
+gf180mcu_fd_sc_mcu7t5v0__inv_12 (2)        |gf180mcu_fd_sc_mcu7t5v0__inv_12 (2)        
 gf180mcu_fd_sc_mcu7t5v0__clkbuf_16 (33)    |gf180mcu_fd_sc_mcu7t5v0__clkbuf_16 (33)    
-gf180mcu_fd_sc_mcu7t5v0__oai32_1 (4)       |gf180mcu_fd_sc_mcu7t5v0__oai32_1 (4)       
-gf180mcu_fd_sc_mcu7t5v0__nor3_4 (1)        |gf180mcu_fd_sc_mcu7t5v0__nor3_4 (1)        
-gf180mcu_fd_sc_mcu7t5v0__nand3_4 (7)       |gf180mcu_fd_sc_mcu7t5v0__nand3_4 (7)       
-gf180mcu_fd_sc_mcu7t5v0__xnor3_1 (1)       |gf180mcu_fd_sc_mcu7t5v0__xnor3_1 (1)       
-gf180mcu_fd_sc_mcu7t5v0__aoi21_4 (4)       |gf180mcu_fd_sc_mcu7t5v0__aoi21_4 (4)       
-gf180mcu_fd_sc_mcu7t5v0__dlyc_1 (4)        |gf180mcu_fd_sc_mcu7t5v0__dlyc_1 (4)        
-gf180mcu_fd_sc_mcu7t5v0__oai21_2 (3)       |gf180mcu_fd_sc_mcu7t5v0__oai21_2 (3)       
+gf180mcu_fd_sc_mcu7t5v0__oai32_1 (7)       |gf180mcu_fd_sc_mcu7t5v0__oai32_1 (7)       
+gf180mcu_fd_sc_mcu7t5v0__nand3_4 (4)       |gf180mcu_fd_sc_mcu7t5v0__nand3_4 (4)       
+gf180mcu_fd_sc_mcu7t5v0__xnor3_1 (2)       |gf180mcu_fd_sc_mcu7t5v0__xnor3_1 (2)       
+gf180mcu_fd_sc_mcu7t5v0__aoi21_4 (2)       |gf180mcu_fd_sc_mcu7t5v0__aoi21_4 (2)       
+gf180mcu_fd_sc_mcu7t5v0__dlyc_1 (5)        |gf180mcu_fd_sc_mcu7t5v0__dlyc_1 (5)        
+gf180mcu_fd_sc_mcu7t5v0__oai21_2 (4)       |gf180mcu_fd_sc_mcu7t5v0__oai21_2 (4)       
 gf180mcu_fd_sc_mcu7t5v0__nor3_2 (1)        |gf180mcu_fd_sc_mcu7t5v0__nor3_2 (1)        
-gf180mcu_fd_sc_mcu7t5v0__or4_1 (1)         |gf180mcu_fd_sc_mcu7t5v0__or4_1 (1)         
-gf180mcu_fd_sc_mcu7t5v0__and3_2 (2)        |gf180mcu_fd_sc_mcu7t5v0__and3_2 (2)        
-gf180mcu_fd_sc_mcu7t5v0__buf_16 (1)        |gf180mcu_fd_sc_mcu7t5v0__buf_16 (1)        
-gf180mcu_fd_sc_mcu7t5v0__oai211_2 (1)      |gf180mcu_fd_sc_mcu7t5v0__oai211_2 (1)      
-Number of devices: 18827                   |Number of devices: 18827                   
-Number of nets: 18817                      |Number of nets: 18817                      
+gf180mcu_fd_sc_mcu7t5v0__or2_4 (1)         |gf180mcu_fd_sc_mcu7t5v0__or2_4 (1)         
+gf180mcu_fd_sc_mcu7t5v0__or4_1 (2)         |gf180mcu_fd_sc_mcu7t5v0__or4_1 (2)         
+gf180mcu_fd_sc_mcu7t5v0__and3_2 (3)        |gf180mcu_fd_sc_mcu7t5v0__and3_2 (3)        
+Number of devices: 18817                   |Number of devices: 18817                   
+Number of nets: 18813                      |Number of nets: 18813                      
 ---------------------------------------------------------------------------------------
 Resolving symmetries by property value.
 Resolving symmetries by pin name.
 Resolving symmetries by net name.
-Netlists match with 250 symmetries.
+Netlists match with 252 symmetries.
 
 Subcircuit pins:
 Circuit 1: top                             |Circuit 2: top                             
 -------------------------------------------|-------------------------------------------
 fault_flag_out_OUT                         |fault_flag_out_OUT                         
-c_mosi_OUT                                 |c_mosi_OUT                                 
-c_sclk_OUT                                 |c_sclk_OUT                                 
 c_csn_OUT                                  |c_csn_OUT                                  
-cmd_mosi_PD                                |cmd_mosi_PD                                
-sys_rst_n_PU                               |sys_rst_n_PU                               
-sys_rst_n_PD                               |sys_rst_n_PD                               
-clk_PU                                     |clk_PU                                     
-clk_PD                                     |clk_PD                                     
-c_csn_SL                                   |c_csn_SL                                   
-c_mosi_SL                                  |c_mosi_SL                                  
+c_sclk_OUT                                 |c_sclk_OUT                                 
+c_mosi_OUT                                 |c_mosi_OUT                                 
 c_csn_CS                                   |c_csn_CS                                   
-c_mosi_CS                                  |c_mosi_CS                                  
+c_csn_IE                                   |c_csn_IE                                   
 c_csn_PD                                   |c_csn_PD                                   
-c_mosi_PU                                  |c_mosi_PU                                  
-c_miso_PU                                  |c_miso_PU                                  
-c_mosi_PD                                  |c_mosi_PD                                  
+c_csn_SL                                   |c_csn_SL                                   
 c_miso_PD                                  |c_miso_PD                                  
-c_sclk_IE                                  |c_sclk_IE                                  
-fault_flag_out_IE                          |fault_flag_out_IE                          
-c_sclk_SL                                  |c_sclk_SL                                  
-sensor_drdy_PU                             |sensor_drdy_PU                             
-fault_flag_out_SL                          |fault_flag_out_SL                          
+c_miso_PU                                  |c_miso_PU                                  
+c_mosi_CS                                  |c_mosi_CS                                  
+c_mosi_IE                                  |c_mosi_IE                                  
+c_mosi_PD                                  |c_mosi_PD                                  
+c_mosi_PU                                  |c_mosi_PU                                  
+c_mosi_SL                                  |c_mosi_SL                                  
 c_sclk_CS                                  |c_sclk_CS                                  
-sensor_drdy_PD                             |sensor_drdy_PD                             
+c_sclk_IE                                  |c_sclk_IE                                  
+c_sclk_PD                                  |c_sclk_PD                                  
+c_sclk_PU                                  |c_sclk_PU                                  
+c_sclk_SL                                  |c_sclk_SL                                  
+clk_PD                                     |clk_PD                                     
+clk_PU                                     |clk_PU                                     
+cmd_csn_PD                                 |cmd_csn_PD                                 
+cmd_csn_PU                                 |cmd_csn_PU                                 
+cmd_mosi_PD                                |cmd_mosi_PD                                
+cmd_mosi_PU                                |cmd_mosi_PU                                
+cmd_sclk_PD                                |cmd_sclk_PD                                
 cmd_sclk_PU                                |cmd_sclk_PU                                
 fault_flag_out_CS                          |fault_flag_out_CS                          
-c_sclk_PU                                  |c_sclk_PU                                  
-tmr_forward_en_PU                          |tmr_forward_en_PU                          
-cmd_sclk_PD                                |cmd_sclk_PD                                
-fault_flag_out_PU                          |fault_flag_out_PU                          
-c_sclk_PD                                  |c_sclk_PD                                  
-tmr_forward_en_PD                          |tmr_forward_en_PD                          
-cmd_csn_PD                                 |cmd_csn_PD                                 
+fault_flag_out_IE                          |fault_flag_out_IE                          
 fault_flag_out_PD                          |fault_flag_out_PD                          
-c_csn_IE                                   |c_csn_IE                                   
-cmd_csn_PU                                 |cmd_csn_PU                                 
-c_mosi_IE                                  |c_mosi_IE                                  
-cmd_mosi_PU                                |cmd_mosi_PU                                
-fault_flag_out_OE                          |fault_flag_out_OE                          
-c_mosi_OE                                  |c_mosi_OE                                  
-c_sclk_OE                                  |c_sclk_OE                                  
+fault_flag_out_PU                          |fault_flag_out_PU                          
+fault_flag_out_SL                          |fault_flag_out_SL                          
+sensor_drdy_PD                             |sensor_drdy_PD                             
+sensor_drdy_PU                             |sensor_drdy_PU                             
+sys_rst_n_PD                               |sys_rst_n_PD                               
+sys_rst_n_PU                               |sys_rst_n_PU                               
+tmr_forward_en_PD                          |tmr_forward_en_PD                          
+tmr_forward_en_PU                          |tmr_forward_en_PU                          
 c_csn_OE                                   |c_csn_OE                                   
 c_csn_PU                                   |c_csn_PU                                   
+c_mosi_OE                                  |c_mosi_OE                                  
+c_sclk_OE                                  |c_sclk_OE                                  
+fault_flag_out_OE                          |fault_flag_out_OE                          
 clk                                        |clk                                        
-cmd_csn                                    |cmd_csn                                    
-cmd_mosi                                   |cmd_mosi                                   
-sys_rst_n                                  |sys_rst_n                                  
 sensor_drdy                                |sensor_drdy                                
 c_miso                                     |c_miso                                     
+cmd_csn                                    |cmd_csn                                    
 cmd_sclk                                   |cmd_sclk                                   
+cmd_mosi                                   |cmd_mosi                                   
+sys_rst_n                                  |sys_rst_n                                  
 tmr_forward_en                             |tmr_forward_en                             
 VDD                                        |VDD                                        
 VSS                                        |VSS                                        
+c_csn_IN                                   |c_csn_IN                                   
+c_mosi_IN                                  |c_mosi_IN                                  
+c_sclk_IN                                  |c_sclk_IN                                  
+fault_flag_out_IN                          |fault_flag_out_IN                          
 ---------------------------------------------------------------------------------------
 Cell pin lists are equivalent.
 Device classes top and top are equivalent.

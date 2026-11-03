@@ -5,7 +5,7 @@ SSCS Chipathon 2026, Track B, Team B22 Space Jam
 | Item | Value |
 |---|---|
 | Device | `top` macro in the `slot_1x1` pad ring, 800 µm x 800 µm |
-| Layout | LibreLane run `PADCTRL_800_r10`, GDS SHA-256 begins `9488f3fe0116baa5f6dea522`. Signoff: `documents/signoff_summary.md`. |
+| Layout | LibreLane run `PADCTRL_800_e1`, GDS SHA-256 begins `98c1cf55f44048e0edd15632`. Signoff: `documents/signoff_summary.md`. |
 | Supply and clock | Single 5 V supply, 16 MHz system clock |
 | Audience | Whoever runs the bench bring-up |
 | Status | Draft, written before silicon. No step here has been run. |
@@ -82,20 +82,20 @@ only outputs are `fault_flag_out`, `c_csn`, `c_sclk` and `c_mosi`. So:
 | Behaviour | Source | Consequence |
 |---|---|---|
 | Boot writes run once, after reset | `spi_master.v` `CFG_INIT` | The sensor must be powered and ready before reset is released. There is no retry. |
-| `sys_rst_n` feeds the logic directly, with no reset synchronizer | `top.v` | Reset release is not tied to the clock, so Gate 3 repeats it many times. |
+| `sys_rst_n` asserts at once and releases through a voted 2-flop synchronizer | `top.v` | Keep reset low for at least 3 clocks with the clock running. The boot writes start 2 clocks later than the pin. |
 | After reset, `run_enable` is 0 and all config registers are 0 | `tmr_reg_bank.v` | Nothing is detected until `CTRL` bit 0 is written. Write the threshold before start. |
 | Sensor reads do not need `run_enable` | `spi_master.v`, `top.v` | Gate 4 can run before any configuration. |
 | DRDY is checked as a level in the idle state | `spi_master.v` | DRDY held high causes repeated bursts. Gate 4 tests this. |
-| Magnitude is `|X|^2` in Q15: an on-bin tone of amplitude A gives about `(256 * A)^2 * 32768` | `magnitude_compute.v` | Thresholds are large numbers, for example 8388608 at A = 1/16. This holds only below saturation. |
+| Samples are shifted right 4 bits, then magnitude is `\|X\|^2` in Q15: an on-bin tone of amplitude A gives about `(256 * A / 16)^2 * 32768` | `goertzel_core.v`, `magnitude_compute.v` | Thresholds use this scale, for example 32768 at A = 1/16. |
 | The block counter holds while stopped | `fault_flagger.v` | The first block after a restart can be partial. Allow 2 full blocks. |
-| A sample read before start stays pending, and the core processes it first after start | `spi_apb_interface.v`, `axis_sequencer.v` | It shifts the block by one sample (8188574 instead of 8388815 at 1/16 scale). Send start before the first DRDY whenever exact values matter. |
+| A sample read before start stays pending, and the core processes it first after start | `spi_apb_interface.v`, `axis_sequencer.v` | It shifts the block by one sample (a measurable error: on `r10` it read 8188574 instead of 8388815 at 1/16 scale). Send start before the first DRDY whenever exact values matter. |
 | Stop and restart keep the filter state and block count | `goertzel_core.v`, `fault_flagger.v` | The first block after a restart mixes old and new samples and is unreliable. Ignore it, or reset first. |
 | Trip is immediate, with no debounce, and sticky | `fault_flagger.v` | One magnitude above threshold latches the flag until cleared. |
 | The comparator checks all 9 magnitudes in each block | `fault_flagger.v`, `magnitude_compute.v` | A trip point is the largest of the 9, not one chosen pair. The golden model must report all 9. |
 | A coefficient of 0 does not turn a bin off | Goertzel recurrence, `C = 0` gives a filter tuned to Fs/4, 6667 Hz | "Unused" bins still respond to signal. Check them in the golden model when choosing any threshold. |
 | Pulls are off on all input pads | `top.v`, `chip_core.sv` | The board must drive every input. |
 
-**RTL bugs fixed before this layout.** All three passed the earlier simulations, because those only checked that the
+**RTL bugs fixed in `r10`.** All three passed the earlier simulations, because those only checked that the
 flag trips, and they hid one another. Gates 4, 6 and 8 are the silicon checks for them.
 
 | Bug | Effect before the fix | Fix | Silicon check |
@@ -107,11 +107,7 @@ flag trips, and they hid one another. Gates 4, 6 and 8 are the silicon checks fo
 The `_sensor_emulator` in `tb/test_top.py` also sent data out of line, which is fixed. Its old behaviour is why the
 first bug stayed hidden.
 
-**Range limit that remains.** The filter state is 24-bit Q8.15. It saturates for strong tones, which makes readings
-non-monotonic. At 1041.7 Hz this starts between 1/8 and 1/4 of full scale, and the golden file shows a 1/4-scale
-tone reading 12426463, lower than 33554270 at 1/8 scale in an earlier trial. At 10000.1 Hz, full scale reads
-66681060, lower than 134227786 at 1/4 scale. The lowest saturated reading in the golden file is 12426463, so
-set working thresholds well below that value.
+**Input headroom.** Before `e1`, the filter saturated near 1 kHz above about 0.14 of full scale, and a strong tone could read almost zero. `e1` shifts samples right 4 bits, which keeps readings on the ideal curve up to full scale for bins down to about 500 Hz. Small signals lose precision, so avoid thresholds under about 100.
 
 **Items to confirm before the board is built**
 
@@ -124,8 +120,8 @@ is always on. Keep the board footprint in section 4 as a fallback.
 
 **Known risks from signoff**
 
-Layout `r10` is clean on PDK slew and cap limits at all 9 corners. The tightest margin is cap on `_19537_/ZN` at
-`max_ff_n40C_5v50`, 0.19817 pF against a 0.20800 pF limit. Formal equivalence is partial, with 60 of 86 partitions
+Layout `e1` is clean on PDK slew and cap limits at all 9 corners. The tightest margin is cap on `_19274_/ZN` at
+`max_ss_125C_4v50`, 0.04505 pF against a 0.05845 pF limit. Formal equivalence is partial, with 60 of 86 partitions
 proved (`documents/signoff_summary.md`). So pin-level results from Gates 3 to 8 are also evidence on the netlist.
 Never change `tmr_forward_en` outside reset.
 
@@ -275,9 +271,11 @@ Take working thresholds from the golden model.
 
 | Corner | Power | Current |
 |---|---|---|
-| `max_ss_125C_4v50` | 30.2 mW | 6.7 mA |
-| `nom_tt_025C_5v00` | 36.8 mW | 7.4 mA |
-| `max_ff_n40C_5v50` | 46.4 mW | 8.4 mA |
+| `max_ss_125C_4v50` | 29.3 mW | 6.5 mA |
+| `nom_tt_025C_5v00` | 35.7 mW | 7.1 mA |
+| `max_ff_n40C_5v50` | 45.0 mW | 8.2 mA |
+
+Ignore the 490 mW `power__total` in `e1`'s `metrics.json`. See `documents/signoff_summary.md`.
 
 ## 6. Test procedure
 
@@ -342,7 +340,7 @@ compared with the model.
 **Pass:**
 
 - Current stays below the 50 mA limit at all times, and static current is below 5 mA [P].
-- Active current is 5 to 25 mA [P], around the 7 to 8.4 mA core model [M].
+- Active current is 5 to 25 mA [P], around the 6.5 to 8.2 mA core model [M].
 - The device stays stable for 5 minutes with no drift or heating.
 
 **On failure:**
@@ -378,9 +376,8 @@ here on, the sensor SPI pins can be used as a probe.
 
 - No activity at all: re-check clock and reset at the pin, then suspect the device.
 - Wrong frame content: confirm analyzer SPI settings, then suspect the SPI master.
-- Occasional failure in the 1000 resets: record the rate and the failing phase. With no reset
-  synchronizer, this points to reset recovery. Try a reset release timed away from the clock edge, and
-  keep this as a board requirement if it clears the fault.
+- Occasional failure in the 1000 resets: record the rate and the failing phase. Reset release is synchronized and timed,
+  so this should not happen. Check the clock and reset signals at the pins, then report it.
 
 **Cleared for next:** reset, the clock and the SPI output path are good, so any read failure in Gate 4
 is in the DRDY or MISO path or in the read state machine.
@@ -559,9 +556,6 @@ each search step starts from reset:
    alignment. Where `tested_pair_is_largest` is false, the search measured a different pair, so record that
    the tested pair was not measured directly.
 
-Points at full scale and 1/4 are in the saturated range. They must still match exactly, but do not expect them to
-scale with amplitude.
-
 **Pass:** exact match to the golden model for each point [D]. The logic is fixed point and deterministic,
 so given identical samples and alignment, any difference is a real error.
 
@@ -684,7 +678,7 @@ compare the trend against section 5.
 3. Record the highest passing frequency, then confirm it with a 10-minute run.
 4. Repeat at 125 °C and 4.5 V, the slowest condition.
 
-The worst setup slack is +5.947 ns, which suggests about 17.7 MHz at the slowest corner [M]. Expect
+The worst setup slack is +4.738 ns, which suggests about 17.3 MHz at the slowest corner [M]. Expect
 a higher value at room conditions.
 
 **Pass:** at least 17 MHz at 125 °C and 4.5 V [P], so that 16 MHz has real margin.

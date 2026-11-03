@@ -55,6 +55,10 @@ module top(
   output fault_flag_out_SL,
   output fault_flag_out_IE,
   output fault_flag_out_OE,
+  input c_csn_IN,
+  input c_sclk_IN,
+  input c_mosi_IN,
+  input fault_flag_out_IN,
   output fault_flag_out_OUT
 );
 endmodule

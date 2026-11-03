@@ -232,11 +232,11 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 | Block Size | 512 samples (all three axes per block) |
 | Inter-axis Detection Latency | 0 (X/Y/Z evaluated every block) |
 | Per-block Latency | ~19.2 ms (512 samples @ 26.667 kHz) |
-| **Signed-off die size** | **800 × 800 µm (640,000 µm²), 66.6% core utilization** |
-| **Post-synthesis flip-flop count** | **1,792** |
-| **Timing closure (9 PVT corners)** | **Setup +5.947 ns / hold +0.142 ns worst-case, 0 violations** |
+| **Signed-off die size** | **800 × 800 µm (640,000 µm²), 65.4% core utilization** |
+| **Post-synthesis flip-flop count** | **1,742** |
+| **Timing closure (9 PVT corners)** | **Setup +4.738 ns / hold +0.114 ns worst-case, 0 violations** |
 | **Physical signoff** | **Magic DRC 0 · KLayout DRC (main deck) 0 · LVS match · XOR 0 · antenna 0** — see [`documents/signoff_summary.md`](documents/signoff_summary.md) |
-| **Total power (estimate, core only)** | **46.4 mW at ff / 5.5 V, 36.8 mW at tt / 5.0 V, 16 MHz** |
+| **Total power** | **45.0 mW at ff / 5.5 V, 35.7 mW at tt / 5.0 V, 16 MHz, simulated, core only** |
 
 ---
 
@@ -309,7 +309,7 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 ├── librelane/runs/            # Prior LibreLane synthesis/PnR run logs
 ├── info.yaml                   # Chipathon 2026 submission metadata (project, team, 14 pins)
 ├── lvs_config.json             # Chipathon 2026 LVS config for the `top` macro
-├── gds/chip_top.gds            # Chip-top signed-off layout with macro run PADCTRL_800_r10 (Git LFS)
+├── gds/chip_top.gds            # Chip-top signed-off layout with macro run PADCTRL_800_e1 (Git LFS)
 ├── verilog/gl/chip_top.nl.v    # Matching post-PnR gate-level netlist (Git LFS)
 ├── ip/top/                     # `top` macro deliverables: gds/lef/vh/powered netlist + 9 corner libs (Git LFS)
 ├── Makefile                   # sim_spi / sim_apb / sim_goertzel / sim_top / sim_all
@@ -359,14 +359,14 @@ SSCS Chipathon 2026, Track B (Sensor Circuits)
 - [x] Host-facing command-SPI configuration path (`cmd_spi_slave` → `apb` → `apb_arb2` → `tmr_reg_bank`) implemented inside the `top.v` boundary — real host writes no longer require a hierarchical testbench force
 - [x] Reviewer documentation complete (system architecture, verification methodology, test scenarios, I/O spec, SPI origin, Goertzel core explanation, project tracker)
 - [x] LibreLane synthesis, place & route, and signoff for the current ITAG RTL — 800×800 µm, timing closed on all 9 PVT corners, TMR confirmed intact in the gate netlist (see [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md))
-- [x] Physical layout, DRC/LVS/XOR/antenna sign-off for run `PADCTRL_800_r10` — all clean, including KLayout DRC main deck. See [`documents/signoff_summary.md`](documents/signoff_summary.md).
+- [x] Physical layout, DRC/LVS/XOR/antenna sign-off for run `PADCTRL_800_e1` — all clean, including KLayout DRC main deck. See [`documents/signoff_summary.md`](documents/signoff_summary.md).
 - [ ] Command-SPI testbench (`tb_cmd_spi.v`) — written and passing on the `asic` git branch, **not present on this branch**; no `sim_cmd_spi` Makefile target exists on either branch (see [Verification Status](#verification-status))
-- [x] Gate-level / post-synthesis simulation — **run.** `make test-top-gl`: 8/8 pass on `PADCTRL_800_r10`. RTL and netlist also matched on all outputs over 660,055 clocks of random stimulus.
+- [x] Gate-level / post-synthesis simulation — **run.** `make test-top-gl`: 8/8 pass on `PADCTRL_800_e1`. RTL and netlist also matched on all outputs over 660,055 clocks of random stimulus.
 - [ ] Formal RTL↔netlist equivalence check (Yosys EQY) — **partial: 60 of 86 partitions proved, 25 inconclusive, 1 unexplained counterexample.** See [`documents/signoff_summary.md`](documents/signoff_summary.md).
 - [x] SEU / TMR fault-injection test — [`tb/test_seu.py`](tb/test_seu.py) (`make test-seu`, **3/3 PASS**): voter masks a single-bit upset, self-scrubs within one clock, illegal FSM encoding recovers to `S_IDLE` within one clock. RTL-level result, closes the previously structural-only RHBD verification gap
-- [ ] IR drop at chip scale — macro-level static drop is under 13 mV per rail for the feeds tried, but dynamic drop, pads and the chip grid are not analysed. See [`documents/signoff_summary.md`](documents/signoff_summary.md).
+- [ ] IR drop at chip scale — macro-level static drop is under 12 mV per rail for the feeds tried, but dynamic drop, pads and the chip grid are not analysed. See [`documents/signoff_summary.md`](documents/signoff_summary.md).
 - [x] Max-slew/max-cap DRV violations — **resolved: self-imposed SDC limits, not foundry-rule violations.** A liberty-limits-only re-check of the signed-off netlist reports **0 slew / 0 cap / 0 fanout** violators; the reported 2864/196 are measured against the project's own `set_max_transition 3.0` / `set_max_capacitance 0.2`, which are 2.3× tighter than the library's 7 ns / per-pin 0.058–4.9 pF. Waived with evidence — see [`PHYSICAL_IMPLEMENTATION_RESULTS.md` §4.3](docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md)
-- [x] Chip-top padring integration (`slot_1x1`, macro top-left) — **rebuilt 2026-11-03 with macro `PADCTRL_800_r10`.** Magic DRC, LVS, XOR, antenna and routing DRC are all 0. See [`documents/signoff_summary.md`](documents/signoff_summary.md).
+- [x] Chip-top padring integration (`slot_1x1`, macro top-left) — **rebuilt 2026-11-03 with macro `PADCTRL_800_e1`.** Magic DRC, LVS, XOR, antenna and routing DRC are all 0. See [`documents/signoff_summary.md`](documents/signoff_summary.md).
 - [x] **Macro re-harden after the pin-placement fix** — done. `librelane/pins.cfg` corrected against the real `slot_1x1` pad map (all 4 outputs on N, all 8 inputs on W, `clk`/`sys_rst_n` at the south end of W); macro re-hardened clean (setup improved to +10.04 ns) and all 12 pins verified on the correct edge. See [`PIN_PLACEMENT_RATIONALE.md` §7](docs/specs/PIN_PLACEMENT_RATIONALE.md)
 - [ ] Physical-level RHBD (guard rings, substrate tapping, routing density constraints) — chip-level, pending padring integration
 - [ ] Chip-audit registration and slot assignment (multi-team padring)

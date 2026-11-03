@@ -89,9 +89,9 @@ Each axis output is a **16-bit two's complement signed integer** (Q1.15):
 - Value at ±FS (±2g): ±32768 (±1.0 normalized)
 - Sensitivity: 1 LSB = FS/32768
 
-The `axis_sequencer` sign-extends each 16-bit value into the 24-bit Q8.15 datapath used by `goertzel_core` without any explicit conversion module — the sign-extension is a combinational bit-replicate in the `goertzel_core`'s input registration always block:
+The `goertzel_core` shifts each 16-bit value right 4 bits for headroom, and sign-extends it into its 24-bit Q8.15 datapath without any explicit conversion module — the sign-extension is a combinational bit-replicate in the `goertzel_core`'s input registration always block:
 ```verilog
-x_q15_r <= {{(DATA_W-SAMPLE_W){x_n[SAMPLE_W-1]}}, x_n};
+x_q15_r <= {{(DATA_W-SAMPLE_W+INPUT_SHIFT){x_n[SAMPLE_W-1]}}, x_n[SAMPLE_W-1:INPUT_SHIFT]};  // INPUT_SHIFT = 4
 ```
 
 ---

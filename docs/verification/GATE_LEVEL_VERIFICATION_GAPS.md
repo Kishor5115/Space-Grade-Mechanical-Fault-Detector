@@ -10,7 +10,7 @@ correct. It does **not** confirm that the *synthesized, placed-and-routed netlis
 way, or that physical sign-off is complete in every dimension a tapeout requires. This document
 tracks that second, separate class of verification.
 
-> **Update 2026-11-03.** Results below predate three RTL fixes and layout `PADCTRL_800_r10`. For current status,
+> **Update 2026-11-03.** Results below predate three RTL fixes and layout `PADCTRL_800_e1`. For current status,
 > including KLayout DRC (now clean), EQY (now partial) and IR drop, see
 > [`documents/signoff_summary.md`](../../documents/signoff_summary.md).
 

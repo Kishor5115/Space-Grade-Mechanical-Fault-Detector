@@ -1,16 +1,21 @@
-# Signoff Summary: `top` Macro, Run `PADCTRL_800_r10`
+# Signoff Summary: `top` Macro, Run `PADCTRL_800_e1`
 
 SSCS Chipathon 2026, Track B, Team B22 Space Jam. Results dated 2026-11-03.
 
 | Item | Value |
 |---|---|
-| Layout | `ip/top/top.gds`, 800 µm x 800 µm |
-| GDS SHA-256 | `9488f3fe0116baa5f6dea522ef1cf2fcbb49adbe96716fcb06585a8da9bd2a47` |
+| Macro layout | `ip/top/top.gds`, 800 µm x 800 µm |
+| Macro GDS SHA-256 | `98c1cf55f44048e0edd156327ebd40ace8f7d5240c08ffdb2180c8a317b4cc37` |
+| Chip layout | `gds/chip_top.gds`, run `E1_CHIP` |
+| Chip GDS SHA-256 | `e7417d717950d28fffe23eafdc4fd407ec8132f8e8a3b52aca624bbc3812dadb` |
 | Settings | `librelane/config.yaml`, including the 300 µm maximum wire length |
-| Cells and flops | 23,309 standard cells, 1,792 flops, 66.6% utilization |
-| Raw logs | `documents/signoff_r10/` |
+| Cells and flops | 23,298 standard cells, 1,742 flops, 65.4% utilization |
+| Raw logs | `documents/signoff_e1/` |
 
 **Open item: formal equivalence is partial.** EQY proved 60 of 86 partitions. See section 3.
+
+**Do not use `power__total` from this run's `metrics.json`.** It reports 490 mW, which is a tool artifact. Real core
+power is about 45 mW. See section 4.
 
 ## 1. Results
 
@@ -23,8 +28,8 @@ SSCS Chipathon 2026, Track B, Team B22 Space Jam. Results dated 2026-11-03.
 | GDS LVS, Magic and Netgen | `Circuits match uniquely` |
 | Layout XOR, flow | 0 differences |
 | PDK slew and cap limits, 9 corners | No violations |
-| Setup, 9 corners at 62.5 ns | Worst +5.947 ns at `max_ss_125C_4v50`, total negative slack 0 |
-| Hold, 9 corners | Worst +0.142 ns at `min_ff_n40C_5v50` |
+| Setup, 9 corners at 62.5 ns | Worst +4.738 ns at `max_ss_125C_4v50`, total negative slack 0 |
+| Hold, 9 corners | Worst +0.114 ns at `min_ff_n40C_5v50` |
 | RTL simulation (cocotb) | 23 of 23 pass |
 | Legacy Verilog tests (`testing/`) | SPI 71 checks, APB 8, top 15, Goertzel: all pass |
 | Golden model (`make test-golden`) | 4 of 4 pass |
@@ -38,7 +43,7 @@ value. These replace the internal pulse count and multiplier-request checks, whi
 
 ## 2. RTL changes in this layout
 
-These three bugs were found while building the golden model. All earlier layouts contain them.
+**Bugs fixed.** Layouts before `PADCTRL_800_r10` contain all three.
 
 | Bug | File | Effect before the fix |
 |---|---|---|
@@ -46,16 +51,26 @@ These three bugs were found while building the golden model. All earlier layouts
 | Products shifted by 22 bits, not 15 | `rtl/magnitude_compute.v` | Every product was 128x too small, so the Goertzel filter did not resonate |
 | Read command depended on DRDY phase | `rtl/spi_master.v` | At some phases the command went out as `0x28`, not `0xA8` |
 
-Magnitude thresholds changed scale as a result. An on-bin tone of amplitude A now gives about
-`(256 * A)^2 * 32768`. Thresholds from before these fixes are not valid.
+**Changes new in this layout**
 
-**Remaining range limit.** The 24-bit filter state saturates on strong tones, and readings stop following
-amplitude. The lowest saturated reading in `tb/golden_values.json` is 12,426,463, so keep thresholds well below it.
+| Change | File | Reason |
+|---|---|---|
+| Samples shifted right 4 bits before the filter | `rtl/goertzel_core.v` | Near 1 kHz the state saturated above about 0.14 of full scale, and a strong tone could read almost zero |
+| Reset released through a voted 2-flop synchronizer | `rtl/top.v` | Reset release is now timed. Worst recovery slack is +41 ns. Voting stops one upset from resetting the chip. |
+| `_IN` ports on the 4 output pads | `rtl/top.v`, `librelane/pins.cfg`, `padring/src/chip_core.sv` | The chipathon `bidirectional_24ma` pad type connects `<name>_IN` to Y. The ports are unused, and input enables stay low. |
+
+**Magnitude scale.** An on-bin tone of amplitude A now gives about `(256 * A / 16)^2 * 32768`, which is 32,768 at
+A = 1/16. Thresholds and golden values from any earlier layout are not valid.
+
+**Effect of the shift.** A bit-exact model, which matched all 27 `r10` golden values, swept random phases from 1/8 to
+full scale at 520.8 Hz, 1041.7 Hz, 5000.1 Hz and 10000.1 Hz. With a threshold of 16,384, 0 of 8,448 blocks fell below
+it, and only 1 block was more than 1% from ideal. The same kind of sweep at 1041.7 Hz before the shift had 107 of 1,200
+blocks below a threshold of 4,194,304, with readings as low as 3,508 in a separate sweep.
+
+Very small signals lose precision: 1/128 of full scale reads about 508 against an ideal 512, and 1/1024 reads 6 to 7
+against an ideal 8. Bins below about 500 Hz have less headroom and were not swept.
 
 ## 3. Formal equivalence detail
-
-The earlier `verification/top.eqy` could not give a valid result, because it loaded standard cells as empty black
-boxes and named a solver this image does not have. Both are now fixed.
 
 | Partitions | Count | Meaning |
 |---|---|---|
@@ -64,9 +79,10 @@ boxes and named a solver this image does not have. Both are now fixed.
 | Counterexample | 1 | `spi_apb_inst.fwd_req_valid` |
 | **Total** | **86** | |
 
-**The counterexample.** EQY found a case where `tmr_forward_en` falls during operation and the netlist holds
-`fwd_req_valid` high while the RTL clears it. EQY analyses each partition with its inputs unconstrained, so this may
-come from a state the real chip cannot reach. It has not been explained.
+**The counterexample.** On `r10`, EQY found a case where `tmr_forward_en` falls during operation and the netlist holds
+`fwd_req_valid` high while the RTL clears it. `e1` fails on the same partition, and its trace has not been examined
+separately. EQY analyses each partition with its inputs unconstrained, so this may come from a state the real chip cannot
+reach. It has not been explained.
 
 **Evidence at the pins.** Seeded random stimulus ran through RTL and the gate netlist for 660,055 clocks, including
 41 changes of `tmr_forward_en` during operation. `c_csn`, `c_sclk`, `c_mosi` and `fault_flag_out` matched on every
@@ -84,42 +100,42 @@ The inconclusive partitions are:
 
 ## 4. Power at 16 MHz
 
-Core only, with no pads included. Data activity barely changes the result, because the clock tree and flops take
-about 98% of the power and there is no clock gating.
+Core only, with no pads included. The clock tree and flops take about 98% of the power, and there is no clock gating.
 
-| Corner | Tool estimate | Simulated, full-scale random data | Current at estimate |
+| Corner | Estimate, reset quiet | Simulated, full-scale random data | Current at simulated |
 |---|---|---|---|
-| `max_ff_n40C_5v50`, 5.5 V | **46.42 mW** | 46.26 mW | 8.4 mA |
-| `nom_tt_025C_5v00`, 5.0 V | 36.76 mW | 36.63 mW | 7.4 mA |
-| `max_ss_125C_4v50`, 4.5 V | 30.20 mW | 30.09 mW | 6.7 mA |
+| `max_ff_n40C_5v50`, 5.5 V | 44.17 mW | **45.01 mW** | 8.2 mA |
+| `nom_tt_025C_5v00`, 5.0 V | 35.02 mW | 35.66 mW | 7.1 mA |
+| `max_ss_125C_4v50`, 4.5 V | 28.76 mW | 29.30 mW | 6.5 mA |
 
-Leakage is under 6 µW at `ff` and about 31 µW at `ss`. As a hand estimate, `c_sclk` driving an assumed 20 pF load
-adds about 0.9 mW at 5.5 V. The pads' own internal power is not modeled. None of these figures are measured.
+**The 490 mW in `metrics.json` is not real.** Without simulation, the tool assumes a toggle rate for every net. The reset
+net now comes from flops, so it is assumed to toggle like data, and that net reaches all 1,742 flops through a large
+buffer tree. In reality it changes only at startup. Rerunning the default estimate at `max_ff_n40C_5v50` gives 428 mW, and
+marking only the reset net as quiet gives 44.2 mW. The gap between the flow's 490 mW and this 428 mW has not been traced.
+
+As a hand estimate, `c_sclk` driving an assumed 20 pF load adds about 0.9 mW at 5.5 V. The pads' own internal power is not
+modeled. None of these figures are measured.
 
 ## 5. IR drop
 
-Static analysis at `max_ff_n40C_5v50` and 46.4 mW. The macro has 11 VDD and 11 VSS vertical Metal4 straps, so the
-result depends on where the chip feeds them. The chip's real feed points are not modeled.
+Static analysis at `max_ff_n40C_5v50` and 44.2 mW. The macro has 11 VDD and 11 VSS vertical Metal4 straps, so the result
+depends on where the chip feeds them. The chip's real feed points are not modeled.
 
 | Assumed feed | Worst VDD drop | Worst VSS drop |
 |---|---|---|
-| Flow default, ideal | 0.12 mV | 0.13 mV |
-| All straps, both ends | 1.6 mV | 1.6 mV |
-| All straps, one end | 5.6 mV | 5.6 mV |
-| One strap, one point (very pessimistic) | 12.4 mV | 11.7 mV |
+| Flow default, ideal | 0.17 mV | 0.07 mV |
+| All straps, both ends | 1.55 mV | 1.53 mV |
+| All straps, one end | 5.22 mV | 5.22 mV |
+| One strap, one point (very pessimistic) | 11.7 mV | 11.3 mV |
 
-Even the very pessimistic case totals about 24 mV, or 0.44% of 5.5 V.
+Even the very pessimistic case totals about 23 mV, or 0.42% of 5.5 V.
 
-**Not covered:** dynamic IR drop, pad and bond-wire resistance, and the chip-level power grid. Static drop scales
-with current. As a rough guide, if current peaks at 300 mA at clock edges with no help from decap, the one-end case
-scales to about 200 mV per rail. That peak is an estimate and no tool has computed it.
+**Not covered:** dynamic IR drop, pad and bond-wire resistance, and the chip-level power grid.
 
-## 6. Chip top (`C1_CHIP`, 2026-11-03)
+## 6. Chip top (`E1_CHIP`)
 
-`gds/chip_top.gds` was rebuilt on the `slot_1x1` pad ring with this macro, using the template pinned by the official
-chipathon repo and the wafer-space PDK fork at 1.8.0. Its SHA-256 is
-`18336c5340a927de32ce4b784eb806731e3f3a627ad5a2cc3aa1d01398df3562`, and the macro inside has the GDS hash at the top of this
-document.
+Built on the `slot_1x1` pad ring from the template in the official `sscs-chipathon-2026` repo, with the wafer-space PDK
+fork at 1.8.0. The macro inside has the GDS hash at the top of this document.
 
 | Check | Result |
 |---|---|
@@ -129,7 +145,7 @@ document.
 | Layout XOR | 0 |
 | Antenna | 0 |
 | Critical disconnected pins | 0 |
-| Setup / hold | +32.46 ns / +17.06 ns |
+| Setup / hold | +29.97 ns / +17.19 ns |
 | `c_csn` pull-up | Present: pad `bidir[26]` has `PU` tied high |
 
 - **Slew and cap:** the flow reports 3 and 97 against the design's own tighter limits. A liberty-limits check on 5 of the 9
@@ -137,12 +153,10 @@ document.
 - **Timing covers the boundary only.** The macro is a black box at this level, so setup and hold above do not re-check
   its internal paths. Those are in section 1.
 - **KLayout DRC was not run at chip level.** The template flow disables it, and Magic DRC is the DRC used here.
-- **The flow's chip-level power and IR figures are not valid** (0.25 mW, 0.5 µV), because the macro is a black box. Use
-  sections 4 and 5.
+- **The flow's chip-level power and IR figures are not valid**, because the macro is a black box. Use sections 4 and 5.
 
 ## 7. Still open
 
-1. **Formal equivalence** is partial (section 3).
-2. **The `tmr_forward_en` EQY counterexample** in section 3 is still unexplained.
-3. **KLayout density checks:** the run reports its main deck. Whether density is included has not been confirmed.
-4. **`def_ready` flags** in `info.yaml` are still `false`, pending confirmation of what they require.
+1. **Formal equivalence** is partial, and the `tmr_forward_en` counterexample is unexplained (section 3).
+2. **KLayout density checks:** the run reports its main deck. Whether density is included has not been confirmed.
+3. **`def_ready` flags** in `info.yaml` are still `false`, pending confirmation of what they require.

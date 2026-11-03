@@ -1,0 +1,27 @@
+==> max_ff_n40C_5v50.log <==
+worst slack max 40.665
+worst slack min 0.118
+==> max_ss_125C_4v50.log <==
+worst slack max 4.738
+worst slack min 0.907
+==> max_tt_025C_5v00.log <==
+worst slack max 30.196
+worst slack min 0.356
+==> min_ff_n40C_5v50.log <==
+worst slack max 40.845
+worst slack min 0.114
+==> min_ss_125C_4v50.log <==
+worst slack max 10.014
+worst slack min 0.897
+==> min_tt_025C_5v00.log <==
+worst slack max 33.229
+worst slack min 0.349
+==> nom_ff_n40C_5v50.log <==
+worst slack max 40.763
+worst slack min 0.116
+==> nom_ss_125C_4v50.log <==
+worst slack max 7.621
+worst slack min 0.902
+==> nom_tt_025C_5v00.log <==
+worst slack max 31.855
+worst slack min 0.352

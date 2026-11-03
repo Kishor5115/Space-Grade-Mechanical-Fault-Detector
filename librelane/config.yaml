@@ -93,7 +93,9 @@ SYNTH_SIZING: true
 #   per branch to 20 is already a 6-14x load reduction -- more than enough.
 #   Do NOT "fix" the congestion with GRT_ALLOW_CONGESTION: that just lets the
 #   router proceed dirty and pushes the problem into detailed routing as DRC.
-MAX_FANOUT_CONSTRAINT: 20
+#   Tuned to 12 with the repair margins below: 14 left long nets over the PDK
+#   slew limit, and 10 failed global routing again (GRT-0116).
+MAX_FANOUT_CONSTRAINT: 12
 MAX_TRANSITION_CONSTRAINT: 3
 MAX_CAPACITANCE_CONSTRAINT: 0.2
 
@@ -102,8 +104,10 @@ MAX_CAPACITANCE_CONSTRAINT: 0.2
 # *extracted* (RCX/SPEF) RC, which is worse. That gap is why max-slew count
 # grew 38 (pre-PnR) -> 260 (post-route) before this was enabled.
 RUN_POST_GRT_DESIGN_REPAIR: true
-GRT_DESIGN_REPAIR_MAX_SLEW_PCT: 10
-GRT_DESIGN_REPAIR_MAX_CAP_PCT: 10
+DESIGN_REPAIR_MAX_SLEW_PCT: 50
+DESIGN_REPAIR_MAX_CAP_PCT: 60
+GRT_DESIGN_REPAIR_MAX_SLEW_PCT: 45
+GRT_DESIGN_REPAIR_MAX_CAP_PCT: 60
 
 
 # CTS & Routing

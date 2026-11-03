@@ -53,12 +53,12 @@ module tb_top;
         .clk            (clk),
         .sys_rst_n      (sys_rst_n),
         .c_miso         (c_miso),
-        .c_csn          (c_csn),
-        .c_sclk         (c_sclk),
-        .c_mosi         (c_mosi),
+        .c_csn_OUT          (c_csn),
+        .c_sclk_OUT         (c_sclk),
+        .c_mosi_OUT         (c_mosi),
         .sensor_drdy    (sensor_drdy),
         .tmr_forward_en (tmr_forward_en),
-        .fault_flag_out (fault_flag_out)
+        .fault_flag_out_OUT (fault_flag_out)
     );
 
     // ---------------- IIS3DWB SPI bus functional model ----------------
@@ -393,6 +393,8 @@ module tb_top;
         amp_x = 0.0; amp_y = 0.0; amp_z = 0.0;
         wait_blocks(3);
         check_true("Case1 Normal: no fault asserted (all axes quiet)", !fault_flag_out);
+        check_true("Pad controls: c_csn pull-up on, pull-down off, output enabled",
+                   dut.c_csn_PU && !dut.c_csn_PD && dut.c_csn_OE);
 
         // ITAG structural checks captured from a clean completed block:
         check_true("ITAG: exactly 9 mag pulses per block (3 axes x 3 bins)",

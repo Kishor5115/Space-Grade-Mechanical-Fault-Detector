@@ -76,10 +76,10 @@ async def _sensor_emulator(dut):
     """Emulate IIS3DWB MISO output during SPI read bursts."""
     while True:
         await RisingEdge(dut.clk)
-        if dut.c_csn.value.is_resolvable and int(dut.c_csn.value) == 0:
+        if dut.c_csn_OUT.value.is_resolvable and int(dut.c_csn_OUT.value) == 0:
             # First 8 SPC falling edges are command byte (0xA8)
             for _ in range(8):
-                await FallingEdge(dut.c_sclk)
+                await FallingEdge(dut.c_sclk_OUT)
 
             # Pack current (x, y, z) into 48 bits (little-endian byte order per sensor)
             x_u = g_sample_x & 0xFFFF
@@ -97,7 +97,7 @@ async def _sensor_emulator(dut):
                 for bit_idx in range(7, -1, -1):
                     bit = (b >> bit_idx) & 1
                     dut.c_miso.value = bit
-                    await FallingEdge(dut.c_sclk)
+                    await FallingEdge(dut.c_sclk_OUT)
 
             dut.c_miso.value = 0
 
@@ -190,7 +190,7 @@ async def _run_blocks(dut, n_blocks: int,
             # Wait for SPI transfer to finish (approx 500 sys-clk cycles)
             for _ in range(500):
                 await RisingEdge(dut.clk)
-                if int(dut.c_csn.value) == 1:
+                if int(dut.c_csn_OUT.value) == 1:
                     break
 
 
@@ -212,7 +212,7 @@ async def test_case1_no_fault_baseline(dut):
     await _configure(dut, c0=COEFF_C0, c1=0, c2=0, threshold=0x7FFFFFFF)
     await _run_blocks(dut, n_blocks=1)
 
-    assert int(dut.fault_flag_out.value) == 0, (
+    assert int(dut.fault_flag_out_OUT.value) == 0, (
         "fault_flag_out should stay LOW with threshold=MAX"
     )
 
@@ -229,7 +229,7 @@ async def test_case2_fault_on_x(dut):
     await _configure(dut, c0=COEFF_C0, c1=0, c2=0, threshold=14)
     await _run_blocks(dut, n_blocks=2, x_tone=FREQ_20_512)
 
-    assert int(dut.fault_flag_out.value) == 1, (
+    assert int(dut.fault_flag_out_OUT.value) == 1, (
         "fault_flag_out should assert for X-axis on-target tone"
     )
 
@@ -247,7 +247,7 @@ async def test_case3_fault_on_y(dut):
     await _configure(dut, c0=COEFF_C0, c1=0, c2=0, threshold=14)
     await _run_blocks(dut, n_blocks=2, y_tone=FREQ_20_512)
 
-    assert int(dut.fault_flag_out.value) == 1, (
+    assert int(dut.fault_flag_out_OUT.value) == 1, (
         "fault_flag_out should assert for Y-axis on-target tone"
     )
 
@@ -265,7 +265,7 @@ async def test_case4_fault_on_z(dut):
     await _configure(dut, c0=COEFF_C0, c1=0, c2=0, threshold=14)
     await _run_blocks(dut, n_blocks=2, z_tone=FREQ_20_512)
 
-    assert int(dut.fault_flag_out.value) == 1, (
+    assert int(dut.fault_flag_out_OUT.value) == 1, (
         "fault_flag_out should assert for Z-axis on-target tone"
     )
 
@@ -283,7 +283,7 @@ async def test_case5_simultaneous_3axis_fault(dut):
     await _configure(dut, c0=COEFF_C0, c1=0, c2=0, threshold=14)
     await _run_blocks(dut, n_blocks=2, x_tone=FREQ_20_512, y_tone=FREQ_20_512, z_tone=FREQ_20_512)
 
-    assert int(dut.fault_flag_out.value) == 1, (
+    assert int(dut.fault_flag_out_OUT.value) == 1, (
         "ITAG should detect simultaneous 3-axis fault within one block"
     )
 
@@ -300,12 +300,12 @@ async def test_case6_fault_clear(dut):
     await _configure(dut, c0=COEFF_C0, c1=0, c2=0, threshold=14)
     await _run_blocks(dut, n_blocks=2, x_tone=FREQ_20_512)
 
-    assert int(dut.fault_flag_out.value) == 1, "Precondition: fault must be set"
+    assert int(dut.fault_flag_out_OUT.value) == 1, "Precondition: fault must be set"
 
     await _clear_fault(dut)
     await Timer(5 * CLK_NS, unit="ns")
 
-    assert int(dut.fault_flag_out.value) == 0, (
+    assert int(dut.fault_flag_out_OUT.value) == 0, (
         "fault_flag_out should de-assert after cfg_fault_clear"
     )
 
@@ -372,7 +372,7 @@ async def test_itag_no_multiplier_contention(dut):
                         if dut.mag_inst.mag_mult_req.value.is_resolvable else 0)
             if core_req and mag_req:
                 contention += 1
-            if int(dut.c_csn.value) == 1:
+            if int(dut.c_csn_OUT.value) == 1:
                 break
 
     assert contention == 0, (

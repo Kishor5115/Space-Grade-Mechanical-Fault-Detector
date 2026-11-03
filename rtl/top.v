@@ -12,9 +12,9 @@ module top (
 
     // IIS3DWB sensor SPI pins
     input  wire        c_miso,
-    output wire        c_csn,
-    output wire        c_sclk,
-    output wire        c_mosi,
+    output wire        c_csn_OUT,
+    output wire        c_sclk_OUT,
+    output wire        c_mosi_OUT,
 
     // DRDY interrupt from sensor
     input  wire        sensor_drdy,
@@ -32,8 +32,52 @@ module top (
     input  wire        cmd_csn,
     input  wire        cmd_mosi,
 
+    // Pad-control outputs required by the chipathon info.yaml pad types.
+    // Input pads: <name>_PD, <name>_PU.
+    output wire        clk_PD,
+    output wire        clk_PU,
+    output wire        sys_rst_n_PD,
+    output wire        sys_rst_n_PU,
+    output wire        c_miso_PD,
+    output wire        c_miso_PU,
+    output wire        sensor_drdy_PD,
+    output wire        sensor_drdy_PU,
+    output wire        tmr_forward_en_PD,
+    output wire        tmr_forward_en_PU,
+    output wire        cmd_sclk_PD,
+    output wire        cmd_sclk_PU,
+    output wire        cmd_csn_PD,
+    output wire        cmd_csn_PU,
+    output wire        cmd_mosi_PD,
+    output wire        cmd_mosi_PU,
+    // Output pads (bidirectional_24ma): _PD, _PU, _CS, _SL, _IE, _OE.
+    output wire        c_csn_PD,
+    output wire        c_csn_PU,
+    output wire        c_csn_CS,
+    output wire        c_csn_SL,
+    output wire        c_csn_IE,
+    output wire        c_csn_OE,
+    output wire        c_sclk_PD,
+    output wire        c_sclk_PU,
+    output wire        c_sclk_CS,
+    output wire        c_sclk_SL,
+    output wire        c_sclk_IE,
+    output wire        c_sclk_OE,
+    output wire        c_mosi_PD,
+    output wire        c_mosi_PU,
+    output wire        c_mosi_CS,
+    output wire        c_mosi_SL,
+    output wire        c_mosi_IE,
+    output wire        c_mosi_OE,
+    output wire        fault_flag_out_PD,
+    output wire        fault_flag_out_PU,
+    output wire        fault_flag_out_CS,
+    output wire        fault_flag_out_SL,
+    output wire        fault_flag_out_IE,
+    output wire        fault_flag_out_OE,
+
     // Fault output to RISC core
-    output wire        fault_flag_out
+    output wire        fault_flag_out_OUT
 );
 
     // ----------------------------------------------------------------
@@ -90,9 +134,9 @@ module top (
         .penable           (fwd_apb_penable),
         // sensor SPI
         .s_miso            (c_miso),
-        .s_csn             (c_csn),
-        .s_clk             (c_sclk),
-        .s_mosi            (c_mosi),
+        .s_csn             (c_csn_OUT),
+        .s_clk             (c_sclk_OUT),
+        .s_mosi            (c_mosi_OUT),
         .sync_data_ready_trig(sensor_drdy)
     );
 
@@ -308,7 +352,16 @@ module top (
         .fault_axis_latched(fault_axis_latched)
     );
 
-    assign fault_flag_out = fault_flag;
+    assign fault_flag_out_OUT = fault_flag;
+
+    // Pad controls are static: pulls off, CMOS, fast slew, output-only.
+    assign {clk_PD, clk_PU, sys_rst_n_PD, sys_rst_n_PU, c_miso_PD, c_miso_PU, sensor_drdy_PD, sensor_drdy_PU, tmr_forward_en_PD, tmr_forward_en_PU, cmd_sclk_PD, cmd_sclk_PU, cmd_csn_PD, cmd_csn_PU, cmd_mosi_PD, cmd_mosi_PU} = 16'b0;
+    assign {c_csn_PD, c_sclk_PD, c_mosi_PD, fault_flag_out_PD} = 4'b0;
+    assign {c_sclk_PU, c_mosi_PU, fault_flag_out_PU} = 3'b0;
+    // Weak pull-up keeps the active-low sensor chip select deselected when undriven.
+    assign c_csn_PU = 1'b1;
+    assign {c_csn_CS, c_csn_SL, c_csn_IE, c_sclk_CS, c_sclk_SL, c_sclk_IE, c_mosi_CS, c_mosi_SL, c_mosi_IE, fault_flag_out_CS, fault_flag_out_SL, fault_flag_out_IE} = 12'b0;
+    assign {c_csn_OE, c_sclk_OE, c_mosi_OE, fault_flag_out_OE} = 4'b1111;
 
 endmodule
 `default_nettype wire

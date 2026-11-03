@@ -208,9 +208,9 @@ module chip_core #(
 
         // IIS3DWB sensor SPI bus
         .c_miso         (input_in[IN_C_MISO]),
-        .c_csn          (c_csn),
-        .c_sclk         (c_sclk),
-        .c_mosi         (c_mosi),
+        .c_csn_OUT          (c_csn),
+        .c_sclk_OUT         (c_sclk),
+        .c_mosi_OUT         (c_mosi),
 
         // sensor data-ready interrupt
         .sensor_drdy    (input_in[IN_SENSOR_DRDY]),
@@ -224,7 +224,7 @@ module chip_core #(
         .cmd_mosi       (input_in[IN_CMD_MOSI]),
 
         // sticky fault alarm to the host / RISC-V core
-        .fault_flag_out (fault_flag_out)
+        .fault_flag_out_OUT (fault_flag_out)
     );
 
 endmodule

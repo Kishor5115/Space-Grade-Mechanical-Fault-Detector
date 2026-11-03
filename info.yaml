@@ -14,34 +14,46 @@ project:
   discord: "kishor_phantom"
   description: "Radiation-tolerant spacecraft vibration fault detector: 3-bin Interleaved Tri-Axis Goertzel (ITAG) fixed-point DSP core with TMR-hardened control FSMs and scrubbed config registers, driving an IIS3DWB MEMS sensor over SPI"
   lvs_config: "lvs_config.json"
+  gf_def_ready: false           # data ready for def generation with global foundries' pad frame
+  ws_def_ready: false           # data ready for def generation with wafer space pad frame
+  drc_ready: false              # data ready for integration and DRC
+  lvs_ready: false              # no powered netlist for ip/top/top.gds yet; set true once GDS LVS passes
+  export_control: "documents/Export_Control_GF_Rev8.2.docx"   # Required export control document
 
+# Pad types follow padring/src/chip_core.sv.
+# Output pads expose <name>_OUT and the control ports, not <name>_IN: their receivers are unused.
 pins:
+  - name: VSS
+    io_type: ground
   # --- clock and reset ------------------------------------------------------
   - name: clk
-    io_type: input
+    io_type: input_schmitt
   - name: sys_rst_n
-    io_type: input
+    io_type: input_cmos
   # --- IIS3DWB sensor SPI ---------------------------------------------------
   - name: c_miso
-    io_type: input
+    io_type: input_cmos
   - name: c_csn
-    io_type: output
+    io_type: bidirectional_24ma
   - name: c_sclk
-    io_type: output
+    io_type: bidirectional_24ma
   - name: c_mosi
-    io_type: output
+    io_type: bidirectional_24ma
   - name: sensor_drdy
-    io_type: input
+    io_type: input_cmos
   # --- mode strap -----------------------------------------------------------
   - name: tmr_forward_en
-    io_type: input
+    io_type: input_cmos
   # --- host command SPI (write-only config channel) -------------------------
   - name: cmd_sclk
-    io_type: input
+    io_type: input_cmos
   - name: cmd_csn
-    io_type: input
+    io_type: input_cmos
   - name: cmd_mosi
-    io_type: input
+    io_type: input_cmos
   # --- fault alarm ----------------------------------------------------------
   - name: fault_flag_out
-    io_type: output
+    io_type: bidirectional_24ma
+  # --- power: last entry, as in the template ---------------------------------
+  - name: VDD
+    io_type: power

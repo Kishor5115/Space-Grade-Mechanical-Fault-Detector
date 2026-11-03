@@ -23,7 +23,7 @@ create_clock -name clk -period $clk_period_ns [get_ports clk]
 # the c_sclk / c_mosi output path toward the sensor. No internal register is
 # clocked by it.
 create_generated_clock -name c_sclk -source [get_ports clk] -divide_by 8 \
-    [get_ports c_sclk]
+    [get_ports c_sclk_OUT]
 
 # --- clock uncertainty / transition (conservative for a 180 nm node) ---
 set_clock_uncertainty 0.25 [get_clocks clk]
@@ -51,7 +51,7 @@ set_false_path -from [get_ports cmd_mosi]
 set_false_path -from [get_ports sys_rst_n]
 
 # Single sticky status output; no synchronous receiver timing to close here.
-set_false_path -to [get_ports fault_flag_out]
+set_false_path -to [get_ports fault_flag_out_OUT]
 
 #-----------------------------------------------------------------------------
 # Budget the remaining synchronous I/O at a conservative fraction of the

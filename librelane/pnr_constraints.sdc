@@ -14,7 +14,7 @@ set clk_period_ns 55.0
 create_clock -name clk -period $clk_period_ns [get_ports clk]
 
 create_generated_clock -name c_sclk -source [get_ports clk] -divide_by 8 \
-    [get_ports c_sclk]
+    [get_ports c_sclk_OUT]
 
 set_clock_uncertainty 0.25 [get_clocks clk]
 set_clock_transition  0.15 [get_clocks clk]
@@ -26,7 +26,7 @@ set_false_path -from [get_ports cmd_sclk]
 set_false_path -from [get_ports cmd_csn]
 set_false_path -from [get_ports cmd_mosi]
 set_false_path -from [get_ports sys_rst_n]
-set_false_path -to [get_ports fault_flag_out]
+set_false_path -to [get_ports fault_flag_out_OUT]
 
 set io_delay [expr {$clk_period_ns * 0.30}]
 set clk_indx [lsearch [all_inputs] [get_ports clk]]

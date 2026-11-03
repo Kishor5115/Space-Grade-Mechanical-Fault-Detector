@@ -28,13 +28,13 @@ SSCS Chipathon 2026, Track B, Team B22 Space Jam. Results dated 2026-11-03.
 | RTL simulation (cocotb) | 23 of 23 pass |
 | Legacy Verilog tests (`testing/`) | SPI 71 checks, APB 8, top 15, Goertzel: all pass |
 | Golden model (`make test-golden`) | 4 of 4 pass |
-| Gate-level simulation | 6 of 8 pass. The 2 failures are testbench errors. |
+| Gate-level simulation | 8 of 8 pass |
 | RTL against netlist, same random stimulus | 0 differences over 660,055 clocks |
 | Formal equivalence (EQY) | **Partial: 60 of 86 proved** |
 
-The 2 gate-level failures are `test_itag_9_mag_pulses_per_block` and `test_itag_no_multiplier_contention`. They
-look up RTL block names that do not exist in the flat netlist, and fail with `AttributeError` before checking
-anything. Those two properties were therefore not checked at gate level.
+The flat netlist has no RTL block names, so at gate level the 2 ITAG tests use the pins. Each of the 9 axis and bin
+pairs must separately trip the flag, and at the fastest DRDY pacing the magnitude must land exactly on its golden
+value. These replace the internal pulse count and multiplier-request checks, which still run on RTL.
 
 ## 2. RTL changes in this layout
 
@@ -114,12 +114,35 @@ Even the very pessimistic case totals about 24 mV, or 0.44% of 5.5 V.
 with current. As a rough guide, if current peaks at 300 mA at clock edges with no help from decap, the one-end case
 scales to about 200 mV per rail. That peak is an estimate and no tool has computed it.
 
-## 6. Still open
+## 6. Chip top (`C1_CHIP`, 2026-11-03)
+
+`gds/chip_top.gds` was rebuilt on the `slot_1x1` pad ring with this macro, using the template pinned by the official
+chipathon repo and the wafer-space PDK fork at 1.8.0. Its SHA-256 is
+`18336c5340a927de32ce4b784eb806731e3f3a627ad5a2cc3aa1d01398df3562`, and the macro inside has the GDS hash at the top of this
+document.
+
+| Check | Result |
+|---|---|
+| Magic DRC | 0 |
+| Routing DRC | 0 |
+| Netgen LVS | 0 unmatched pins, nets and devices |
+| Layout XOR | 0 |
+| Antenna | 0 |
+| Critical disconnected pins | 0 |
+| Setup / hold | +32.46 ns / +17.06 ns |
+| `c_csn` pull-up | Present: pad `bidir[26]` has `PU` tied high |
+
+- **Slew and cap:** the flow reports 3 and 97 against the design's own tighter limits. A liberty-limits check on 5 of the 9
+  corners found 0 violations for standard cells. It did not check pad cell limits.
+- **Timing covers the boundary only.** The macro is a black box at this level, so setup and hold above do not re-check
+  its internal paths. Those are in section 1.
+- **KLayout DRC was not run at chip level.** The template flow disables it, and Magic DRC is the DRC used here.
+- **The flow's chip-level power and IR figures are not valid** (0.25 mW, 0.5 µV), because the macro is a black box. Use
+  sections 4 and 5.
+
+## 7. Still open
 
 1. **Formal equivalence** is partial (section 3).
-2. **The chip top has not been rebuilt** with this macro. `gds/chip_top.gds` still holds the old macro and its bugs, and
-   the `c_csn` pull-up in `padring/src/chip_core.sv` only takes effect after a rebuild. The rebuild needs the
-   wafer-space PDK fork, which this container does not have.
+2. **The `tmr_forward_en` EQY counterexample** in section 3 is still unexplained.
 3. **KLayout density checks:** the run reports its main deck. Whether density is included has not been confirmed.
-4. **Gate-level checks of the 2 ITAG tests** did not run, as described in section 1.
-5. **`def_ready` flags** in `info.yaml` are still `false`, pending confirmation of what they require.
+4. **`def_ready` flags** in `info.yaml` are still `false`, pending confirmation of what they require.

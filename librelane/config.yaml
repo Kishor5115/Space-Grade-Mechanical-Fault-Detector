@@ -104,6 +104,10 @@ MAX_CAPACITANCE_CONSTRAINT: 0.2
 # *extracted* (RCX/SPEF) RC, which is worse. That gap is why max-slew count
 # grew 38 (pre-PnR) -> 260 (post-route) before this was enabled.
 RUN_POST_GRT_DESIGN_REPAIR: true
+# Buffers long wires, including fanout-1 nets that fanout limits and margins never
+# split. 500 um still left nets over the PDK slew limit; 300 um is clean at all 9 corners.
+DESIGN_REPAIR_MAX_WIRE_LENGTH: 300
+GRT_DESIGN_REPAIR_MAX_WIRE_LENGTH: 300
 DESIGN_REPAIR_MAX_SLEW_PCT: 50
 DESIGN_REPAIR_MAX_CAP_PCT: 60
 GRT_DESIGN_REPAIR_MAX_SLEW_PCT: 45

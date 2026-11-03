@@ -76,9 +76,10 @@ Transaction format:
   Phase 2 — Data receive (48-bit, auto-increment, CS still asserted):
     Bytes received in order: OUTX_L, OUTX_H, OUTY_L, OUTY_H, OUTZ_L, OUTZ_H
     → bit shift register fills MSb-first per byte, earliest byte at top:
-    s_data_out[47:32] = {OUTX_H, OUTX_L}   (X-axis, 16-bit signed)
-    s_data_out[31:16] = {OUTY_H, OUTY_L}   (Y-axis, 16-bit signed)
-    s_data_out[15:0]  = {OUTZ_H, OUTZ_L}   (Z-axis, 16-bit signed)
+    s_data_out[47:32] = {OUTX_L, OUTX_H}   (X-axis, 16-bit signed)
+    s_data_out[31:16] = {OUTY_L, OUTY_H}   (Y-axis, 16-bit signed)
+    s_data_out[15:0]  = {OUTZ_L, OUTZ_H}   (Z-axis, 16-bit signed)
+    axis_sequencer swaps each slice back to {H, L} before the Goertzel core.
 ```
 
 ### SPI Data Format (IIS3DWB Output)

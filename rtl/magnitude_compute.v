@@ -88,13 +88,13 @@ module magnitude_compute #(
     );
 
     // ---- Q8.15 shift + saturate path (for C*v1, v1^2, v2^2, C*v1) ----
-    wire signed [DATA_W+1:0]   mult_shifted = mult_full[2*DATA_W-1:DATA_W-2]; // >>15, keep DATA_W+2 bits
+    wire signed [2*DATA_W-16:0] mult_shifted = mult_full >>> 15; // >>15, keeps every product bit
 
     localparam signed [DATA_W-1:0] MQ_MAX = {1'b0, {(DATA_W-1){1'b1}}};
     localparam signed [DATA_W-1:0] MQ_MIN = {1'b1, {(DATA_W-1){1'b0}}};
 
-    wire ovf_pos = (mult_shifted > $signed({{2{1'b0}}, MQ_MAX}));
-    wire ovf_neg = (mult_shifted < $signed({{2{MQ_MIN[DATA_W-1]}}, MQ_MIN}));
+    wire ovf_pos = (mult_shifted > $signed({{(DATA_W-15){1'b0}}, MQ_MAX}));
+    wire ovf_neg = (mult_shifted < $signed({{(DATA_W-15){MQ_MIN[DATA_W-1]}}, MQ_MIN}));
     wire signed [DATA_W-1:0] mult_sat = ovf_pos ? MQ_MAX : ovf_neg ? MQ_MIN : mult_shifted[DATA_W-1:0];
 
     // Same-cycle capture of the saturated product (bug history: capturing one
@@ -182,7 +182,10 @@ module magnitude_compute #(
         endcase
     end
 
-    reg signed [DATA_W-1:0] sq_v1_r, sq_v2_r, cv1_r;
+    // v1^2 and v2^2 keep their full range: a saturated square next to an
+    // unsaturated cross term would clamp a strong signal's magnitude to 0.
+    reg signed [2*DATA_W-16:0] sq_v1_r, sq_v2_r;
+    reg signed [DATA_W-1:0]    cv1_r; // (C/2)*v1: fits Q8.15 for any legal |C| < 2
 
     // Drive the shared multiplier from the mag FSM. Operands isolated to 0
     // in all non-MUL states so the shared unit stays frozen.
@@ -198,18 +201,15 @@ module magnitude_compute #(
     end
 
     // In M_CV1V2 the shared multiplier computes cv1_r*sv2; consume its full
-    // product combinationally this cycle (>>15, keep DATA_W+1 bits).
-    wire signed [DATA_W:0] cv1v2_q15 = mult_full[2*DATA_W-1:DATA_W-1];
+    // product combinationally this cycle (cv1_r holds C/2, so >>14 not >>15).
+    wire signed [2*DATA_W-15:0] cv1v2_q15 = mult_full >>> 14;
 
-    wire signed [DATA_W+1:0] mag_sq_ext =
-        $signed({2'b0, sq_v1_r}) +
-        $signed({2'b0, sq_v2_r}) -
-        $signed({cv1v2_q15[DATA_W], cv1v2_q15});
+    wire signed [2*DATA_W-14:0] mag_sq_ext = sq_v1_r + sq_v2_r - cv1v2_q15;
 
-    wire mag_neg  = mag_sq_ext[DATA_W+1];
-    // mag_sq_ext is DATA_W+2=26 bits -- always fits in 32 bits unsigned, so no
-    // positive overflow is possible; just clamp negative (numerical) to 0.
-    wire [31:0] mag_sq_u = mag_neg ? 32'd0 : {{(32-DATA_W-2){1'b0}}, mag_sq_ext};
+    // Clamp negative (numerical) to 0 and overflow to the 32-bit maximum.
+    wire mag_neg  = mag_sq_ext[2*DATA_W-14];
+    wire mag_ovf  = |mag_sq_ext[2*DATA_W-15:32];
+    wire [31:0] mag_sq_u = mag_neg ? 32'd0 : mag_ovf ? 32'hFFFFFFFF : mag_sq_ext[31:0];
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -222,9 +222,9 @@ module magnitude_compute #(
             mag_out_valid<=1'b0;
             case (ms_v)
                 M_IDLE  : if (block_clear_in) begin active_axis<=2'd0; active_bin<=2'd0; end
-                M_SQV1_W: sq_v1_r <= core_mult_q;   // v1^2 (saturated Q8.15)
-                M_SQV2_W: sq_v2_r <= core_mult_q;   // v2^2
-                M_CV1_W : cv1_r   <= core_mult_q;   // C*v1 (used next state)
+                M_SQV1  : sq_v1_r <= mult_shifted;        // v1^2
+                M_SQV2  : sq_v2_r <= mult_shifted;        // v2^2
+                M_CV1   : cv1_r   <= mult_shifted[DATA_W:1]; // (C/2)*v1 (used in M_CV1V2)
                 M_CV1V2 : begin
                     // cv1_r*sv2 available combinationally on mult_full now.
                     mag_out       <= mag_sq_u;

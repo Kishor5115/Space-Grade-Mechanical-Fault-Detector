@@ -65,7 +65,7 @@
 //                         pu=0, pd=0, cs=0, sl=0, out=0
 //   * used bidir pads   : oe=1 (drive outwards), ie=0 (pure output, receiver
 //                         off), cs=0 (CMOS buffer, not Schmitt),
-//                         sl=0 (fast slew), pu=0, pd=0
+//                         sl=0 (fast slew), pu=0, pd=0; c_csn alone has pu=1
 //   * all input pads    : pu=0, pd=0 (no pull-ups / pull-downs); unused
 //                         input_in bits are folded into `_unused`
 //   * analog[1:0]       : left unconnected at the core boundary, i.e. a pure
@@ -161,7 +161,8 @@ module chip_core #(
     assign bidir_ie  = '0;              // no bidir pad is ever read by this design
     assign bidir_cs  = '0;              // CMOS input buffer (irrelevant with ie=0)
     assign bidir_sl  = '0;              // fast slew
-    assign bidir_pu  = '0;
+    // Weak pull-up keeps the active-low sensor chip select deselected when undriven.
+    assign bidir_pu  = (1 << BO_C_CSN);
     assign bidir_pd  = '0;
 
     //------------------------------------------------------------------

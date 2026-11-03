@@ -17,7 +17,7 @@ module spi_master (
                                     // order is OUTX_L,OUTX_H,OUTY_L,OUTY_H,
                                     // OUTZ_L,OUTZ_H (earliest-arriving byte
                                     // ends up at the TOP of the register):
-                                    // {OUTX_H,OUTX_L,OUTY_H,OUTY_L,OUTZ_H,OUTZ_L}
+                                    // {OUTX_L,OUTX_H,OUTY_L,OUTY_H,OUTZ_L,OUTZ_H}
                                     // (X in bits[47:32], Z in bits[15:0]).
                                     // Verified against iis3dwb_model.v and
                                     // live simulation in tb_top.v -- see
@@ -221,7 +221,10 @@ module spi_master (
         begin
           s_csn <= 1'b0;          // CS low: sensor selected
           bit_cnt <= 6'd0;
-          state <= boot_active ? CFG_WR : TX_ADDR;
+          // Hand over only while spc_raw is high, so the first bit gets its
+          // falling edge. DRDY can arrive at any phase of the divided clock.
+          if (spc_raw)
+            state <= boot_active ? CFG_WR : TX_ADDR;
         end
 
                 TX_ADDR: begin

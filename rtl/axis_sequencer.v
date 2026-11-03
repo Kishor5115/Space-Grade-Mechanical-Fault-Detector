@@ -89,9 +89,11 @@ module axis_sequencer (
     //   order OUTX_L, OUTX_H, OUTY_L, OUTY_H, OUTZ_L, OUTZ_H. The
     //   EARLIEST-arriving byte (OUTX_L) is shifted the MOST, so it ends up at
     //   the TOP of the register. Final layout:
-    //     burst_r[47:32] = {OUTX_H, OUTX_L}  (X, arrived first)
-    //     burst_r[31:16] = {OUTY_H, OUTY_L}  (Y, arrived middle)
-    //     burst_r[15:0]  = {OUTZ_H, OUTZ_L}  (Z, arrived last)
+    //     burst_r[47:32] = {OUTX_L, OUTX_H}  (X, arrived first)
+    //     burst_r[31:16] = {OUTY_L, OUTY_H}  (Y, arrived middle)
+    //     burst_r[15:0]  = {OUTZ_L, OUTZ_H}  (Z, arrived last)
+    // Each slice is low byte first, so the bytes are swapped back to {H, L}
+    // for the core below.
     // Under ITAG all three slices are presented at once (no axis mux).
 
     always @(posedge clk or negedge rst_n) begin
@@ -109,9 +111,9 @@ module axis_sequencer (
                 S_S1_WAIT : if (req_done) burst_r<={resp_rdata[15:0], sample0_r};
                 S_PRESENT : begin
                     core_data_ready<=1'b1;
-                    core_x_n<=burst_r[47:32]; // X
-                    core_y_n<=burst_r[31:16]; // Y
-                    core_z_n<=burst_r[15:0];  // Z
+                    core_x_n<={burst_r[39:32], burst_r[47:40]}; // X
+                    core_y_n<={burst_r[23:16], burst_r[31:24]}; // Y
+                    core_z_n<={burst_r[7:0],   burst_r[15:8]};  // Z
                 end
                 default:;
             endcase

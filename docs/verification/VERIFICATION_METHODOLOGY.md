@@ -45,7 +45,7 @@ Verifies that `spi_master.v` correctly implements the complete IIS3DWB sensor in
 Uses `iis3dwb_model.v` — a bus-functional model of the IIS3DWB sensor that:
 - Responds to boot write transactions (validates address and data written)
 - Asserts `sensor_drdy` after boot completes
-- Returns a pre-programmed 48-bit `{OUTX_H, OUTX_L, OUTY_H, OUTY_L, OUTZ_H, OUTZ_L}` value per burst read
+- Returns a pre-programmed 48-bit `{OUTX_L, OUTX_H, OUTY_L, OUTY_H, OUTZ_L, OUTZ_H}` value per burst read
 - Fires on SPI Mode 3 edges (data driven on falling SCLK, sampled on rising SCLK)
 
 ### What Each Simulation Step Demonstrates

@@ -61,7 +61,7 @@ APB_CFG_CTRL      = 0x00   # bit 0 = cfg_start, bit 1 = cfg_fault_clear, bit 2 =
 APB_CFG_C0        = 0x04   # Q8.15 coeff bin 0
 APB_CFG_C1        = 0x08   # Q8.15 coeff bin 1
 APB_CFG_C2        = 0x0C   # Q8.15 coeff bin 2
-APB_CFG_THRESHOLD = 0x10   # threshold 32-bit (set to 14 per tb_top.v)
+APB_CFG_THRESHOLD = 0x10   # threshold 32-bit, compared with mag = |X|^2 in Q15
 
 
 # --------------------------------------------------------------------------
@@ -70,36 +70,40 @@ APB_CFG_THRESHOLD = 0x10   # threshold 32-bit (set to 14 per tb_top.v)
 g_sample_x = 0
 g_sample_y = 0
 g_sample_z = 0
+g_read_cmds = 0   # read bursts answered by the emulator
 
 
 async def _sensor_emulator(dut):
     """Emulate IIS3DWB MISO output during SPI read bursts."""
     while True:
-        await RisingEdge(dut.clk)
-        if dut.c_csn_OUT.value.is_resolvable and int(dut.c_csn_OUT.value) == 0:
-            # First 8 SPC falling edges are command byte (0xA8)
-            for _ in range(8):
+        await FallingEdge(dut.c_csn_OUT)
+
+        # First 8 SPC rising edges carry the command byte (0xA8 for a read)
+        cmd = 0
+        for _ in range(8):
+            await RisingEdge(dut.c_sclk_OUT)
+            cmd = (cmd << 1) | int(dut.c_mosi_OUT.value)
+        if not cmd & 0x80:
+            continue   # boot write frame: no read data to send
+        global g_read_cmds
+        g_read_cmds += 1
+
+        # Pack current (x, y, z) into 48 bits (little-endian byte order per sensor)
+        x_u = g_sample_x & 0xFFFF
+        y_u = g_sample_y & 0xFFFF
+        z_u = g_sample_z & 0xFFFF
+
+        bytes_data = [
+            x_u & 0xFF, (x_u >> 8) & 0xFF,
+            y_u & 0xFF, (y_u >> 8) & 0xFF,
+            z_u & 0xFF, (z_u >> 8) & 0xFF
+        ]
+
+        # Shift out 6 bytes MSB-first per byte, changing on c_sclk falling edge
+        for b in bytes_data:
+            for bit_idx in range(7, -1, -1):
                 await FallingEdge(dut.c_sclk_OUT)
-
-            # Pack current (x, y, z) into 48 bits (little-endian byte order per sensor)
-            x_u = g_sample_x & 0xFFFF
-            y_u = g_sample_y & 0xFFFF
-            z_u = g_sample_z & 0xFFFF
-
-            bytes_data = [
-                x_u & 0xFF, (x_u >> 8) & 0xFF,
-                y_u & 0xFF, (y_u >> 8) & 0xFF,
-                z_u & 0xFF, (z_u >> 8) & 0xFF
-            ]
-
-            # Shift out 6 bytes MSB-first per byte on c_sclk falling edge
-            for b in bytes_data:
-                for bit_idx in range(7, -1, -1):
-                    bit = (b >> bit_idx) & 1
-                    dut.c_miso.value = bit
-                    await FallingEdge(dut.c_sclk_OUT)
-
-            dut.c_miso.value = 0
+                dut.c_miso.value = (b >> bit_idx) & 1
 
 
 async def _start_clock(dut):
@@ -118,7 +122,9 @@ async def _reset(dut):
     for _ in range(10):
         await RisingEdge(dut.clk)
     dut.sys_rst_n.value = 1
-    await RisingEdge(dut.clk)
+    # Boot writes finish before configuration, as in the bench procedure
+    for _ in range(2000):
+        await RisingEdge(dut.clk)
 
 
 async def _cmd_spi_write(dut, addr: int, data: int):

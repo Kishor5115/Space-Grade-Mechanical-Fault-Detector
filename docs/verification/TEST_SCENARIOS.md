@@ -30,9 +30,9 @@ SPI Burst Response (48-bit, MSb-first per byte, from sensor to ASIC):
   Byte 5: OUTZ_H (Z-axis high byte)
 
 ASIC shift register layout after reception:
-  s_data_out[47:32] = {OUTX_H, OUTX_L}   ← X-axis (signed 16-bit Q1.15)
-  s_data_out[31:16] = {OUTY_H, OUTY_L}   ← Y-axis (signed 16-bit Q1.15)
-  s_data_out[15:0]  = {OUTZ_H, OUTZ_L}   ← Z-axis (signed 16-bit Q1.15)
+  s_data_out[47:32] = {OUTX_L, OUTX_H}   ← X-axis (signed 16-bit Q1.15, low byte first)
+  s_data_out[31:16] = {OUTY_L, OUTY_H}   ← Y-axis (signed 16-bit Q1.15, low byte first)
+  s_data_out[15:0]  = {OUTZ_L, OUTZ_H}   ← Z-axis (signed 16-bit Q1.15, low byte first)
 ```
 
 Sample values are synthesized by the testbench using:

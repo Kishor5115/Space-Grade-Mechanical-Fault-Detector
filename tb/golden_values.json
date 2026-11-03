@@ -1,0 +1,997 @@
+{
+ "gate6": [
+  {
+   "case": "6.1",
+   "bin": 0,
+   "k_cycles_per_block": 20,
+   "tones": {},
+   "swapped_bytes": false,
+   "threshold": 14,
+   "expected_flag": 0,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.2",
+   "bin": 0,
+   "k_cycles_per_block": 20,
+   "tones": {
+    "X": {
+     "k": 20,
+     "amp": 1.0
+    }
+   },
+   "swapped_bytes": false,
+   "threshold": 14,
+   "expected_flag": 1,
+   "magnitudes": {
+    "X0": 44426529,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.3",
+   "bin": 0,
+   "k_cycles_per_block": 20,
+   "tones": {
+    "Y": {
+     "k": 20,
+     "amp": 1.0
+    }
+   },
+   "swapped_bytes": false,
+   "threshold": 14,
+   "expected_flag": 1,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 44426529,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.4",
+   "bin": 0,
+   "k_cycles_per_block": 20,
+   "tones": {
+    "Z": {
+     "k": 20,
+     "amp": 1.0
+    }
+   },
+   "swapped_bytes": false,
+   "threshold": 14,
+   "expected_flag": 1,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 44426529,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.5",
+   "bin": 0,
+   "k_cycles_per_block": 20,
+   "tones": {
+    "X": {
+     "k": 20,
+     "amp": 1.0
+    },
+    "Y": {
+     "k": 20,
+     "amp": 1.0
+    },
+    "Z": {
+     "k": 20,
+     "amp": 1.0
+    }
+   },
+   "swapped_bytes": false,
+   "threshold": 14,
+   "expected_flag": 1,
+   "magnitudes": {
+    "X0": 44426529,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 44426529,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 44426529,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.6",
+   "bin": 0,
+   "k_cycles_per_block": 20,
+   "tones": {
+    "X": {
+     "k": 20,
+     "amp": 1.0
+    }
+   },
+   "swapped_bytes": false,
+   "threshold": 2147483647,
+   "expected_flag": 0,
+   "magnitudes": {
+    "X0": 44426529,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.7X",
+   "bin": 1,
+   "k_cycles_per_block": 96,
+   "tones": {
+    "X": {
+     "k": 96,
+     "amp": 1.0
+    }
+   },
+   "swapped_bytes": false,
+   "threshold": 917431071,
+   "expected_flag": 1,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 1834862142,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.7Y",
+   "bin": 1,
+   "k_cycles_per_block": 96,
+   "tones": {
+    "Y": {
+     "k": 96,
+     "amp": 1.0
+    }
+   },
+   "swapped_bytes": false,
+   "threshold": 917431071,
+   "expected_flag": 1,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 1834862142,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.7Z",
+   "bin": 1,
+   "k_cycles_per_block": 96,
+   "tones": {
+    "Z": {
+     "k": 96,
+     "amp": 1.0
+    }
+   },
+   "swapped_bytes": false,
+   "threshold": 917431071,
+   "expected_flag": 1,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 1834862142,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.8X",
+   "bin": 2,
+   "k_cycles_per_block": 192,
+   "tones": {
+    "X": {
+     "k": 192,
+     "amp": 1.0
+    }
+   },
+   "swapped_bytes": false,
+   "threshold": 33340530,
+   "expected_flag": 1,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 66681060,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.8Y",
+   "bin": 2,
+   "k_cycles_per_block": 192,
+   "tones": {
+    "Y": {
+     "k": 192,
+     "amp": 1.0
+    }
+   },
+   "swapped_bytes": false,
+   "threshold": 33340530,
+   "expected_flag": 1,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 66681060,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.8Z",
+   "bin": 2,
+   "k_cycles_per_block": 192,
+   "tones": {
+    "Z": {
+     "k": 192,
+     "amp": 1.0
+    }
+   },
+   "swapped_bytes": false,
+   "threshold": 33340530,
+   "expected_flag": 1,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 66681060
+   }
+  },
+  {
+   "case": "6.9",
+   "bin": 0,
+   "k_cycles_per_block": 20,
+   "tones": {
+    "X": {
+     "k": 96,
+     "amp": 1.0
+    }
+   },
+   "swapped_bytes": false,
+   "threshold": 22213264,
+   "expected_flag": 0,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.10X",
+   "bin": 0,
+   "k_cycles_per_block": 20,
+   "tones": {
+    "X": {
+     "k": 20,
+     "amp": 0.00390625
+    }
+   },
+   "swapped_bytes": false,
+   "threshold": 5543939,
+   "expected_flag": 0,
+   "magnitudes": {
+    "X0": 32782,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.10X-swapped",
+   "bin": 0,
+   "k_cycles_per_block": 20,
+   "tones": {
+    "X": {
+     "k": 20,
+     "amp": 0.00390625
+    }
+   },
+   "swapped_bytes": true,
+   "threshold": 5543939,
+   "expected_flag": 1,
+   "magnitudes": {
+    "X0": 11055097,
+    "X1": 2113503,
+    "X2": 2113503,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.10Y",
+   "bin": 0,
+   "k_cycles_per_block": 20,
+   "tones": {
+    "Y": {
+     "k": 20,
+     "amp": 0.00390625
+    }
+   },
+   "swapped_bytes": false,
+   "threshold": 5543939,
+   "expected_flag": 0,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 32782,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.10Y-swapped",
+   "bin": 0,
+   "k_cycles_per_block": 20,
+   "tones": {
+    "Y": {
+     "k": 20,
+     "amp": 0.00390625
+    }
+   },
+   "swapped_bytes": true,
+   "threshold": 5543939,
+   "expected_flag": 1,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 11055097,
+    "Y1": 2113503,
+    "Y2": 2113503,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.10Z",
+   "bin": 0,
+   "k_cycles_per_block": 20,
+   "tones": {
+    "Z": {
+     "k": 20,
+     "amp": 0.00390625
+    }
+   },
+   "swapped_bytes": false,
+   "threshold": 5543939,
+   "expected_flag": 0,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 32782,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "case": "6.10Z-swapped",
+   "bin": 0,
+   "k_cycles_per_block": 20,
+   "tones": {
+    "Z": {
+     "k": 20,
+     "amp": 0.00390625
+    }
+   },
+   "swapped_bytes": true,
+   "threshold": 5543939,
+   "expected_flag": 1,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 11055097,
+    "Z1": 2113503,
+    "Z2": 2113503
+   }
+  }
+ ],
+ "gate8": [
+  {
+   "axis": "X",
+   "bin": 0,
+   "k": 20,
+   "amp": 1.0,
+   "search_result": 44426529,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 44426529,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "X",
+   "bin": 0,
+   "k": 20,
+   "amp": 0.25,
+   "search_result": 12426463,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 12426463,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "X",
+   "bin": 0,
+   "k": 20,
+   "amp": 0.0625,
+   "search_result": 8388815,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 8388815,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Y",
+   "bin": 0,
+   "k": 20,
+   "amp": 1.0,
+   "search_result": 44426529,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 44426529,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Y",
+   "bin": 0,
+   "k": 20,
+   "amp": 0.25,
+   "search_result": 12426463,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 12426463,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Y",
+   "bin": 0,
+   "k": 20,
+   "amp": 0.0625,
+   "search_result": 8388815,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 8388815,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Z",
+   "bin": 0,
+   "k": 20,
+   "amp": 1.0,
+   "search_result": 44426529,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 44426529,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Z",
+   "bin": 0,
+   "k": 20,
+   "amp": 0.25,
+   "search_result": 12426463,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 12426463,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Z",
+   "bin": 0,
+   "k": 20,
+   "amp": 0.0625,
+   "search_result": 8388815,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 8388815,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "X",
+   "bin": 1,
+   "k": 96,
+   "amp": 1.0,
+   "search_result": 1834862142,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 1834862142,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "X",
+   "bin": 1,
+   "k": 96,
+   "amp": 0.25,
+   "search_result": 134217460,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 134217460,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "X",
+   "bin": 1,
+   "k": 96,
+   "amp": 0.0625,
+   "search_result": 8388036,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 8388036,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Y",
+   "bin": 1,
+   "k": 96,
+   "amp": 1.0,
+   "search_result": 1834862142,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 1834862142,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Y",
+   "bin": 1,
+   "k": 96,
+   "amp": 0.25,
+   "search_result": 134217460,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 134217460,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Y",
+   "bin": 1,
+   "k": 96,
+   "amp": 0.0625,
+   "search_result": 8388036,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 8388036,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Z",
+   "bin": 1,
+   "k": 96,
+   "amp": 1.0,
+   "search_result": 1834862142,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 1834862142,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Z",
+   "bin": 1,
+   "k": 96,
+   "amp": 0.25,
+   "search_result": 134217460,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 134217460,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Z",
+   "bin": 1,
+   "k": 96,
+   "amp": 0.0625,
+   "search_result": 8388036,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 8388036,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "X",
+   "bin": 2,
+   "k": 192,
+   "amp": 1.0,
+   "search_result": 66681060,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 66681060,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "X",
+   "bin": 2,
+   "k": 192,
+   "amp": 0.25,
+   "search_result": 134227786,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 134227786,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "X",
+   "bin": 2,
+   "k": 192,
+   "amp": 0.0625,
+   "search_result": 8387743,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 8387743,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Y",
+   "bin": 2,
+   "k": 192,
+   "amp": 1.0,
+   "search_result": 66681060,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 66681060,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Y",
+   "bin": 2,
+   "k": 192,
+   "amp": 0.25,
+   "search_result": 134227786,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 134227786,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Y",
+   "bin": 2,
+   "k": 192,
+   "amp": 0.0625,
+   "search_result": 8387743,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 8387743,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "Z",
+   "bin": 2,
+   "k": 192,
+   "amp": 1.0,
+   "search_result": 66681060,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 66681060
+   }
+  },
+  {
+   "axis": "Z",
+   "bin": 2,
+   "k": 192,
+   "amp": 0.25,
+   "search_result": 134227786,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 134227786
+   }
+  },
+  {
+   "axis": "Z",
+   "bin": 2,
+   "k": 192,
+   "amp": 0.0625,
+   "search_result": 8387743,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 0,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 8387743
+   }
+  }
+ ]
+}

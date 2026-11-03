@@ -10,7 +10,7 @@
 #   2. Single burst-read trigger — DRDY pulse causes an 8-byte read burst
 #      (1 cmd byte + 6 data bytes) and s_data_out_valid pulses exactly once.
 #   3. data_out latching — the 48-bit s_data_out register captures injected
-#      MISO data in the correct byte order (OUTX_H:OUTX_L … OUTZ_H:OUTZ_L).
+#      MISO data in arrival order (OUTX_L:OUTX_H … OUTZ_L:OUTZ_H).
 #   4. core_ack handshake — s_data_out_valid de-asserts after core_ack.
 #   5. Idle SPI clock polarity — s_clk idles HIGH (mode 3) when CS is high.
 #   6. CS assertion timing — s_csn de-asserts one SPC-divided edge before

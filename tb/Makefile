@@ -4,6 +4,7 @@
 #   make test-spi           # SPI master: boot sequence + burst-read framing
 #   make test-goertzel      # Goertzel core: Q8.15 arithmetic + 3-axis ITAG
 #   make test-top           # Full chip: fault detection on X / Y / Z / all-3 axes
+#   make test-golden        # Golden values for test plan Gates 6 and 8 (golden_values.json)
 #   make test-all
 #
 # Gate-level sim (post-synthesis, against LibreLane GF180 netlists):
@@ -17,7 +18,7 @@
 # (i.e. Stage 3 / S3_SIGNOFF of librelane/01_fault_detector_macro.ipynb has
 # run with --save-views-to <workspace>/build/top).
 
-.PHONY: test-spi test-goertzel test-top test-all \
+.PHONY: test-spi test-goertzel test-top test-golden test-all \
         test-top-gl test-gl-all clean
 
 TOPLEVEL_LANG ?= verilog
@@ -84,6 +85,13 @@ test-top:
 	    MODULE=test_top \
 	    VERILOG_SOURCES="$(RTL_SOURCES)" \
 	    SIM_BUILD=sim_build_top
+
+test-golden:
+	$(MAKE) -f Makefile.cocotb \
+	    TOPLEVEL=top \
+	    MODULE=test_golden \
+	    VERILOG_SOURCES="$(RTL_SOURCES)" \
+	    SIM_BUILD=sim_build_golden
 
 test-all: test-spi test-goertzel test-top
 

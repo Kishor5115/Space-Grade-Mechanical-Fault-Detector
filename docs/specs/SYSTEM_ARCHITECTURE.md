@@ -87,9 +87,9 @@ silicon-legal path onto the chip via the command-SPI pins that does not require 
                                     │ Polling FSM (TMR, vote3)        │
                                     │ Polls STATUS → SAMPLE0 → SAMPLE1│
                                     │ Demuxes 48-bit burst into:      │
-                                    │   core_x_n[15:0] = burst[47:32]│
-                                    │   core_y_n[15:0] = burst[31:16]│
-                                    │   core_z_n[15:0] = burst[15:0] │
+                                    │   core_x_n = swap(burst[47:32])│
+                                    │   core_y_n = swap(burst[31:16])│
+                                    │   core_z_n = swap(burst[15:0]) │
                                     └───────┬────────────────────────┘
                                             │ core_data_ready (1 pulse/sample)
                                             │ core_x_n, core_y_n, core_z_n
@@ -195,7 +195,7 @@ top (rtl/top.v)
 | 2 | Sensor asserts `sensor_drdy` at 26.667 kHz after acquiring a sample | `sensor_drdy` (async) |
 | 3 | `ff_2_sync` synchronizes `sensor_drdy` to the core clock | `sync_ready_w` |
 | 4 | `spi_master` asserts `c_csn` low; shifts out 8-bit read command `0xA8` | `TX_ADDR` state |
-| 5 | `spi_master` shifts in 48-bit burst: `{OUTX_H, OUTX_L, OUTY_H, OUTY_L, OUTZ_H, OUTZ_L}` | `RX_DATA` state |
+| 5 | `spi_master` shifts in 48-bit burst: `{OUTX_L, OUTX_H, OUTY_L, OUTY_H, OUTZ_L, OUTZ_H}` | `RX_DATA` state |
 | 6 | `spi_master` asserts `s_data_out_valid`; `spi_apb_interface` latches into `sample_reg` | `sm_data_out_valid` |
 | 7 | `axis_sequencer` polls `STATUS` register; reads `SAMPLE0` then `SAMPLE1` | `S_POLL_REQ` → `S_PRESENT` |
 | 8 | `axis_sequencer` presents X[15:0], Y[15:0], Z[15:0] simultaneously to `goertzel_core` | `core_data_ready` pulse |

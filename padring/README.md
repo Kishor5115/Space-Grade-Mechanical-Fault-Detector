@@ -95,7 +95,7 @@ closest legal edge — worth ~20 % off their Manhattan run versus the previous N
 | pads | treatment |
 |---|---|
 | 36 unused `bidir` | `oe=0` (driver high-Z), **`ie=0`** (receiver disabled, nothing floats into the core), `pu=pd=cs=sl=0`, `out=0` |
-| 4 used `bidir` | `oe=1`, `ie=0` (pure outputs), `cs=0` (CMOS), `sl=0` (fast slew), `pu=pd=0` |
+| 4 used `bidir` | `oe=1`, `ie=0` (pure outputs), `cs=0` (CMOS), `sl=0` (fast slew), `pd=0`; `pu=0` except `c_csn`, which has `pu=1` so the sensor stays deselected when undriven |
 | 6 unused `input_in` | folded into an `_unused` reduction so neither Verilator nor Yosys flags them |
 | all `input` pads | `pu=0`, `pd=0` |
 | `analog[1:0]` | left unconnected at the core boundary — pure pass-through to the `asig_5p0` cells. This design has no analog IP. |

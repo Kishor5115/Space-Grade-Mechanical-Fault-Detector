@@ -7,6 +7,7 @@ SSCS Chipathon 2026, Track B, Team B22 Space Jam. Results dated 2026-11-03.
 | Macro layout | `ip/top/top.gds`, 800 µm x 800 µm |
 | Macro GDS SHA-256 | `98c1cf55f44048e0edd156327ebd40ace8f7d5240c08ffdb2180c8a317b4cc37` |
 | Chip layout | `gds/chip_top.gds`, run `E1_CHIP` |
+| Chip netlists | `verilog/gl/chip_top.nl.v`, and powered `verilog/gl/chip_top.pnl.v` |
 | Chip GDS SHA-256 | `e7417d717950d28fffe23eafdc4fd407ec8132f8e8a3b52aca624bbc3812dadb` |
 | Settings | `librelane/config.yaml`, including the 300 µm maximum wire length |
 | Cells and flops | 23,298 standard cells, 1,742 flops, 65.4% utilization |

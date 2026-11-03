@@ -311,6 +311,7 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 ├── lvs_config.json             # Chipathon 2026 LVS config for the `top` macro
 ├── gds/chip_top.gds            # Chip-top signed-off layout with macro run PADCTRL_800_e1 (Git LFS)
 ├── verilog/gl/chip_top.nl.v    # Matching post-PnR gate-level netlist (Git LFS)
+├── verilog/gl/chip_top.pnl.v   # Matching powered netlist with VDD/VSS, for chip-level LVS (Git LFS)
 ├── ip/top/                     # `top` macro deliverables: gds/lef/vh/powered netlist + 9 corner libs (Git LFS)
 ├── Makefile                   # sim_spi / sim_apb / sim_goertzel / sim_top / sim_all
 └── CHANGELOG.md               # Detailed bug-fix and verification history

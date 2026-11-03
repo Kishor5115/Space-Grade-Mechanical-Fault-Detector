@@ -309,7 +309,7 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 ├── librelane/runs/            # Prior LibreLane synthesis/PnR run logs
 ├── info.yaml                   # Chipathon 2026 submission metadata (project, team, 14 pins)
 ├── lvs_config.json             # Chipathon 2026 LVS config for the `top` macro
-├── gds/chip_top.gds            # Chip-top layout (Git LFS). Not rebuilt: still holds the macro from before the RTL fixes
+├── gds/chip_top.gds            # Chip-top signed-off layout with macro run PADCTRL_800_r10 (Git LFS)
 ├── verilog/gl/chip_top.nl.v    # Matching post-PnR gate-level netlist (Git LFS)
 ├── ip/top/                     # `top` macro deliverables: gds/lef/vh/powered netlist + 9 corner libs (Git LFS)
 ├── Makefile                   # sim_spi / sim_apb / sim_goertzel / sim_top / sim_all
@@ -366,7 +366,7 @@ SSCS Chipathon 2026, Track B (Sensor Circuits)
 - [x] SEU / TMR fault-injection test — [`tb/test_seu.py`](tb/test_seu.py) (`make test-seu`, **3/3 PASS**): voter masks a single-bit upset, self-scrubs within one clock, illegal FSM encoding recovers to `S_IDLE` within one clock. RTL-level result, closes the previously structural-only RHBD verification gap
 - [ ] IR drop at chip scale — macro-level static drop is under 13 mV per rail for the feeds tried, but dynamic drop, pads and the chip grid are not analysed. See [`documents/signoff_summary.md`](documents/signoff_summary.md).
 - [x] Max-slew/max-cap DRV violations — **resolved: self-imposed SDC limits, not foundry-rule violations.** A liberty-limits-only re-check of the signed-off netlist reports **0 slew / 0 cap / 0 fanout** violators; the reported 2864/196 are measured against the project's own `set_max_transition 3.0` / `set_max_capacitance 0.2`, which are 2.3× tighter than the library's 7 ns / per-pin 0.058–4.9 pF. Waived with evidence — see [`PHYSICAL_IMPLEMENTATION_RESULTS.md` §4.3](docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md)
-- [x] Chip-top padring integration (`slot_1x1`, macro top-left) — **complete and signed off clean.** Full Chip flow through Magic DRC / LVS / XOR / antenna, all **0**, 245,704 instances on a 20.14 mm² die. LVS clean (the documented `slot_1x1` `VDD`-port quirk did not occur). ⚠️ The reported setup +31.99 ns / hold +17.14 ns is **boundary-only STA** (the `top` macro is a `.lib` black box at chip level, so its internal paths are not re-analyzed) — the design's real timing margin is the macro's own +10.04 ns / +0.103 ns below. Chip-level IR drop/power figures are invalid (see below). GDS at `~/eda/designs/space-jam-chip/final/gds/chip_top.gds`. KLayout density check disabled (OOM on this die; advisory, not a gate). See [`padring/README.md`](padring/README.md)
+- [x] Chip-top padring integration (`slot_1x1`, macro top-left) — **rebuilt 2026-11-03 with macro `PADCTRL_800_r10`.** Magic DRC, LVS, XOR, antenna and routing DRC are all 0. See [`documents/signoff_summary.md`](documents/signoff_summary.md).
 - [x] **Macro re-harden after the pin-placement fix** — done. `librelane/pins.cfg` corrected against the real `slot_1x1` pad map (all 4 outputs on N, all 8 inputs on W, `clk`/`sys_rst_n` at the south end of W); macro re-hardened clean (setup improved to +10.04 ns) and all 12 pins verified on the correct edge. See [`PIN_PLACEMENT_RATIONALE.md` §7](docs/specs/PIN_PLACEMENT_RATIONALE.md)
 - [ ] Physical-level RHBD (guard rings, substrate tapping, routing density constraints) — chip-level, pending padring integration
 - [ ] Chip-audit registration and slot assignment (multi-team padring)

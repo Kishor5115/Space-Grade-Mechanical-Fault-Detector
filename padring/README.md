@@ -202,6 +202,9 @@ but not free overall: a bottom-left macro wants its pins on the **S** edge, whic
 Step 6 gates on: routing DRC, Magic DRC, XOR, antenna, critical disconnected pins, power-grid
 violations, and setup **and** hold across all 9 corners — plus LVS, judged separately as above.
 
+> **Update 2026-11-03.** `gds/chip_top.gds` was rebuilt with macro `PADCTRL_800_r10`, and the `c_csn` pull-up is now on its pad.
+> Current results are in [`documents/signoff_summary.md`](../documents/signoff_summary.md). The results below are from the earlier build.
+
 ### Achieved result (run `C1_CHIP` + `C2_SIGNOFF`, 2026-08-26)
 
 **Clean signoff. All gates zero.**

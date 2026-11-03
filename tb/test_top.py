@@ -204,6 +204,10 @@ async def _run_blocks(dut, n_blocks: int,
 FREQ_20_512 = 20.0 / 512.0
 COEFF_C0    = q15(2.0 * math.cos(2.0 * math.pi * FREQ_20_512))
 
+BIN_K       = (20, 96, 192)     # cycles per block: 1041.7, 5000.1, 10000.1 Hz
+MAG_1_16    = 8388608           # ideal magnitude of an on-bin 1/16-scale tone: (256/16)^2 in Q15
+MAG_X0_1_16 = 8388815           # golden_values.json, gate8: X, bin 0, amp 0.0625
+
 
 # --------------------------------------------------------------------------
 # Case 1 — No-fault baseline
@@ -328,12 +332,42 @@ async def _mag_pulse_listener(dut, counts):
             counts[0] += 1
 
 
+def _is_gate_level(dut):
+    """The flat gate netlist has no RTL block hierarchy, so its checks use pins only."""
+    return not hasattr(dut, "mag_inst")
+
+
+async def _pair_trips(dut, axis, b):
+    """A 1/16-scale on-bin tone on one (axis, bin) pair must trip through that pair alone."""
+    k = BIN_K[b]
+    coeffs = [0, 0, 0]
+    coeffs[b] = q15(2.0 * math.cos(2.0 * math.pi * k / 512.0))
+    await _reset(dut)
+    await _configure(dut, *coeffs, threshold=MAG_1_16 // 2)
+    tones = {f"{'xyz'[axis]}_tone": k / 512.0, f"{'xyz'[axis]}_amp": 0.0625}
+    await _run_blocks(dut, n_blocks=1, **tones)
+    # The block's magnitudes are computed just after its last sample
+    for _ in range(200):
+        await RisingEdge(dut.clk)
+    assert int(dut.fault_flag_out_OUT.value) == 1, (
+        f"{'XYZ'[axis]} bin {b}: magnitude was not produced, or is below {MAG_1_16 // 2}"
+    )
+
+
 @cocotb.test()
 async def test_itag_9_mag_pulses_per_block(dut):
     """The ITAG magnitude engine must emit exactly 9 mag_out_valid pulses
-    per 512-sample block (3 axes × 3 bins = 9 pairs)."""
+    per 512-sample block (3 axes × 3 bins = 9 pairs).
+
+    Gate level: each of the 9 pairs must separately produce a magnitude that trips the flag."""
     await _start_clock(dut)
     await _reset(dut)
+
+    if _is_gate_level(dut):
+        for axis in range(3):
+            for b in range(3):
+                await _pair_trips(dut, axis, b)
+        return
 
     counts = [0]
     cocotb.start_soon(_mag_pulse_listener(dut, counts))
@@ -357,9 +391,25 @@ async def test_itag_9_mag_pulses_per_block(dut):
 @cocotb.test()
 async def test_itag_no_multiplier_contention(dut):
     """goertzel_core and magnitude_compute must never request the shared
-    multiplier at the same time (single-multiplier design invariant #2)."""
+    multiplier at the same time (single-multiplier design invariant #2).
+
+    Gate level: contention would corrupt a product, so at the fastest DRDY pacing the
+    magnitude must still land exactly on its golden value (flag low at it, high one below)."""
     await _start_clock(dut)
     await _reset(dut)
+
+    if _is_gate_level(dut):
+        for threshold, expected in ((MAG_X0_1_16, 0), (MAG_X0_1_16 - 1, 1)):
+            await _reset(dut)
+            await _configure(dut, c0=COEFF_C0, c1=0, c2=0, threshold=threshold)
+            await _run_blocks(dut, n_blocks=1, x_tone=FREQ_20_512, x_amp=0.0625)
+            for _ in range(200):
+                await RisingEdge(dut.clk)
+            assert int(dut.fault_flag_out_OUT.value) == expected, (
+                f"threshold {threshold}: flag should be {expected}, so X bin 0 is not {MAG_X0_1_16}"
+            )
+        return
+
     await _configure(dut, c0=q15(0.5), c1=q15(0.3), c2=q15(0.1),
                      threshold=0x7FFFFFFF)
 

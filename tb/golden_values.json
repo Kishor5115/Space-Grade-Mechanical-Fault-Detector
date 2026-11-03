@@ -34,7 +34,7 @@
    "threshold": 14,
    "expected_flag": 1,
    "magnitudes": {
-    "X0": 44426529,
+    "X0": 8388410,
     "X1": 0,
     "X2": 0,
     "Y0": 0,
@@ -62,7 +62,7 @@
     "X0": 0,
     "X1": 0,
     "X2": 0,
-    "Y0": 44426529,
+    "Y0": 8388410,
     "Y1": 0,
     "Y2": 0,
     "Z0": 0,
@@ -90,7 +90,7 @@
     "Y0": 0,
     "Y1": 0,
     "Y2": 0,
-    "Z0": 44426529,
+    "Z0": 8388410,
     "Z1": 0,
     "Z2": 0
    }
@@ -117,13 +117,13 @@
    "threshold": 14,
    "expected_flag": 1,
    "magnitudes": {
-    "X0": 44426529,
+    "X0": 8388410,
     "X1": 0,
     "X2": 0,
-    "Y0": 44426529,
+    "Y0": 8388410,
     "Y1": 0,
     "Y2": 0,
-    "Z0": 44426529,
+    "Z0": 8388410,
     "Z1": 0,
     "Z2": 0
    }
@@ -142,7 +142,7 @@
    "threshold": 2147483647,
    "expected_flag": 0,
    "magnitudes": {
-    "X0": 44426529,
+    "X0": 8388410,
     "X1": 0,
     "X2": 0,
     "Y0": 0,
@@ -164,11 +164,11 @@
     }
    },
    "swapped_bytes": false,
-   "threshold": 917431071,
+   "threshold": 4194940,
    "expected_flag": 1,
    "magnitudes": {
     "X0": 0,
-    "X1": 1834862142,
+    "X1": 8389880,
     "X2": 0,
     "Y0": 0,
     "Y1": 0,
@@ -189,14 +189,14 @@
     }
    },
    "swapped_bytes": false,
-   "threshold": 917431071,
+   "threshold": 4194940,
    "expected_flag": 1,
    "magnitudes": {
     "X0": 0,
     "X1": 0,
     "X2": 0,
     "Y0": 0,
-    "Y1": 1834862142,
+    "Y1": 8389880,
     "Y2": 0,
     "Z0": 0,
     "Z1": 0,
@@ -214,7 +214,7 @@
     }
    },
    "swapped_bytes": false,
-   "threshold": 917431071,
+   "threshold": 4194940,
    "expected_flag": 1,
    "magnitudes": {
     "X0": 0,
@@ -224,7 +224,7 @@
     "Y1": 0,
     "Y2": 0,
     "Z0": 0,
-    "Z1": 1834862142,
+    "Z1": 8389880,
     "Z2": 0
    }
   },
@@ -239,12 +239,12 @@
     }
    },
    "swapped_bytes": false,
-   "threshold": 33340530,
+   "threshold": 4194256,
    "expected_flag": 1,
    "magnitudes": {
     "X0": 0,
     "X1": 0,
-    "X2": 66681060,
+    "X2": 8388513,
     "Y0": 0,
     "Y1": 0,
     "Y2": 0,
@@ -264,7 +264,7 @@
     }
    },
    "swapped_bytes": false,
-   "threshold": 33340530,
+   "threshold": 4194256,
    "expected_flag": 1,
    "magnitudes": {
     "X0": 0,
@@ -272,7 +272,7 @@
     "X2": 0,
     "Y0": 0,
     "Y1": 0,
-    "Y2": 66681060,
+    "Y2": 8388513,
     "Z0": 0,
     "Z1": 0,
     "Z2": 0
@@ -289,7 +289,7 @@
     }
    },
    "swapped_bytes": false,
-   "threshold": 33340530,
+   "threshold": 4194256,
    "expected_flag": 1,
    "magnitudes": {
     "X0": 0,
@@ -300,7 +300,7 @@
     "Y2": 0,
     "Z0": 0,
     "Z1": 0,
-    "Z2": 66681060
+    "Z2": 8388513
    }
   },
   {
@@ -314,7 +314,7 @@
     }
    },
    "swapped_bytes": false,
-   "threshold": 22213264,
+   "threshold": 4194205,
    "expected_flag": 0,
    "magnitudes": {
     "X0": 0,
@@ -339,10 +339,10 @@
     }
    },
    "swapped_bytes": false,
-   "threshold": 5543939,
+   "threshold": 3412837,
    "expected_flag": 0,
    "magnitudes": {
-    "X0": 32782,
+    "X0": 125,
     "X1": 0,
     "X2": 0,
     "Y0": 0,
@@ -364,12 +364,12 @@
     }
    },
    "swapped_bytes": true,
-   "threshold": 5543939,
+   "threshold": 3412837,
    "expected_flag": 1,
    "magnitudes": {
-    "X0": 11055097,
-    "X1": 2113503,
-    "X2": 2113503,
+    "X0": 6825549,
+    "X1": 8252,
+    "X2": 8252,
     "Y0": 0,
     "Y1": 0,
     "Y2": 0,
@@ -389,13 +389,13 @@
     }
    },
    "swapped_bytes": false,
-   "threshold": 5543939,
+   "threshold": 3412837,
    "expected_flag": 0,
    "magnitudes": {
     "X0": 0,
     "X1": 0,
     "X2": 0,
-    "Y0": 32782,
+    "Y0": 125,
     "Y1": 0,
     "Y2": 0,
     "Z0": 0,
@@ -414,15 +414,15 @@
     }
    },
    "swapped_bytes": true,
-   "threshold": 5543939,
+   "threshold": 3412837,
    "expected_flag": 1,
    "magnitudes": {
     "X0": 0,
     "X1": 0,
     "X2": 0,
-    "Y0": 11055097,
-    "Y1": 2113503,
-    "Y2": 2113503,
+    "Y0": 6825549,
+    "Y1": 8252,
+    "Y2": 8252,
     "Z0": 0,
     "Z1": 0,
     "Z2": 0
@@ -439,7 +439,7 @@
     }
    },
    "swapped_bytes": false,
-   "threshold": 5543939,
+   "threshold": 3412837,
    "expected_flag": 0,
    "magnitudes": {
     "X0": 0,
@@ -448,7 +448,7 @@
     "Y0": 0,
     "Y1": 0,
     "Y2": 0,
-    "Z0": 32782,
+    "Z0": 125,
     "Z1": 0,
     "Z2": 0
    }
@@ -464,7 +464,7 @@
     }
    },
    "swapped_bytes": true,
-   "threshold": 5543939,
+   "threshold": 3412837,
    "expected_flag": 1,
    "magnitudes": {
     "X0": 0,
@@ -473,9 +473,9 @@
     "Y0": 0,
     "Y1": 0,
     "Y2": 0,
-    "Z0": 11055097,
-    "Z1": 2113503,
-    "Z2": 2113503
+    "Z0": 6825549,
+    "Z1": 8252,
+    "Z2": 8252
    }
   }
  ],
@@ -485,10 +485,10 @@
    "bin": 0,
    "k": 20,
    "amp": 1.0,
-   "search_result": 44426529,
+   "search_result": 8388410,
    "tested_pair_is_largest": true,
    "magnitudes": {
-    "X0": 44426529,
+    "X0": 8388410,
     "X1": 0,
     "X2": 0,
     "Y0": 0,
@@ -504,10 +504,10 @@
    "bin": 0,
    "k": 20,
    "amp": 0.25,
-   "search_result": 12426463,
+   "search_result": 524171,
    "tested_pair_is_largest": true,
    "magnitudes": {
-    "X0": 12426463,
+    "X0": 524171,
     "X1": 0,
     "X2": 0,
     "Y0": 0,
@@ -523,10 +523,10 @@
    "bin": 0,
    "k": 20,
    "amp": 0.0625,
-   "search_result": 8388815,
+   "search_result": 32730,
    "tested_pair_is_largest": true,
    "magnitudes": {
-    "X0": 8388815,
+    "X0": 32730,
     "X1": 0,
     "X2": 0,
     "Y0": 0,
@@ -542,13 +542,13 @@
    "bin": 0,
    "k": 20,
    "amp": 1.0,
-   "search_result": 44426529,
+   "search_result": 8388410,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
     "X1": 0,
     "X2": 0,
-    "Y0": 44426529,
+    "Y0": 8388410,
     "Y1": 0,
     "Y2": 0,
     "Z0": 0,
@@ -561,13 +561,13 @@
    "bin": 0,
    "k": 20,
    "amp": 0.25,
-   "search_result": 12426463,
+   "search_result": 524171,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
     "X1": 0,
     "X2": 0,
-    "Y0": 12426463,
+    "Y0": 524171,
     "Y1": 0,
     "Y2": 0,
     "Z0": 0,
@@ -580,13 +580,13 @@
    "bin": 0,
    "k": 20,
    "amp": 0.0625,
-   "search_result": 8388815,
+   "search_result": 32730,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
     "X1": 0,
     "X2": 0,
-    "Y0": 8388815,
+    "Y0": 32730,
     "Y1": 0,
     "Y2": 0,
     "Z0": 0,
@@ -599,7 +599,7 @@
    "bin": 0,
    "k": 20,
    "amp": 1.0,
-   "search_result": 44426529,
+   "search_result": 8388410,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
@@ -608,7 +608,7 @@
     "Y0": 0,
     "Y1": 0,
     "Y2": 0,
-    "Z0": 44426529,
+    "Z0": 8388410,
     "Z1": 0,
     "Z2": 0
    }
@@ -618,7 +618,7 @@
    "bin": 0,
    "k": 20,
    "amp": 0.25,
-   "search_result": 12426463,
+   "search_result": 524171,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
@@ -627,7 +627,7 @@
     "Y0": 0,
     "Y1": 0,
     "Y2": 0,
-    "Z0": 12426463,
+    "Z0": 524171,
     "Z1": 0,
     "Z2": 0
    }
@@ -637,7 +637,7 @@
    "bin": 0,
    "k": 20,
    "amp": 0.0625,
-   "search_result": 8388815,
+   "search_result": 32730,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
@@ -646,7 +646,7 @@
     "Y0": 0,
     "Y1": 0,
     "Y2": 0,
-    "Z0": 8388815,
+    "Z0": 32730,
     "Z1": 0,
     "Z2": 0
    }
@@ -656,11 +656,11 @@
    "bin": 1,
    "k": 96,
    "amp": 1.0,
-   "search_result": 1834862142,
+   "search_result": 8389880,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
-    "X1": 1834862142,
+    "X1": 8389880,
     "X2": 0,
     "Y0": 0,
     "Y1": 0,
@@ -675,11 +675,11 @@
    "bin": 1,
    "k": 96,
    "amp": 0.25,
-   "search_result": 134217460,
+   "search_result": 524453,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
-    "X1": 134217460,
+    "X1": 524453,
     "X2": 0,
     "Y0": 0,
     "Y1": 0,
@@ -694,11 +694,11 @@
    "bin": 1,
    "k": 96,
    "amp": 0.0625,
-   "search_result": 8388036,
+   "search_result": 32823,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
-    "X1": 8388036,
+    "X1": 32823,
     "X2": 0,
     "Y0": 0,
     "Y1": 0,
@@ -713,14 +713,14 @@
    "bin": 1,
    "k": 96,
    "amp": 1.0,
-   "search_result": 1834862142,
+   "search_result": 8389880,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
     "X1": 0,
     "X2": 0,
     "Y0": 0,
-    "Y1": 1834862142,
+    "Y1": 8389880,
     "Y2": 0,
     "Z0": 0,
     "Z1": 0,
@@ -732,14 +732,14 @@
    "bin": 1,
    "k": 96,
    "amp": 0.25,
-   "search_result": 134217460,
+   "search_result": 524453,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
     "X1": 0,
     "X2": 0,
     "Y0": 0,
-    "Y1": 134217460,
+    "Y1": 524453,
     "Y2": 0,
     "Z0": 0,
     "Z1": 0,
@@ -751,14 +751,14 @@
    "bin": 1,
    "k": 96,
    "amp": 0.0625,
-   "search_result": 8388036,
+   "search_result": 32823,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
     "X1": 0,
     "X2": 0,
     "Y0": 0,
-    "Y1": 8388036,
+    "Y1": 32823,
     "Y2": 0,
     "Z0": 0,
     "Z1": 0,
@@ -770,7 +770,7 @@
    "bin": 1,
    "k": 96,
    "amp": 1.0,
-   "search_result": 1834862142,
+   "search_result": 8389880,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
@@ -780,7 +780,7 @@
     "Y1": 0,
     "Y2": 0,
     "Z0": 0,
-    "Z1": 1834862142,
+    "Z1": 8389880,
     "Z2": 0
    }
   },
@@ -789,7 +789,7 @@
    "bin": 1,
    "k": 96,
    "amp": 0.25,
-   "search_result": 134217460,
+   "search_result": 524453,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
@@ -799,7 +799,7 @@
     "Y1": 0,
     "Y2": 0,
     "Z0": 0,
-    "Z1": 134217460,
+    "Z1": 524453,
     "Z2": 0
    }
   },
@@ -808,7 +808,7 @@
    "bin": 1,
    "k": 96,
    "amp": 0.0625,
-   "search_result": 8388036,
+   "search_result": 32823,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
@@ -818,7 +818,7 @@
     "Y1": 0,
     "Y2": 0,
     "Z0": 0,
-    "Z1": 8388036,
+    "Z1": 32823,
     "Z2": 0
    }
   },
@@ -827,31 +827,12 @@
    "bin": 2,
    "k": 192,
    "amp": 1.0,
-   "search_result": 66681060,
+   "search_result": 8388513,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
     "X1": 0,
-    "X2": 66681060,
-    "Y0": 0,
-    "Y1": 0,
-    "Y2": 0,
-    "Z0": 0,
-    "Z1": 0,
-    "Z2": 0
-   }
-  },
-  {
-   "axis": "X",
-   "bin": 2,
-   "k": 192,
-   "amp": 0.25,
-   "search_result": 134227786,
-   "tested_pair_is_largest": true,
-   "magnitudes": {
-    "X0": 0,
-    "X1": 0,
-    "X2": 134227786,
+    "X2": 8388513,
     "Y0": 0,
     "Y1": 0,
     "Y2": 0,
@@ -864,13 +845,32 @@
    "axis": "X",
    "bin": 2,
    "k": 192,
-   "amp": 0.0625,
-   "search_result": 8387743,
+   "amp": 0.25,
+   "search_result": 524922,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
     "X1": 0,
-    "X2": 8387743,
+    "X2": 524922,
+    "Y0": 0,
+    "Y1": 0,
+    "Y2": 0,
+    "Z0": 0,
+    "Z1": 0,
+    "Z2": 0
+   }
+  },
+  {
+   "axis": "X",
+   "bin": 2,
+   "k": 192,
+   "amp": 0.0625,
+   "search_result": 32757,
+   "tested_pair_is_largest": true,
+   "magnitudes": {
+    "X0": 0,
+    "X1": 0,
+    "X2": 32757,
     "Y0": 0,
     "Y1": 0,
     "Y2": 0,
@@ -884,7 +884,7 @@
    "bin": 2,
    "k": 192,
    "amp": 1.0,
-   "search_result": 66681060,
+   "search_result": 8388513,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
@@ -892,7 +892,7 @@
     "X2": 0,
     "Y0": 0,
     "Y1": 0,
-    "Y2": 66681060,
+    "Y2": 8388513,
     "Z0": 0,
     "Z1": 0,
     "Z2": 0
@@ -903,7 +903,7 @@
    "bin": 2,
    "k": 192,
    "amp": 0.25,
-   "search_result": 134227786,
+   "search_result": 524922,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
@@ -911,7 +911,7 @@
     "X2": 0,
     "Y0": 0,
     "Y1": 0,
-    "Y2": 134227786,
+    "Y2": 524922,
     "Z0": 0,
     "Z1": 0,
     "Z2": 0
@@ -922,7 +922,7 @@
    "bin": 2,
    "k": 192,
    "amp": 0.0625,
-   "search_result": 8387743,
+   "search_result": 32757,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
@@ -930,7 +930,7 @@
     "X2": 0,
     "Y0": 0,
     "Y1": 0,
-    "Y2": 8387743,
+    "Y2": 32757,
     "Z0": 0,
     "Z1": 0,
     "Z2": 0
@@ -941,7 +941,7 @@
    "bin": 2,
    "k": 192,
    "amp": 1.0,
-   "search_result": 66681060,
+   "search_result": 8388513,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
@@ -952,7 +952,7 @@
     "Y2": 0,
     "Z0": 0,
     "Z1": 0,
-    "Z2": 66681060
+    "Z2": 8388513
    }
   },
   {
@@ -960,7 +960,7 @@
    "bin": 2,
    "k": 192,
    "amp": 0.25,
-   "search_result": 134227786,
+   "search_result": 524922,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
@@ -971,7 +971,7 @@
     "Y2": 0,
     "Z0": 0,
     "Z1": 0,
-    "Z2": 134227786
+    "Z2": 524922
    }
   },
   {
@@ -979,7 +979,7 @@
    "bin": 2,
    "k": 192,
    "amp": 0.0625,
-   "search_result": 8387743,
+   "search_result": 32757,
    "tested_pair_is_largest": true,
    "magnitudes": {
     "X0": 0,
@@ -990,7 +990,7 @@
     "Y2": 0,
     "Z0": 0,
     "Z1": 0,
-    "Z2": 8387743
+    "Z2": 32757
    }
   }
  ]

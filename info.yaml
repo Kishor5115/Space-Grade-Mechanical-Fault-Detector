@@ -21,7 +21,7 @@ project:
   export_control: "documents/Export_Control_GF_Rev8.2.docx"   # Required export control document
 
 # Pad types follow padring/src/chip_core.sv.
-# Output pads expose <name>_OUT and the control ports, not <name>_IN: their receivers are unused.
+# Output pads expose <name>_OUT, <name>_IN and the control ports. The <name>_IN receivers are unused.
 pins:
   - name: VSS
     io_type: ground

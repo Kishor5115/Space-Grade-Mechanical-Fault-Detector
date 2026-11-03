@@ -195,10 +195,10 @@ async def test_gate8(dut):
                 _, mags = await _run(dut, _coeffs(b), TH_MAX, tones)
                 table = _table(mags)
                 top = max(table.values())
-                if amp == 0.0625:   # below saturation: |X| = 256 * amp, mag = |X|^2 in Q15
-                    ideal = (256.0 * amp) ** 2 * 32768
-                    assert abs(table[f"{AXES[axis]}{b}"] - ideal) < 0.01 * ideal, (
-                        f"{AXES[axis]}{b}: magnitude {table[f'{AXES[axis]}{b}']}, ideal {ideal:.0f}")
+                # Input is shifted right 4 bits: |X| = 256 * amp / 16, mag = |X|^2 in Q15
+                ideal = (256.0 * amp / 16.0) ** 2 * 32768
+                assert abs(table[f"{AXES[axis]}{b}"] - ideal) < 0.01 * ideal, (
+                    f"{AXES[axis]}{b}, amp {amp}: magnitude {table[f'{AXES[axis]}{b}']}, ideal {ideal:.0f}")
                 points.append({"axis": AXES[axis], "bin": b, "k": BIN_K[b], "amp": amp,
                                "search_result": top,
                                "tested_pair_is_largest": table[f"{AXES[axis]}{b}"] == top,

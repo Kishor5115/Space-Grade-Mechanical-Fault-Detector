@@ -88,6 +88,8 @@ only outputs are `fault_flag_out`, `c_csn`, `c_sclk` and `c_mosi`. So:
 | DRDY is checked as a level in the idle state | `spi_master.v` | DRDY held high causes repeated bursts. Gate 4 tests this. |
 | Magnitude is `|X|^2` in Q15: an on-bin tone of amplitude A gives about `(256 * A)^2 * 32768` | `magnitude_compute.v` | Thresholds are large numbers, for example 8388608 at A = 1/16. This holds only below saturation. |
 | The block counter holds while stopped | `fault_flagger.v` | The first block after a restart can be partial. Allow 2 full blocks. |
+| A sample read before start stays pending, and the core processes it first after start | `spi_apb_interface.v`, `axis_sequencer.v` | It shifts the block by one sample (8188574 instead of 8388815 at 1/16 scale). Send start before the first DRDY whenever exact values matter. |
+| Stop and restart keep the filter state and block count | `goertzel_core.v`, `fault_flagger.v` | The first block after a restart mixes old and new samples and is unreliable. Ignore it, or reset first. |
 | Trip is immediate, with no debounce, and sticky | `fault_flagger.v` | One magnitude above threshold latches the flag until cleared. |
 | The comparator checks all 9 magnitudes in each block | `fault_flagger.v`, `magnitude_compute.v` | A trip point is the largest of the 9, not one chosen pair. The golden model must report all 9. |
 | A coefficient of 0 does not turn a bin off | Goertzel recurrence, `C = 0` gives a filter tuned to Fs/4, 6667 Hz | "Unused" bins still respond to signal. Check them in the golden model when choosing any threshold. |

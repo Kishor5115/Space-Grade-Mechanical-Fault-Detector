@@ -167,9 +167,9 @@ module chip_core #(
 
     //------------------------------------------------------------------
     // Consume the pad inputs we do not use, so neither Verilator nor
-    // Yosys reports them as dangling. `bidir_in` is entirely unused
-    // (all 40 receivers are disabled via ie=0); of `input_in` only the
-    // six bits mapped above are consumed by the macro.
+    // Yosys reports them as dangling. All 40 `bidir_in` receivers are disabled
+    // via ie=0, and the macro's four _IN ports ignore theirs; of `input_in` only
+    // the six bits mapped above are consumed by the macro.
     //------------------------------------------------------------------
     wire [NUM_INPUT_PADS-1:0] input_used_mask =
           (1 << IN_C_MISO)
@@ -212,6 +212,10 @@ module chip_core #(
         .c_csn_OUT          (c_csn),
         .c_sclk_OUT         (c_sclk),
         .c_mosi_OUT         (c_mosi),
+        .c_csn_IN           (bidir_in[BO_C_CSN]),
+        .c_sclk_IN          (bidir_in[BO_C_SCLK]),
+        .c_mosi_IN          (bidir_in[BO_C_MOSI]),
+        .fault_flag_out_IN  (bidir_in[BO_FAULT_FLAG]),
 
         // sensor data-ready interrupt
         .sensor_drdy    (input_in[IN_SENSOR_DRDY]),

@@ -76,9 +76,31 @@ module top (
     output wire        fault_flag_out_IE,
     output wire        fault_flag_out_OE,
 
+    // Pad receivers of the output pads. Their input enables are low and nothing reads them.
+    input  wire        c_csn_IN,
+    input  wire        c_sclk_IN,
+    input  wire        c_mosi_IN,
+    input  wire        fault_flag_out_IN,
+
     // Fault output to RISC core
     output wire        fault_flag_out_OUT
 );
+
+    wire _unused_in = &{1'b0, c_csn_IN, c_sclk_IN, c_mosi_IN, fault_flag_out_IN};
+
+    // Reset synchronizer: asserts at once, releases on clk so recovery and removal
+    // are timed. Voted copies, because one upset here would otherwise reset the chip.
+    (* keep = "true" *) reg [1:0] rst_s_a, rst_s_b, rst_s_c;
+    always @(posedge clk or negedge sys_rst_n) begin
+        if (!sys_rst_n) begin
+            rst_s_a <= 2'b00; rst_s_b <= 2'b00; rst_s_c <= 2'b00;
+        end else begin
+            rst_s_a <= {rst_s_a[0], 1'b1};
+            rst_s_b <= {rst_s_b[0], 1'b1};
+            rst_s_c <= {rst_s_c[0], 1'b1};
+        end
+    end
+    wire rst_sync_n = (rst_s_a[1] & rst_s_b[1]) | (rst_s_b[1] & rst_s_c[1]) | (rst_s_a[1] & rst_s_c[1]);
 
     // ----------------------------------------------------------------
     // spi_apb_interface: owns spi_master internally, exposes APB master
@@ -114,7 +136,7 @@ module top (
 
     spi_apb_interface spi_apb_inst (
         .clk               (clk),
-        .sys_rst_n         (sys_rst_n),
+        .sys_rst_n         (rst_sync_n),
         .tmr_forward_en    (tmr_forward_en),
         .tmr_sample_base   (TMR_SAMPLE_BASE),
         // axis_sequencer polling port
@@ -151,7 +173,7 @@ module top (
 
     cmd_spi_slave cmd_spi_inst (
         .clk       (clk),
-        .rst_n     (sys_rst_n),
+        .rst_n     (rst_sync_n),
         .cmd_sclk  (cmd_sclk),
         .cmd_csn   (cmd_csn),
         .cmd_mosi  (cmd_mosi),
@@ -164,7 +186,7 @@ module top (
 
     apb cmd_apb_master (
         .clk        (clk),
-        .sys_rst_n  (sys_rst_n),
+        .sys_rst_n  (rst_sync_n),
         .req_valid  (cmd_req_valid),
         .req_write  (cmd_req_write),
         .req_addr   (cmd_req_addr),
@@ -186,7 +208,7 @@ module top (
     // ----------------------------------------------------------------
     apb_arb2 apb_arb_inst (
         .clk       (clk),
-        .rst_n     (sys_rst_n),
+        .rst_n     (rst_sync_n),
         .m0_psel   (fwd_apb_psel),
         .m0_penable(fwd_apb_penable),
         .m0_pwrite (fwd_apb_pwrite),
@@ -223,7 +245,7 @@ module top (
 
     tmr_reg_bank tmr_inst (
         .clk               (clk),
-        .rst_n             (sys_rst_n),
+        .rst_n             (rst_sync_n),
         .p_addr            (apb_p_addr),
         .pwdata            (apb_pwdata),
         .psel              (apb_psel),
@@ -254,7 +276,7 @@ module top (
 
     axis_sequencer axseq_inst (
         .clk               (clk),
-        .rst_n             (sys_rst_n),
+        .rst_n             (rst_sync_n),
         .run_enable        (run_enable),
         .req_valid         (seq_req_valid),
         .req_write         (seq_req_write),
@@ -284,7 +306,7 @@ module top (
         .N_BINS  (3)
     ) goertzel_inst (
         .clk        (clk),
-        .rst_n      (sys_rst_n),
+        .rst_n      (rst_sync_n),
         .enable     (run_enable),
         .data_ready (core_data_ready),
         .x_n        (core_x_n),
@@ -314,7 +336,7 @@ module top (
 
     magnitude_compute #(.DATA_W(24)) mag_inst (
         .clk          (clk),
-        .rst_n        (sys_rst_n),
+        .rst_n        (rst_sync_n),
         .core_mult_req(mult_req),
         .core_mult_a  (mult_a),
         .core_mult_b  (mult_b),
@@ -337,7 +359,7 @@ module top (
     // ----------------------------------------------------------------
     fault_flagger #(.BLOCK_SIZE(512)) ff_inst (
         .clk              (clk),
-        .rst_n            (sys_rst_n),
+        .rst_n            (rst_sync_n),
         .sample_done      (sample_done),
         .block_clear      (block_clear),
         .mag_in           (mag_out),

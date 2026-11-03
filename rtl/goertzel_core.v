@@ -182,6 +182,9 @@ module goertzel_core #(
     // fires, sign-extended into the Q8.15 datapath. Decouples the core from
     // how long the upstream module holds x_n/y_n/z_n stable.
     //------------------------------------------------------------------------
+    // Headroom: a full-scale on-bin tone grows the state to 256/sin(w) of the input.
+    // Without this shift it overflows Q8.15 near 1 kHz and the magnitude can collapse.
+    localparam integer INPUT_SHIFT = 4;
     reg signed [DATA_W-1:0] x_q15_r, y_q15_r, z_q15_r;
 
     always @(posedge clk or negedge rst_n) begin
@@ -190,9 +193,9 @@ module goertzel_core #(
             y_q15_r <= {DATA_W{1'b0}};
             z_q15_r <= {DATA_W{1'b0}};
         end else if (data_ready && enable && (state_v == S_IDLE)) begin
-            x_q15_r <= {{(DATA_W-SAMPLE_W){x_n[SAMPLE_W-1]}}, x_n};
-            y_q15_r <= {{(DATA_W-SAMPLE_W){y_n[SAMPLE_W-1]}}, y_n};
-            z_q15_r <= {{(DATA_W-SAMPLE_W){z_n[SAMPLE_W-1]}}, z_n};
+            x_q15_r <= {{(DATA_W-SAMPLE_W+INPUT_SHIFT){x_n[SAMPLE_W-1]}}, x_n[SAMPLE_W-1:INPUT_SHIFT]};
+            y_q15_r <= {{(DATA_W-SAMPLE_W+INPUT_SHIFT){y_n[SAMPLE_W-1]}}, y_n[SAMPLE_W-1:INPUT_SHIFT]};
+            z_q15_r <= {{(DATA_W-SAMPLE_W+INPUT_SHIFT){z_n[SAMPLE_W-1]}}, z_n[SAMPLE_W-1:INPUT_SHIFT]};
         end
     end
 

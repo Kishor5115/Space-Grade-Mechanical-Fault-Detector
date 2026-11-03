@@ -9,10 +9,10 @@
 # Project metadata (used for documentation / review)
 # ======================================================
 project:
-  title: "Space-Grade Mechanical Fault Detector"
+  title: "Mechanical Fault Detector"
   team: "B22 Space Jam"
   discord: "kishor_phantom"
-  description: "Radiation-tolerant spacecraft vibration fault detector: 3-bin Interleaved Tri-Axis Goertzel (ITAG) fixed-point DSP core with TMR-hardened control FSMs and scrubbed config registers, driving an IIS3DWB MEMS sensor over SPI"
+  description: "Radiation-tolerant vibration fault detector: 3-bin Interleaved Tri-Axis Goertzel (ITAG) fixed-point DSP core with TMR-hardened control FSMs and scrubbed config registers, driving an IIS3DWB MEMS sensor over SPI"
   lvs_config: "lvs_config.json"
   gf_def_ready: false           # data ready for def generation with global foundries' pad frame
   ws_def_ready: false           # data ready for def generation with wafer space pad frame

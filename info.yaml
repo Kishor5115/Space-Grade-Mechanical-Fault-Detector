@@ -16,8 +16,8 @@ project:
   lvs_config: "lvs_config.json"
   gf_def_ready: false           # data ready for def generation with global foundries' pad frame
   ws_def_ready: false           # data ready for def generation with wafer space pad frame
-  drc_ready: false              # data ready for integration and DRC
-  lvs_ready: false              # no powered netlist for ip/top/top.gds yet; set true once GDS LVS passes
+  drc_ready: true               # data ready for integration and DRC
+  lvs_ready: true               # powered netlist is ip/top/top.pnl.v; GDS LVS passes on run PADCTRL_800_r10
   export_control: "documents/Export_Control_GF_Rev8.2.docx"   # Required export control document
 
 # Pad types follow padring/src/chip_core.sv.

@@ -10,6 +10,10 @@ correct. It does **not** confirm that the *synthesized, placed-and-routed netlis
 way, or that physical sign-off is complete in every dimension a tapeout requires. This document
 tracks that second, separate class of verification.
 
+> **Update 2026-11-03.** Results below predate three RTL fixes and layout `PADCTRL_800_r10`. For current status,
+> including KLayout DRC (now clean), EQY (now partial) and IR drop, see
+> [`documents/signoff_summary.md`](../../documents/signoff_summary.md).
+
 ---
 
 ## 1. What has been verified at the gate/physical level
@@ -184,9 +188,8 @@ reset sequencing, and SDF-back-annotated timing on a handful of critical vectors
 An EQY setup now exists at [`verification/top.eqy`](../../verification/top.eqy). Note that the
 `hpretl/iic-osic-tools:chipathon26` image ships EQY with its Yosys plugins in
 `/foss/tools/yosys/share/yosys/plugins/` while the `eqy` driver looks for them in
-`/foss/tools/bin/` — symlinking them there is required before EQY will get past its `combine`
-step. **EQY has been launched but has not yet completed on this design; no equivalence result is
-claimed.**
+`/foss/tools/bin/`. Running `/foss/tools/yosys/bin/eqy` directly avoids this. **EQY now gives a partial result: 60 of
+86 partitions proved. See `documents/signoff_summary.md`.**
 
 ### 5.3 SEU / TMR coverage — gap closed
 

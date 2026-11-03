@@ -109,6 +109,7 @@ module goertzel_3bin_tb;
     //------------------------------------------------------------------------
     // DUT
     //------------------------------------------------------------------------
+    wire data_ready;
     goertzel_core #(
         .DATA_W   (DATA_W),
         .SAMPLE_W (SAMPLE_W),
@@ -152,7 +153,7 @@ module goertzel_3bin_tb;
         else                    cycle_cnt <= cycle_cnt + 1;
     end
 
-    wire data_ready = (cycle_cnt == 0) && enable && (n_idx < N_SAMPLES);
+    assign data_ready = (cycle_cnt == 0) && enable && (n_idx < N_SAMPLES);
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n)            n_idx <= 0;

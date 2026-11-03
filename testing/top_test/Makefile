@@ -11,14 +11,16 @@ RTL_SRCS  := $(RTL_DIR)/top.v \
              $(RTL_DIR)/spi_apb_interface.v \
              $(RTL_DIR)/apb.v \
              $(RTL_DIR)/spi_master.v \
-             $(RTL_DIR)/clk_divider_5.v \
+             $(RTL_DIR)/clk_divider.v \
              $(RTL_DIR)/ff_2_sync.v \
              $(RTL_DIR)/axis_sequencer.v \
              $(RTL_DIR)/goertzel_core.v \
              $(RTL_DIR)/multiplier.v \
              $(RTL_DIR)/magnitude_compute.v \
              $(RTL_DIR)/fault_flagger.v \
-             $(RTL_DIR)/tmr_reg_bank.v
+             $(RTL_DIR)/tmr_reg_bank.v \
+             $(RTL_DIR)/apb_arb2.v \
+             $(RTL_DIR)/cmd_spi_slave.v
 
 SRCS      := $(TOP_TB) $(RTL_SRCS) $(MODEL)
 

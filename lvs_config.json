@@ -9,6 +9,6 @@
     "LVS_NOFLATTEN": [""],
     "LVS_IGNORE": [""],
     "LVS_SPICE_FILES": [""],
-    "LVS_VERILOG_FILES": ["$UPRJ_ROOT/ip/top/top.vh"],
+    "LVS_VERILOG_FILES": ["$UPRJ_ROOT/ip/top/top.pnl.v"],
     "LAYOUT_FILE": "$UPRJ_ROOT/ip/top/$TOP_LAYOUT.gds"
 }

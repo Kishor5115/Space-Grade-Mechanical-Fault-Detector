@@ -232,11 +232,11 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 | Block Size | 512 samples (all three axes per block) |
 | Inter-axis Detection Latency | 0 (X/Y/Z evaluated every block) |
 | Per-block Latency | ~19.2 ms (512 samples @ 26.667 kHz) |
-| **Signed-off die size** | **800 × 800 µm (640,000 µm²), 60.9% core utilization** |
-| **Post-synthesis flip-flop count** | **1,767** (375 bits TMR-triplicated, 8/8 groups intact) |
-| **Timing closure (9 PVT corners)** | **Setup +10.04 ns / hold +0.103 ns worst-case, 0 violations** |
-| **Physical signoff** | **DRC 0 · LVS 0 · XOR 0 · antenna 0** — see [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md) |
-| **Total power (signoff)** | **47.0 mW** (35.6 mW internal + 11.4 mW switching + 5.3 µW leakage) |
+| **Signed-off die size** | **800 × 800 µm (640,000 µm²), 66.6% core utilization** |
+| **Post-synthesis flip-flop count** | **1,792** |
+| **Timing closure (9 PVT corners)** | **Setup +5.947 ns / hold +0.142 ns worst-case, 0 violations** |
+| **Physical signoff** | **Magic DRC 0 · KLayout DRC (main deck) 0 · LVS match · XOR 0 · antenna 0** — see [`documents/signoff_summary.md`](documents/signoff_summary.md) |
+| **Total power (estimate, core only)** | **46.4 mW at ff / 5.5 V, 36.8 mW at tt / 5.0 V, 16 MHz** |
 
 ---
 
@@ -308,10 +308,10 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 │                               #   (launched, not yet complete; see docs/verification/GATE_LEVEL_VERIFICATION_GAPS.md)
 ├── librelane/runs/            # Prior LibreLane synthesis/PnR run logs
 ├── info.yaml                   # Chipathon 2026 submission metadata (project, team, 14 pins)
-├── lvs_config.json             # Chipathon 2026 LVS config (TOP_SOURCE: chip_top)
-├── gds/chip_top.gds            # Chip-top signed-off layout (Git LFS)
+├── lvs_config.json             # Chipathon 2026 LVS config for the `top` macro
+├── gds/chip_top.gds            # Chip-top layout (Git LFS). Not rebuilt: still holds the macro from before the RTL fixes
 ├── verilog/gl/chip_top.nl.v    # Matching post-PnR gate-level netlist (Git LFS)
-├── ip/top/                     # `top` macro deliverable quartet: gds/lef/vh + 9 corner libs (Git LFS)
+├── ip/top/                     # `top` macro deliverables: gds/lef/vh/powered netlist + 9 corner libs (Git LFS)
 ├── Makefile                   # sim_spi / sim_apb / sim_goertzel / sim_top / sim_all
 └── CHANGELOG.md               # Detailed bug-fix and verification history
 ```
@@ -359,12 +359,12 @@ SSCS Chipathon 2026, Track B (Sensor Circuits)
 - [x] Host-facing command-SPI configuration path (`cmd_spi_slave` → `apb` → `apb_arb2` → `tmr_reg_bank`) implemented inside the `top.v` boundary — real host writes no longer require a hierarchical testbench force
 - [x] Reviewer documentation complete (system architecture, verification methodology, test scenarios, I/O spec, SPI origin, Goertzel core explanation, project tracker)
 - [x] LibreLane synthesis, place & route, and signoff for the current ITAG RTL — 800×800 µm, timing closed on all 9 PVT corners, TMR confirmed intact in the gate netlist (see [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md))
-- [x] Physical layout, DRC/LVS/XOR/antenna sign-off — all clean (KLayout DRC ruleset unavailable for gf180mcuD; Magic DRC + KLayout XOR used instead)
+- [x] Physical layout, DRC/LVS/XOR/antenna sign-off for run `PADCTRL_800_r10` — all clean, including KLayout DRC main deck. See [`documents/signoff_summary.md`](documents/signoff_summary.md).
 - [ ] Command-SPI testbench (`tb_cmd_spi.v`) — written and passing on the `asic` git branch, **not present on this branch**; no `sim_cmd_spi` Makefile target exists on either branch (see [Verification Status](#verification-status))
-- [x] Gate-level / post-synthesis simulation — **run.** `make test-top-gl`: 6/8 pass against the signed-off netlist with real `gf180mcu_fd_sc_mcu7t5v0` cell models. All 6 functional cases pass; the 2 failures (`test_itag_9_mag_pulses_per_block`, `test_itag_no_multiplier_contention`) are testbench-only — they probe internal wires with 0 occurrences in the synthesized netlist, not a silicon defect. See [`GATE_LEVEL_VERIFICATION_GAPS.md` §5.1](docs/verification/GATE_LEVEL_VERIFICATION_GAPS.md)
-- [ ] Formal RTL↔netlist equivalence check (Yosys EQY) — [`verification/top.eqy`](verification/top.eqy) created and launched; **has not completed on this design, no result claimed yet**
+- [x] Gate-level / post-synthesis simulation — **run.** `make test-top-gl`: 6/8 pass on `PADCTRL_800_r10`. The 2 failures are testbench lookups of RTL block names, so those two checks did not run at gate level. RTL and netlist also matched on all outputs over 660,055 clocks of random stimulus.
+- [ ] Formal RTL↔netlist equivalence check (Yosys EQY) — **partial: 60 of 86 partitions proved, 25 inconclusive, 1 unexplained counterexample.** See [`documents/signoff_summary.md`](documents/signoff_summary.md).
 - [x] SEU / TMR fault-injection test — [`tb/test_seu.py`](tb/test_seu.py) (`make test-seu`, **3/3 PASS**): voter masks a single-bit upset, self-scrubs within one clock, illegal FSM encoding recovers to `S_IDLE` within one clock. RTL-level result, closes the previously structural-only RHBD verification gap
-- [ ] IR drop / power analysis at chip scale — **invalid, not yet fixed.** `VSRC_LOC_FILES` unset in both macro and chip runs; chip-level `power__total` (0.255 mW) is below the macro's own 47 mW (macro is a `.lib` black box at chip level) and `ir__drop__worst` (0.5 µV) is not physically meaningful. Macro-level IR drop (131 µV) is a caveated estimate, not verified-good either
+- [ ] IR drop at chip scale — macro-level static drop is under 13 mV per rail for the feeds tried, but dynamic drop, pads and the chip grid are not analysed. See [`documents/signoff_summary.md`](documents/signoff_summary.md).
 - [x] Max-slew/max-cap DRV violations — **resolved: self-imposed SDC limits, not foundry-rule violations.** A liberty-limits-only re-check of the signed-off netlist reports **0 slew / 0 cap / 0 fanout** violators; the reported 2864/196 are measured against the project's own `set_max_transition 3.0` / `set_max_capacitance 0.2`, which are 2.3× tighter than the library's 7 ns / per-pin 0.058–4.9 pF. Waived with evidence — see [`PHYSICAL_IMPLEMENTATION_RESULTS.md` §4.3](docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md)
 - [x] Chip-top padring integration (`slot_1x1`, macro top-left) — **complete and signed off clean.** Full Chip flow through Magic DRC / LVS / XOR / antenna, all **0**, 245,704 instances on a 20.14 mm² die. LVS clean (the documented `slot_1x1` `VDD`-port quirk did not occur). ⚠️ The reported setup +31.99 ns / hold +17.14 ns is **boundary-only STA** (the `top` macro is a `.lib` black box at chip level, so its internal paths are not re-analyzed) — the design's real timing margin is the macro's own +10.04 ns / +0.103 ns below. Chip-level IR drop/power figures are invalid (see below). GDS at `~/eda/designs/space-jam-chip/final/gds/chip_top.gds`. KLayout density check disabled (OOM on this die; advisory, not a gate). See [`padring/README.md`](padring/README.md)
 - [x] **Macro re-harden after the pin-placement fix** — done. `librelane/pins.cfg` corrected against the real `slot_1x1` pad map (all 4 outputs on N, all 8 inputs on W, `clk`/`sys_rst_n` at the south end of W); macro re-hardened clean (setup improved to +10.04 ns) and all 12 pins verified on the correct edge. See [`PIN_PLACEMENT_RATIONALE.md` §7](docs/specs/PIN_PLACEMENT_RATIONALE.md)

@@ -5,16 +5,11 @@ SSCS Chipathon 2026, Track B, Team B22 Space Jam
 | Item | Value |
 |---|---|
 | Device | `top` macro in the `slot_1x1` pad ring, 800 µm x 800 µm |
-| Layout | LibreLane run `PADCTRL_800_r6`, GDS SHA-256 begins `01df13d571e917b246b9` |
+| Layout | LibreLane run `PADCTRL_800_r10`, GDS SHA-256 begins `9488f3fe0116baa5f6dea522`. Signoff: `documents/signoff_summary.md`. |
 | Supply and clock | Single 5 V supply, 16 MHz system clock |
 | Audience | Whoever runs the bench bring-up |
 | Status | Draft, written before silicon. No step here has been run. |
 
-If the layout changes, re-check section 3 (net names) and the hash above.
-
-> **RTL changed after `r6`.** Three functional bugs were found while building the golden model and are now
-> fixed in RTL (section 3). `r6` has been superseded by run `PADCTRL_800_r8`, which was still running when
-> this note was written. Update the layout row above and the net table in section 3 from `r8`'s results.
 
 ## 1. How this plan works
 
@@ -98,7 +93,7 @@ only outputs are `fault_flag_out`, `c_csn`, `c_sclk` and `c_mosi`. So:
 | A coefficient of 0 does not turn a bin off | Goertzel recurrence, `C = 0` gives a filter tuned to Fs/4, 6667 Hz | "Unused" bins still respond to signal. Check them in the golden model when choosing any threshold. |
 | Pulls are off on all input pads | `top.v`, `chip_core.sv` | The board must drive every input. |
 
-**RTL bugs fixed after `r6`.** All three passed the earlier simulations, because those only checked that the
+**RTL bugs fixed before this layout.** All three passed the earlier simulations, because those only checked that the
 flag trips, and they hid one another. Gates 4, 6 and 8 are the silicon checks for them.
 
 | Bug | Effect before the fix | Fix | Silicon check |
@@ -127,17 +122,10 @@ is always on. Keep the board footprint in section 4 as a fallback.
 
 **Known risks from signoff**
 
-These figures are from `r6`. Replace them with the `r8` results. Layout `r6` exceeds the liberty maximum capacitance on two nets. Slew and fanout are within limits
-at all 9 corners, and the other 6 corners are clean.
-
-| Corner | Net | Driver | Cap vs limit (pF) | Over by |
-|---|---|---|---|---|
-| `max_ff_n40C_5v50` | `_10834_` | `_17260_`, `nand2_1`, fanout 1 | 0.21333 vs 0.20800 | 0.00533 (2.6%) |
-| `max_tt_025C_5v00` | `_10834_` | `_17260_`, `nand2_1`, fanout 1 | 0.21333 vs 0.21260 | 0.00073 (0.3%) |
-| `max_ss_125C_4v50` | `_11893_` | `_18319_`, `aoi21_1`, fanout 6 | 0.12151 vs 0.12080 | 0.00071 (0.6%) |
-
-These nets cannot be probed. Gate 11 is the only check on them, so it starts with the cold high-voltage
-and hot low-voltage conditions.
+Layout `r10` is clean on PDK slew and cap limits at all 9 corners. The tightest margin is cap on `_19537_/ZN` at
+`max_ff_n40C_5v50`, 0.19817 pF against a 0.20800 pF limit. Formal equivalence is partial, with 60 of 86 partitions
+proved (`documents/signoff_summary.md`). So pin-level results from Gates 3 to 8 are also evidence on the netlist.
+Never change `tmr_forward_en` outside reset.
 
 Power and IR drop are estimates without simulation activity or pad effects. Gate 2 gives the first
 real number.
@@ -285,9 +273,9 @@ Take working thresholds from the golden model.
 
 | Corner | Power | Current |
 |---|---|---|
-| `ss_125C_4v50` | 34.1 mW | 7.6 mA |
-| `tt_025C_5v00` | 41.6 to 45.9 mW | 8.3 to 9.2 mA |
-| `ff_n40C_5v50` | 52.5 mW | 9.5 mA |
+| `max_ss_125C_4v50` | 30.2 mW | 6.7 mA |
+| `nom_tt_025C_5v00` | 36.8 mW | 7.4 mA |
+| `max_ff_n40C_5v50` | 46.4 mW | 8.4 mA |
 
 ## 6. Test procedure
 
@@ -352,7 +340,7 @@ compared with the model.
 **Pass:**
 
 - Current stays below the 50 mA limit at all times, and static current is below 5 mA [P].
-- Active current is 5 to 25 mA [P], around the 8 to 10 mA model [M].
+- Active current is 5 to 25 mA [P], around the 7 to 8.4 mA core model [M].
 - The device stays stable for 5 minutes with no drift or heating.
 
 **On failure:**
@@ -645,7 +633,7 @@ within 10% [P], and shaker calibration limits this accuracy.
 
 ### Gate 11: Voltage and temperature
 
-**Proves:** the behaviour holds across the signed-off range, including the over-limit nets in section 3.
+**Proves:** the behaviour holds across the signed-off range.
 
 **Entry:** Gate 8 passed at room conditions on this device. Use the emulator, not the sensor, since the sensor
 has its own temperature limits. Soak for at least 15 minutes at each temperature [P].
@@ -654,9 +642,9 @@ Run in this order, so the riskiest conditions come first:
 
 | Order | Temperature | VDD | Why |
 |---|---|---|---|
-| 1 | -40 °C | 5.5 V | `_10834_` at its largest overshoot |
-| 2 | 125 °C | 4.5 V | Slowest timing, and `_11893_` overshoot |
-| 3 | 25 °C | 5.0 V | Confirms the device was not damaged by 1 and 2, and covers `_10834_` at its smaller overshoot |
+| 1 | -40 °C | 5.5 V | Highest power and smallest cap margin |
+| 2 | 125 °C | 4.5 V | Slowest timing |
+| 3 | 25 °C | 5.0 V | Confirms the device was not damaged by 1 and 2 |
 | 4 | -40 °C | 4.5 V | Cold at low voltage |
 | 5 | 125 °C | 5.5 V | Hot at high voltage |
 | 6 | 25 °C | 4.5 V | Room at low voltage |
@@ -679,8 +667,6 @@ compare the trend against section 5.
 
 - Record the voltage and temperature boundary by stepping back toward 25 °C and 5.0 V. Then re-run row 3, to
   see whether the fault is reversible.
-- Failing only at the corners from the table in section 3 points to these nets, but this cannot be proven
-  from the pins. Record it as a suspected cause only.
 - Do not continue to Gate 12 on a device that failed row 3.
 
 **Cleared for next:** margin testing is meaningful, since the device works across its range.
@@ -696,7 +682,7 @@ compare the trend against section 5.
 3. Record the highest passing frequency, then confirm it with a 10-minute run.
 4. Repeat at 125 °C and 4.5 V, the slowest condition.
 
-The flow's worst setup slack is +7.51 ns, which suggests about 18.2 MHz at the slowest corner [M]. Expect
+The worst setup slack is +5.947 ns, which suggests about 17.7 MHz at the slowest corner [M]. Expect
 a higher value at room conditions.
 
 **Pass:** at least 17 MHz at 125 °C and 4.5 V [P], so that 16 MHz has real margin.
@@ -760,7 +746,7 @@ Start at the earliest symptom, and use this to find which gate to return to.
 | Flag will not clear | Clear frame, command path | Gate 7 |
 | Wrong trip point | Sample table, golden model, then DSP | Gate 8 |
 | Works with emulator, not sensor | Translator, levels, power order | Gate 10 |
-| Fails only at temperature or voltage extremes | Timing, over-limit nets | Gate 11 |
+| Fails only at temperature or voltage extremes | Timing | Gate 11 |
 | Fails only after hours | Thermal, supply, intermittent logic | Gate 13 |
 
 ## 8. Test log
@@ -797,7 +783,6 @@ failure explained and recorded. Gate 10 follows later.
 - **Register readback.** `STATUS`, `FAULT_MAG` and `FAULT_BIN` stay unverified on silicon as outputs, and their
   values can only be inferred.
 - **TMR voting and scrubbing on the bench.** Only Gate 14 touches these, and only indirectly.
-- **Per-net effects of the cap overshoot.** Only the overall behaviour can be seen.
 - **ESD and latch-up qualification, reliability and lifetime testing.** These need dedicated standards work and
   sample sizes.
 - **On-chip IR drop.** Supply current can be measured, but internal voltage cannot be probed.
@@ -809,6 +794,6 @@ failure explained and recorded. Gate 10 follows later.
 3. Write the automated SPI test scripts (section 4), and dry-run them against the emulator.
 4. Design and build the custom test PCB (section 4).
 5. Confirm the package, pin map and supply with the organizers (section 3).
-6. Re-check section 3 against final signoff. Update the hash and net list if the layout changes.
+6. If the layout changes, update section 3, the hash above, and `tb/golden_values.json` if the RTL changed.
 7. Review every [P] limit after the first good devices, and replace it with measured data.
 8. Later: fit the sensor section of the board, and run Gate 10.

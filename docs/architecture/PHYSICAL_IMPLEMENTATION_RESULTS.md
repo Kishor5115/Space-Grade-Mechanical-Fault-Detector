@@ -1,5 +1,8 @@
 # Physical Implementation Results — `top` Macro (LibreLane / GF180MCU)
 
+> **Superseded 2026-11-03.** Figures below are from layouts before three RTL fixes. Current results for
+> `PADCTRL_800_r10` are in [`documents/signoff_summary.md`](../../documents/signoff_summary.md).
+
 > **Status:** Macro physically signed off (DRC/LVS/XOR/antenna clean, timing closed on all 9 corners,
 > post pin-placement re-harden). Chip-top padring integration (`slot_1x1`, top-left) also signed off
 > clean. Gate-level cocotb simulation run (6/8 pass, 2 testbench-only). SEU/TMR fault-injection

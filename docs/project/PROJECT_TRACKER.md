@@ -96,21 +96,21 @@ results: [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](../architecture/PHYSICAL_IMPLEME
 |---|---|---|
 | LibreLane synthesis (current ITAG RTL) | ✅ DONE | `S1_SYNTH`: 0 lint errors, 0 unmapped cells, 0 inferred latches |
 | TMR survival through synthesis | ✅ DONE | 8/8 triplet groups, 375 bits confirmed intact in gate netlist |
-| Physical layout (place & route) | ✅ DONE | `S2_DRT`: 800×800 µm die, 60.9% utilization, 0 routing DRC, 0 antenna |
-| Timing closure at 16 MHz (62.5 ns) | ✅ DONE | Setup + hold met, 0 violations, 0 TNS on all 9 PVT corners |
-| DRC / LVS sign-off | 🔄 PARTIAL | Magic DRC 0, LVS 0, XOR 0 — **KLayout DRC ruleset unavailable for gf180mcuD, step skipped** |
+| Physical layout (place & route) | ✅ DONE | `PADCTRL_800_r10`: 800×800 µm die, 66.6% utilization, 0 routing DRC, 0 antenna |
+| Timing closure at 16 MHz (62.5 ns) | ✅ DONE | Setup +5.947 ns and hold +0.142 ns worst case, 0 TNS on all 9 PVT corners |
+| DRC / LVS sign-off | ✅ DONE | Magic DRC 0, KLayout DRC main deck 0, LVS match, XOR 0. Density inclusion not confirmed. |
 | Final GDS produced | ✅ DONE | `build/top/gds/top.gds` + LEF + 9-corner LIB + netlist + SPEF/SDF/DEF/SPICE |
 | Die size vs. original 600×600 µm budget | ⚠️ REVISED | Actual signed-off die is **800×800 µm** — see note below and ITAG analysis addendum |
 | DRV cleanup: max-slew/max-cap violations | ✅ RESOLVED | **Self-imposed SDC limits, not foundry violations.** Liberty-limits-only OpenSTA re-check of the signed-off netlist reports 0 slew / 0 cap / 0 fanout; the 2864 slew + 196 cap counts are against the project's `set_max_transition 3.0` / `set_max_capacitance 0.2` vs the library's 7 ns / per-pin 0.058–4.9 pF. Worst slew 6.64 ns is inside the 0.02–7 ns characterisation range (interpolated, not extrapolated). Waived with evidence — [`PHYSICAL_IMPLEMENTATION_RESULTS.md` §4.3](../architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md). Earlier attribution to the `sys_rst_n` fanout tree was wrong: `grep rst checks.rpt` → 0 hits |
 | Chip-top padring integration (`slot_1x1`, top-left) | ✅ DONE, SIGNED OFF CLEAN | Full Chip flow: Magic DRC 0, LVS 0 (the documented `slot_1x1` `VDD`-port LVS quirk did **not** occur), XOR 0, antenna 0. 245,704 instances, die 20.14 mm² (3932×5122 µm). ⚠️ Chip-level STA is boundary-only (macro is a `.lib` black box) — the reported +31.99 ns setup / +17.14 ns hold are **not** the design's internal margin, which is the macro's own +10.04 ns / +0.103 ns. Chip-level `ir__drop`/`power__total` are invalid (see row below). KLayout DRC/density were skipped at chip level too. See [`padring/README.md`](../../padring/README.md) |
 | Macro re-harden after pin-placement fix | ✅ DONE | `librelane/pins.cfg` corrected against the real `slot_1x1` pad lists: all 4 outputs on N, all 8 inputs on W, `clk`/`sys_rst_n` at the south end of W. Stages 2–3 re-run clean and margins **improved**: setup +10.04 ns (was +11.84 ns), hold +0.103 ns (was +0.127 ns), all 9 corners, 0 violations. All 12 pins verified on the correct edge (padring notebook Step 3.3a: 3/3 checks pass). [`PIN_PLACEMENT_RATIONALE.md` §7](../specs/PIN_PLACEMENT_RATIONALE.md) |
-| Formal RTL↔netlist equivalence (Yosys EQY) | 🔄 IN PROGRESS | [`verification/top.eqy`](../../verification/top.eqy) config created and launched against the signed-off netlist. A real image bug was found and fixed along the way (EQY's Yosys plugins ship in `/foss/tools/yosys/share/yosys/plugins/` but the `eqy` driver looks in `/foss/tools/bin/`). **Has not completed on this design; no equivalence result is claimed yet.** |
+| Formal RTL↔netlist equivalence (Yosys EQY) | 🔄 PARTIAL | 60 of 86 partitions proved, 25 inconclusive, 1 unexplained counterexample. See `documents/signoff_summary.md`. |
 | Gate-level / post-synthesis simulation | 🔄 RUN, 6/8 PASS | `make test-top-gl`: all 6 functional cases pass against the signed-off netlist with real `gf180mcu_fd_sc_mcu7t5v0` cell models. The 2 failures (`test_itag_9_mag_pulses_per_block`, `test_itag_no_multiplier_contention`) are **testbench-only** — they probe internal wires `mult_req`/`mag_mult_req` with 0 occurrences in `top.nl.v` post-synthesis, not a silicon defect. Marked RTL-only going forward. See [`GATE_LEVEL_VERIFICATION_GAPS.md` §5.1](../verification/GATE_LEVEL_VERIFICATION_GAPS.md) |
 | SEU / TMR fault-injection test | ✅ DONE | [`tb/test_seu.py`](../../tb/test_seu.py) (`make test-seu`, **3/3 PASS**): voter masks a single-bit upset, self-scrubs within one clock, and a forced illegal FSM encoding recovers to `S_IDLE` within one clock. Closes the "structural-only" RHBD verification gap for `goertzel_core`'s TMR. RTL-level result, not gate-level or physical. |
 | Physical RHBD (guard rings, substrate tapping) | ⬜ TODO | Not yet reflected in LibreLane config — a chip-level concern now that the padring integration is signed off |
 | Chip-audit registration (multi-team padring) | ⬜ TODO | Team B22 not yet present in the chipathon's GDS audit sheet; slot size/type unconfirmed |
 | Cell-name collision cleanup for chip-level merge | ⬜ TODO | Top cell currently named `top`; OpenROAD-generated via cells are unprefixed — both are collision risks in a merged multi-team GDS |
-| IR drop analysis at chip scale | ⬜ **STILL INVALID** | `VSRC_LOC_FILES` unset in BOTH the macro and chip runs. Macro reports 131 µV; chip reports **0.5 µV** and a chip `power__total` of **0.255 mW** which is *below* the macro's own 47 mW — off by ~184x, because the macro is a `.lib` black box with no activity annotation. Chip IR drop is **unverified, not verified-good**. Set `VSRC_LOC_FILES` to real pad coordinates and re-run |
+| IR drop analysis at chip scale | ⬜ NOT DONE | Macro static drop is under 13 mV per rail for the feeds tried. Dynamic drop, pads and the chip grid are not analysed. |
 | Fault status read-back accessibility | ⬜ **KNOWN LIMITATION, DOCUMENTED** | `STATUS`/`FAULT_MAG`/`FAULT_BIN` in `tmr_reg_bank` are **not readable off-chip**: both APB masters are hard-wired write-only (`req_write = 1'b1` in `cmd_spi_slave.v` and `spi_apb_interface.v`), and there is no `cmd_miso` pin. Only `fault_flag_out` (1 bit) is observable externally. A latent APB read bug also exists (`tmr_reg_bank` latches `prdata` on the SETUP phase that `apb_arb2`'s registered grant skips) — harmless today only because no master ever reads. See [`IO_SPECIFICATION.md` §Read-back accessibility](../specs/IO_SPECIFICATION.md#read-back-accessibility-in-silicon) for the bench-level workaround (threshold bisection) |
 | Final GDS submission | ⬜ TODO | Pending audit registration + slot confirmation above |
 
@@ -125,7 +125,7 @@ adjustment — tracked as an open decision, not a regression.
 | Task | Status | Notes |
 |---|---|---|
 | Host-facing command/config bus bridge (SPI-to-APB) | ⬜ TODO | Currently exercised via testbench APB direct writes |
-| Power characterization (post-synthesis switching activity) | ✅ DONE | Measured at signoff: 47.0 mW total — see [`PHYSICAL_IMPLEMENTATION_RESULTS.md`](../architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md) §4.6 |
+| Power characterization (gate-level switching activity) | ✅ DONE | 46.3 mW simulated, 46.4 mW estimated at ff / 5.5 V, core only — see `documents/signoff_summary.md` |
 | Formal property verification | 🔄 PARTIAL | SEU recovery properties now have an empirical test: [`tb/test_seu.py`](../../tb/test_seu.py) (3/3 PASS, RTL-level fault injection). FSM reachability and gate-level formal equivalence remain open — see [`GATE_LEVEL_VERIFICATION_GAPS.md`](../verification/GATE_LEVEL_VERIFICATION_GAPS.md) §2.6, §5 |
 
 ---
@@ -146,15 +146,15 @@ adjustment — tracked as an open decision, not a regression.
 | RHBD: TMR FSMs | 3 (goertzel_core, magnitude_compute, axis_sequencer) |
 | RHBD: TMR config registers | Yes (tmr_reg_bank, 1024-cycle scrub) |
 | RHBD: SRAM macros | 0 (fully flip-flop based) |
-| **Post-synthesis flip-flop count (gate netlist)** | **1,767** |
+| **Post-synthesis flip-flop count (gate netlist)** | **1,792** |
 | **TMR triplicated state bits (gate netlist)** | **375 bits, 8/8 groups intact** |
 | **Signed-off die size** | **800 × 800 µm (640,000 µm²)** |
-| **Core utilization** | **60.9%** |
+| **Core utilization** | **66.6%** |
 | **Setup slack, worst corner** | **+10.04 ns @ max_ss_125C_4v50** (post pin-placement re-harden; was +11.84 ns) |
 | **Hold slack, worst corner** | **+0.103 ns @ min_ff_n40C_5v50** (post pin-placement re-harden; was +0.127 ns) |
 | **Timing violations (9 corners)** | **0 setup, 0 hold, 0 TNS** |
 | **DRC / LVS / XOR / antenna** | **0 / 0 / 0 / 0** |
-| **Total power (signoff)** | **47.0 mW** (35.6 internal + 11.4 switching + 5.3 µW leakage) |
+| **Total power (estimate, core only)** | **46.4 mW at ff / 5.5 V, 36.8 mW at tt / 5.0 V** |
 
 ---
 
@@ -163,11 +163,11 @@ adjustment — tracked as an open decision, not a regression.
 | Issue | Severity | Mitigation |
 |---|---|---|
 | Gate-level simulation not yet run | Medium | 9-corner SDF exists in `build/top/sdf/`; RTL simulation passes; **this is the next planned step (cocotb)** |
-| No formal RTL↔netlist equivalence check (Yosys EQY) | Medium | TMR survival confirmed structurally (bit-width parse of netlist); EQY would make this a formal proof |
+| Formal RTL↔netlist equivalence is partial (Yosys EQY) | Medium | 60 of 86 partitions proved. RTL and netlist matched on all outputs over 660,055 clocks of random stimulus. |
 | ~~Reset-net max-slew/max-cap DRV violations~~ — **closed** | None | Re-verified: the counts are measured against the project's own SDC limits (3.0 ns / 0.2 pF), which are tighter than the library's (7 ns / per-pin 0.058–4.9 pF). A liberty-limits-only OpenSTA re-check of the signed-off netlist returns **0 slew, 0 cap, 0 fanout** violators. The earlier root-cause attribution to the `sys_rst_n` fanout tree was incorrect — the violators are in the Goertzel datapath and the flow's own CTS/repair cells. See [`PHYSICAL_IMPLEMENTATION_RESULTS.md` §4.3](../architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md) |
 | TMR reset recovery/removal timing never analysed | Low | `sys_rst_n` is false-pathed in all three SDC views, so recovery/removal between the three copies of each triplicated register is not checked. The self-scrubbing voter re-converges within one clock, so this is not a correctness risk, but it should be stated explicitly in the RHBD documentation |
-| KLayout DRC did not run (ruleset unavailable for gf180mcuD) | Low–Medium | Magic DRC (0 errors) + KLayout XOR cross-check (0 differences) are the current DRC evidence; independent rule-check coverage is incomplete |
-| IR drop analysis not chip-representative | Low (for now) | `VSRC_LOC_FILES` unset in both the macro and chip runs. Macro reports 131 µV (caveated estimate); chip reports 0.5 µV and a chip `power__total` of 0.255 mW that is *below* the macro's own 47 mW (~184x off — the macro is a `.lib` black box at chip level). Chip IR drop is unverified, not verified-good. Re-run with real pad coordinates |
+| KLayout density inclusion not confirmed | Low | KLayout DRC main deck is clean on `PADCTRL_800_r10`. |
+| IR drop analysis not chip-representative | Low (for now) | Macro static drop only. Chip feed points, pads and dynamic drop are not analysed. |
 | Die size grew from ~600×600 µm target to signed-off 800×800 µm | Medium | 650×650 µm failed setup by −19 ns; 800×800 closes cleanly. Reaching 600×600 needs a dedicated area-reduction pass, tracked separately |
 | Team B22 not yet registered in the chipathon's multi-team GDS audit sheet | High (process) | Slot type/size unconfirmed; blocks chip-level integration planning |
 | Cell-name collision risk for chip-level GDS merge | Medium | Top cell named `top`; unprefixed OpenROAD via cells (`VIA_Via1_HV`, etc.) — both are generic names likely to collide with other teams' submissions |

@@ -1,0 +1,49 @@
+make -f Makefile.cocotb \
+    TOPLEVEL=spi_master \
+    MODULE=test_spi \
+    VERILOG_SOURCES="../rtl/clk_divider.v ../rtl/ff_2_sync.v ../rtl/spi_master.v" \
+    SIM_BUILD=sim_build_spi
+make[1]: Entering directory '/tmp/v/tb'
+rm -f results.xml
+"make" -f Makefile.cocotb results.xml
+make[2]: Entering directory '/tmp/v/tb'
+mkdir -p sim_build_spi
+/foss/tools/bin/iverilog -o sim_build_spi/sim.vvp -s spi_master -g2012 -f sim_build_spi/cmds.f  ../rtl/clk_divider.v ../rtl/ff_2_sync.v ../rtl/spi_master.v
+/usr/local/lib/python3.12/dist-packages/cocotb_tools/makefiles/simulators/Makefile.icarus:66: Using MODULE is deprecated, please use COCOTB_TEST_MODULES instead.
+rm -f results.xml
+COCOTB_TEST_MODULES=test_spi COCOTB_TESTCASE= COCOTB_TEST_FILTER= COCOTB_TOPLEVEL=spi_master TOPLEVEL_LANG=verilog \
+         /foss/tools/bin/vvp -M /usr/local/lib/python3.12/dist-packages/cocotb/libs -m libcocotbvpi_icarus   sim_build_spi/sim.vvp   
+     -.--ns INFO     gpi                                ..mbed/gpi_embed.cpp:93   in _embed_init_python              Using Python 3.12.3 interpreter at /usr/bin/python3
+     -.--ns INFO     gpi                                ../gpi/GpiCommon.cpp:79   in gpi_print_registered_impl       VPI registered
+     0.00ns INFO     cocotb                             Running on Icarus Verilog version 14.0 (devel)
+     0.00ns INFO     cocotb                             Seeding Python random module with 1793702777
+     0.00ns INFO     cocotb                             Initialized cocotb v2.0.1 from /usr/local/lib/python3.12/dist-packages/cocotb
+     0.00ns INFO     cocotb                             Running tests
+     0.00ns INFO     cocotb.regression                  running test_spi.test_clk_idles_high_on_reset (1/5)
+                                                            After reset, s_clk must idle HIGH (SPI mode 3: CPOL=1).
+   312.50ns INFO     cocotb.regression                  test_spi.test_clk_idles_high_on_reset passed
+   312.50ns INFO     cocotb.regression                  running test_spi.test_boot_sequence_issues_four_writes (2/5)
+                                                            Immediately after reset the FSM must issue exactly 4 SPI write frames
+ 33125.00ns INFO     cocotb.regression                  test_spi.test_boot_sequence_issues_four_writes passed
+ 33125.00ns INFO     cocotb.regression                  running test_spi.test_burst_read_on_drdy (3/5)
+                                                            After the boot sequence, a DRDY pulse should trigger one burst-read
+410125.00ns INFO     cocotb.regression                  test_spi.test_burst_read_on_drdy passed
+410125.00ns INFO     cocotb.regression                  running test_spi.test_miso_captured_in_correct_byte_order (4/5)
+                                                            Inject a known MISO pattern and verify s_data_out captures it with
+502500.00ns INFO     cocotb.regression                  test_spi.test_miso_captured_in_correct_byte_order passed
+502500.00ns INFO     cocotb.regression                  running test_spi.test_cs_stays_low_during_transfer (5/5)
+                                                            s_csn must remain LOW for the entire duration of a write or read frame
+511312.50ns INFO     cocotb.regression                  test_spi.test_cs_stays_low_during_transfer passed
+511312.50ns INFO     cocotb.regression                  ***********************************************************************************************************
+                                                        ** TEST                                               STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
+                                                        ***********************************************************************************************************
+                                                        ** test_spi.test_clk_idles_high_on_reset               PASS         312.50           0.00     129160.43  **
+                                                        ** test_spi.test_boot_sequence_issues_four_writes      PASS       32812.50           0.03    1173478.85  **
+                                                        ** test_spi.test_burst_read_on_drdy                    PASS      377000.00           0.33    1146497.37  **
+                                                        ** test_spi.test_miso_captured_in_correct_byte_order   PASS       92375.00           0.09     991336.07  **
+                                                        ** test_spi.test_cs_stays_low_during_transfer          PASS        8812.50           0.01    1169915.30  **
+                                                        ***********************************************************************************************************
+                                                        ** TESTS=5 PASS=5 FAIL=0 SKIP=0                                  511312.50           0.47    1098448.61  **
+                                                        ***********************************************************************************************************
+make[2]: Leaving directory '/tmp/v/tb'
+make[1]: Leaving directory '/tmp/v/tb'

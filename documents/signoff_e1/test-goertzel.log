@@ -1,0 +1,57 @@
+make -f Makefile.cocotb \
+    TOPLEVEL=goertzel_core \
+    MODULE=test_goertzel \
+    VERILOG_SOURCES="../rtl/multiplier.v ../rtl/goertzel_core.v" \
+    SIM_BUILD=sim_build_goertzel
+make[1]: Entering directory '/tmp/v/tb'
+rm -f results.xml
+"make" -f Makefile.cocotb results.xml
+make[2]: Entering directory '/tmp/v/tb'
+mkdir -p sim_build_goertzel
+/foss/tools/bin/iverilog -o sim_build_goertzel/sim.vvp -s goertzel_core -g2012 -f sim_build_goertzel/cmds.f  ../rtl/multiplier.v ../rtl/goertzel_core.v
+/usr/local/lib/python3.12/dist-packages/cocotb_tools/makefiles/simulators/Makefile.icarus:66: Using MODULE is deprecated, please use COCOTB_TEST_MODULES instead.
+rm -f results.xml
+COCOTB_TEST_MODULES=test_goertzel COCOTB_TESTCASE= COCOTB_TEST_FILTER= COCOTB_TOPLEVEL=goertzel_core TOPLEVEL_LANG=verilog \
+         /foss/tools/bin/vvp -M /usr/local/lib/python3.12/dist-packages/cocotb/libs -m libcocotbvpi_icarus   sim_build_goertzel/sim.vvp   
+     -.--ns INFO     gpi                                ..mbed/gpi_embed.cpp:93   in _embed_init_python              Using Python 3.12.3 interpreter at /usr/bin/python3
+     -.--ns INFO     gpi                                ../gpi/GpiCommon.cpp:79   in gpi_print_registered_impl       VPI registered
+     0.00ns INFO     cocotb                             Running on Icarus Verilog version 14.0 (devel)
+     0.00ns INFO     cocotb                             Seeding Python random module with 1793702781
+     0.00ns INFO     cocotb                             Initialized cocotb v2.0.1 from /usr/local/lib/python3.12/dist-packages/cocotb
+     0.00ns INFO     cocotb                             Running tests
+     0.00ns INFO     cocotb.regression                  running test_goertzel.test_reset_clears_state (1/7)
+                                                            All v1/v2 outputs must be zero immediately after reset.
+   375.00ns INFO     cocotb.regression                  test_goertzel.test_reset_clears_state passed
+   375.00ns INFO     cocotb.regression                  running test_goertzel.test_sample_done_once_per_sample (2/7)
+                                                            sample_done must pulse exactly once per data_ready cycle.
+ 32250.00ns INFO     cocotb.regression                  test_goertzel.test_sample_done_once_per_sample passed
+ 32250.00ns INFO     cocotb.regression                  running test_goertzel.test_zero_coeff_zero_output (3/7)
+                                                            With all coefficients = 0 and zero inputs, goertzel v-registers stay at zero.
+ 45062.50ns INFO     cocotb.regression                  test_goertzel.test_zero_coeff_zero_output passed
+ 45062.50ns INFO     cocotb.regression                  running test_goertzel.test_three_axis_independence (4/7)
+                                                            X, Y, Z v-state must differ when given different input samples.
+ 51625.00ns INFO     cocotb.regression                  test_goertzel.test_three_axis_independence passed
+ 51625.00ns INFO     cocotb.regression                  running test_goertzel.test_block_clear_zeroes_state (5/7)
+                                                            After block_clear, all v-registers must return to zero.
+ 62062.50ns INFO     cocotb.regression                  test_goertzel.test_block_clear_zeroes_state passed
+ 62062.50ns INFO     cocotb.regression                  running test_goertzel.test_no_spurious_mult_req (6/7)
+                                                            mult_req must be 0 outside the 18-cycle active window.
+ 76125.01ns INFO     cocotb.regression                  test_goertzel.test_no_spurious_mult_req passed
+ 76125.01ns INFO     cocotb.regression                  running test_goertzel.test_on_target_tone_grows (7/7)
+                                                            A resonant input tone (c = 2cos(2πf/fs) for bin 0) causes v1 to grow
+101437.51ns INFO     cocotb.regression                  test_goertzel.test_on_target_tone_grows passed
+101437.51ns INFO     cocotb.regression                  ********************************************************************************************************
+                                                        ** TEST                                            STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
+                                                        ********************************************************************************************************
+                                                        ** test_goertzel.test_reset_clears_state            PASS         375.00           0.01      42187.16  **
+                                                        ** test_goertzel.test_sample_done_once_per_sample   PASS       31875.00           0.06     502710.86  **
+                                                        ** test_goertzel.test_zero_coeff_zero_output        PASS       12812.50           0.03     508218.38  **
+                                                        ** test_goertzel.test_three_axis_independence       PASS        6562.50           0.01     522110.06  **
+                                                        ** test_goertzel.test_block_clear_zeroes_state      PASS       10437.50           0.02     433493.23  **
+                                                        ** test_goertzel.test_no_spurious_mult_req          PASS       14062.50           0.03     552585.28  **
+                                                        ** test_goertzel.test_on_target_tone_grows          PASS       25312.50           0.04     578583.41  **
+                                                        ********************************************************************************************************
+                                                        ** TESTS=7 PASS=7 FAIL=0 SKIP=0                               101437.51           0.22     453453.22  **
+                                                        ********************************************************************************************************
+make[2]: Leaving directory '/tmp/v/tb'
+make[1]: Leaving directory '/tmp/v/tb'

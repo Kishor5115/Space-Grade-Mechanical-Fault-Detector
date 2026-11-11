@@ -1,0 +1,61 @@
+make -f Makefile.cocotb \
+    TOPLEVEL=B22_A \
+    MODULE=test_top \
+    COMPILE_ARGS="-g2012 -DFUNCTIONAL -DUNIT_DELAY=\#1" \
+    VERILOG_SOURCES="timescale.v /foss/pdks/gf180mcuD/libs.ref/gf180mcu_fd_sc_mcu7t5v0/verilog/primitives.v /foss/pdks/gf180mcuD/libs.ref/gf180mcu_fd_sc_mcu7t5v0/verilog/gf180mcu_fd_sc_mcu7t5v0.v /foss/designs/Space-Grade-Mechanical-Fault-Detector/ip/top/../../librelane/runs/PADCTRL_800_e1/final/nl/top.nl.v /foss/designs/Space-Grade-Mechanical-Fault-Detector/block_a/runs/BA7/final/nl/B22_A.nl.v" \
+    SIM_BUILD=sim_build_wa
+make[1]: Entering directory '/tmp/wa/tb'
+rm -f results.xml
+"make" -f Makefile.cocotb results.xml
+make[2]: Entering directory '/tmp/wa/tb'
+/foss/tools/bin/iverilog -o sim_build_wa/sim.vvp -s B22_A -g2012 -g2012 -DFUNCTIONAL -DUNIT_DELAY=\#1  timescale.v /foss/pdks/gf180mcuD/libs.ref/gf180mcu_fd_sc_mcu7t5v0/verilog/primitives.v /foss/pdks/gf180mcuD/libs.ref/gf180mcu_fd_sc_mcu7t5v0/verilog/gf180mcu_fd_sc_mcu7t5v0.v /foss/designs/Space-Grade-Mechanical-Fault-Detector/ip/top/../../librelane/runs/PADCTRL_800_e1/final/nl/top.nl.v /foss/designs/Space-Grade-Mechanical-Fault-Detector/block_a/runs/BA7/final/nl/B22_A.nl.v
+/usr/local/lib/python3.12/dist-packages/cocotb_tools/makefiles/simulators/Makefile.icarus:66: Using MODULE is deprecated, please use COCOTB_TEST_MODULES instead.
+rm -f results.xml
+COCOTB_TEST_MODULES=test_top COCOTB_TESTCASE= COCOTB_TEST_FILTER= COCOTB_TOPLEVEL=B22_A TOPLEVEL_LANG=verilog \
+         /foss/tools/bin/vvp -M /usr/local/lib/python3.12/dist-packages/cocotb/libs -m libcocotbvpi_icarus   sim_build_wa/sim.vvp   
+     -.--ns INFO     gpi                                ..mbed/gpi_embed.cpp:93   in _embed_init_python              Using Python 3.12.3 interpreter at /usr/bin/python3
+     -.--ns INFO     gpi                                ../gpi/GpiCommon.cpp:79   in gpi_print_registered_impl       VPI registered
+     0.00ns INFO     cocotb                             Running on Icarus Verilog version 14.0 (devel)
+     0.00ns INFO     cocotb                             Seeding Python random module with 1794400489
+     0.00ns INFO     cocotb                             Initialized cocotb v2.0.1 from /usr/local/lib/python3.12/dist-packages/cocotb
+     0.00ns INFO     cocotb                             Running tests
+     0.00ns INFO     cocotb.regression                  running test_top.test_case1_no_fault_baseline (1/8)
+                                                            Broadband noise on all axes, below threshold → fault_flag_out stays LOW.
+14777187.50ns INFO     cocotb.regression                  test_top.test_case1_no_fault_baseline passed
+14777187.50ns INFO     cocotb.regression                  running test_top.test_case2_fault_on_x (2/8)
+                                                              On-target tone on X → fault asserts.
+44146437.50ns INFO     cocotb.regression                  test_top.test_case2_fault_on_x passed
+44146437.50ns INFO     cocotb.regression                  running test_top.test_case3_fault_on_y (3/8)
+                                                              On-target tone on Y only → fault asserts.
+73527687.50ns INFO     cocotb.regression                  test_top.test_case3_fault_on_y passed
+73527687.50ns INFO     cocotb.regression                  running test_top.test_case4_fault_on_z (4/8)
+                                                              On-target tone on Z only → fault asserts.
+102908937.50ns INFO     cocotb.regression                  test_top.test_case4_fault_on_z passed
+102908937.50ns INFO     cocotb.regression                  running test_top.test_case5_simultaneous_3axis_fault (5/8)
+                                                               On-target tone on ALL THREE axes simultaneously.
+132290187.50ns INFO     cocotb.regression                  test_top.test_case5_simultaneous_3axis_fault passed
+132290187.50ns INFO     cocotb.regression                  running test_top.test_case6_fault_clear (6/8)
+                                                               After fault_flag asserts, cfg_fault_clear must de-assert it.
+161672000.00ns INFO     cocotb.regression                  test_top.test_case6_fault_clear passed
+161672000.00ns INFO     cocotb.regression                  running test_top.test_itag_9_mag_pulses_per_block (7/8)
+                                                               The ITAG magnitude engine must emit exactly 9 mag_out_valid pulses
+294905312.51ns INFO     cocotb.regression                  test_top.test_itag_9_mag_pulses_per_block passed
+294905312.51ns INFO     cocotb.regression                  running test_top.test_itag_no_multiplier_contention (8/8)
+                                                               goertzel_core and magnitude_compute must never request the shared
+324610437.51ns INFO     cocotb.regression                  test_top.test_itag_no_multiplier_contention passed
+324610437.51ns INFO     cocotb.regression                  ******************************************************************************************************
+                                                           ** TEST                                          STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
+                                                           ******************************************************************************************************
+                                                           ** test_top.test_case1_no_fault_baseline          PASS    14777187.50          89.72     164697.08  **
+                                                           ** test_top.test_case2_fault_on_x                 PASS    29369250.00         204.33     143736.75  **
+                                                           ** test_top.test_case3_fault_on_y                 PASS    29381250.00         157.20     186908.32  **
+                                                           ** test_top.test_case4_fault_on_z                 PASS    29381250.00         158.28     185624.03  **
+                                                           ** test_top.test_case5_simultaneous_3axis_fault   PASS    29381250.00         198.54     147986.16  **
+                                                           ** test_top.test_case6_fault_clear                PASS    29381812.50         157.07     187057.82  **
+                                                           ** test_top.test_itag_9_mag_pulses_per_block      PASS   133233312.50         707.65     188276.95  **
+                                                           ** test_top.test_itag_no_multiplier_contention    PASS    29705125.00         154.49     192278.53  **
+                                                           ******************************************************************************************************
+                                                           ** TESTS=8 PASS=8 FAIL=0 SKIP=0                          324610437.51        1827.32     177642.94  **
+                                                           ******************************************************************************************************
+make[2]: Leaving directory '/tmp/wa/tb'
+make[1]: Leaving directory '/tmp/wa/tb'

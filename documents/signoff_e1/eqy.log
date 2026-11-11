@@ -1,0 +1,334 @@
+EQY 12:40:02 [top] read_gold: starting process "yosys -ql top/gold.log top/gold.ys"
+EQY 12:40:02 [top] read_gold: Warning: Replacing memory \sc with list of registers. See rtl/magnitude_compute.v:127
+EQY 12:40:02 [top] read_gold: Warning: Replacing memory \sv2 with list of registers. See rtl/magnitude_compute.v:125
+EQY 12:40:02 [top] read_gold: Warning: Replacing memory \sv1 with list of registers. See rtl/magnitude_compute.v:124
+EQY 12:40:02 [top] read_gate: starting process "yosys -ql top/gate.log top/gate.ys"
+EQY 12:40:03 [top] read_gold: finished (returncode=0)
+EQY 12:40:09 [top] read_gate: finished (returncode=0)
+EQY 12:40:09 [top] combine: starting process "yosys -ql top/combine.log top/combine.ys"
+EQY 12:40:10 [top] combine: finished (returncode=0)
+EQY 12:40:12 [top] partition: starting process "cd top; yosys -ql partition.log partition.ys"
+EQY 12:40:18 [top] partition: finished (returncode=0)
+EQY 12:40:18 [top] run: starting process "make -C top -f strategies.mk"
+EQY 12:40:18 [top] run: make: Entering directory '/tmp/v/top'
+EQY 12:40:18 [top] run: Running strategy 'sat' on 'top.apb_arb_inst.m0_penable'..
+EQY 12:40:19 [top] run: Could not prove equivalence of partition 'top.apb_arb_inst.m0_penable' using strategy 'sat'
+EQY 12:40:19 [top] run: Running strategy 'sby' on 'top.apb_arb_inst.m0_penable'..
+EQY 12:40:20 [top] run: Could not prove equivalence of partition 'top.apb_arb_inst.m0_penable' using strategy 'sby': equivalence unknown
+EQY 12:40:20 [top] run: Running strategy 'sat' on 'top.apb_arb_inst.m0_psel'..
+EQY 12:40:21 [top] run: Could not prove equivalence of partition 'top.apb_arb_inst.m0_psel' using strategy 'sat'
+EQY 12:40:21 [top] run: Running strategy 'sby' on 'top.apb_arb_inst.m0_psel'..
+EQY 12:40:22 [top] run: Could not prove equivalence of partition 'top.apb_arb_inst.m0_psel' using strategy 'sby': equivalence unknown
+EQY 12:40:22 [top] run: Running strategy 'sat' on 'top.apb_arb_inst.m0_pwrite'..
+EQY 12:40:23 [top] run: Could not prove equivalence of partition 'top.apb_arb_inst.m0_pwrite' using strategy 'sat'
+EQY 12:40:23 [top] run: Running strategy 'sby' on 'top.apb_arb_inst.m0_pwrite'..
+EQY 12:40:24 [top] run: Could not prove equivalence of partition 'top.apb_arb_inst.m0_pwrite' using strategy 'sby': equivalence unknown
+EQY 12:40:24 [top] run: Running strategy 'sat' on 'top.apb_arb_inst.m1_penable'..
+EQY 12:40:25 [top] run: Could not prove equivalence of partition 'top.apb_arb_inst.m1_penable' using strategy 'sat'
+EQY 12:40:25 [top] run: Running strategy 'sby' on 'top.apb_arb_inst.m1_penable'..
+EQY 12:40:27 [top] run: Could not prove equivalence of partition 'top.apb_arb_inst.m1_penable' using strategy 'sby': equivalence unknown
+EQY 12:40:27 [top] run: Running strategy 'sat' on 'top.apb_arb_inst.m1_psel'..
+EQY 12:40:27 [top] run: Could not prove equivalence of partition 'top.apb_arb_inst.m1_psel' using strategy 'sat'
+EQY 12:40:27 [top] run: Running strategy 'sby' on 'top.apb_arb_inst.m1_psel'..
+EQY 12:40:29 [top] run: Could not prove equivalence of partition 'top.apb_arb_inst.m1_psel' using strategy 'sby': equivalence unknown
+EQY 12:40:29 [top] run: Running strategy 'sat' on 'top.apb_arb_inst.m1_pwrite'..
+EQY 12:40:30 [top] run: Could not prove equivalence of partition 'top.apb_arb_inst.m1_pwrite' using strategy 'sat'
+EQY 12:40:30 [top] run: Running strategy 'sby' on 'top.apb_arb_inst.m1_pwrite'..
+EQY 12:40:31 [top] run: Could not prove equivalence of partition 'top.apb_arb_inst.m1_pwrite' using strategy 'sby': equivalence unknown
+EQY 12:40:31 [top] run: Running strategy 'sat' on 'top.apb_arb_inst.s_pready'..
+EQY 12:40:32 [top] run: Could not prove equivalence of partition 'top.apb_arb_inst.s_pready' using strategy 'sat'
+EQY 12:40:32 [top] run: Running strategy 'sby' on 'top.apb_arb_inst.s_pready'..
+EQY 12:40:33 [top] run: Could not prove equivalence of partition 'top.apb_arb_inst.s_pready' using strategy 'sby': equivalence unknown
+EQY 12:40:33 [top] run: Running strategy 'sat' on 'top.axseq_inst.core_data_ready'..
+EQY 12:40:36 [top] run: Could not prove equivalence of partition 'top.axseq_inst.core_data_ready' using strategy 'sat'
+EQY 12:40:36 [top] run: Running strategy 'sby' on 'top.axseq_inst.core_data_ready'..
+EQY 12:40:38 [top] run: Could not prove equivalence of partition 'top.axseq_inst.core_data_ready' using strategy 'sby': equivalence unknown
+EQY 12:40:38 [top] run: Running strategy 'sat' on 'top.axseq_inst.req_done'..
+EQY 12:40:38 [top] run: Proved equivalence of partition 'top.axseq_inst.req_done' using strategy 'sat'
+EQY 12:40:38 [top] run: Running strategy 'sat' on 'top.axseq_inst.req_valid'..
+EQY 12:40:40 [top] run: Could not prove equivalence of partition 'top.axseq_inst.req_valid' using strategy 'sat'
+EQY 12:40:40 [top] run: Running strategy 'sby' on 'top.axseq_inst.req_valid'..
+EQY 12:40:42 [top] run: Could not prove equivalence of partition 'top.axseq_inst.req_valid' using strategy 'sby': equivalence unknown
+EQY 12:40:42 [top] run: Running strategy 'sat' on 'top.axseq_inst.run_enable'..
+EQY 12:40:46 [top] run: Could not prove equivalence of partition 'top.axseq_inst.run_enable' using strategy 'sat'
+EQY 12:40:46 [top] run: Running strategy 'sby' on 'top.axseq_inst.run_enable'..
+EQY 12:40:49 [top] run: Could not prove equivalence of partition 'top.axseq_inst.run_enable' using strategy 'sby': equivalence unknown
+EQY 12:40:49 [top] run: Running strategy 'sat' on 'top.block_clear'..
+EQY 12:40:50 [top] run: Proved equivalence of partition 'top.block_clear' using strategy 'sat'
+EQY 12:40:50 [top] run: Running strategy 'sat' on 'top.c_csn_CS'..
+EQY 12:40:50 [top] run: Proved equivalence of partition 'top.c_csn_CS' using strategy 'sat'
+EQY 12:40:50 [top] run: Running strategy 'sat' on 'top.c_csn_IE'..
+EQY 12:40:50 [top] run: Proved equivalence of partition 'top.c_csn_IE' using strategy 'sat'
+EQY 12:40:50 [top] run: Running strategy 'sat' on 'top.c_csn_OE'..
+EQY 12:40:50 [top] run: Proved equivalence of partition 'top.c_csn_OE' using strategy 'sat'
+EQY 12:40:50 [top] run: Running strategy 'sat' on 'top.c_csn_OUT'..
+EQY 12:40:51 [top] run: Could not prove equivalence of partition 'top.c_csn_OUT' using strategy 'sat'
+EQY 12:40:51 [top] run: Running strategy 'sby' on 'top.c_csn_OUT'..
+EQY 12:40:53 [top] run: Could not prove equivalence of partition 'top.c_csn_OUT' using strategy 'sby': equivalence unknown
+EQY 12:40:53 [top] run: Running strategy 'sat' on 'top.c_csn_PD'..
+EQY 12:40:53 [top] run: Proved equivalence of partition 'top.c_csn_PD' using strategy 'sat'
+EQY 12:40:53 [top] run: Running strategy 'sat' on 'top.c_csn_PU'..
+EQY 12:40:53 [top] run: Proved equivalence of partition 'top.c_csn_PU' using strategy 'sat'
+EQY 12:40:53 [top] run: Running strategy 'sat' on 'top.c_csn_SL'..
+EQY 12:40:53 [top] run: Proved equivalence of partition 'top.c_csn_SL' using strategy 'sat'
+EQY 12:40:53 [top] run: Running strategy 'sat' on 'top.c_miso_PD'..
+EQY 12:40:53 [top] run: Proved equivalence of partition 'top.c_miso_PD' using strategy 'sat'
+EQY 12:40:53 [top] run: Running strategy 'sat' on 'top.c_miso_PU'..
+EQY 12:40:53 [top] run: Proved equivalence of partition 'top.c_miso_PU' using strategy 'sat'
+EQY 12:40:53 [top] run: Running strategy 'sat' on 'top.c_mosi_CS'..
+EQY 12:40:53 [top] run: Proved equivalence of partition 'top.c_mosi_CS' using strategy 'sat'
+EQY 12:40:53 [top] run: Running strategy 'sat' on 'top.c_mosi_IE'..
+EQY 12:40:53 [top] run: Proved equivalence of partition 'top.c_mosi_IE' using strategy 'sat'
+EQY 12:40:53 [top] run: Running strategy 'sat' on 'top.c_mosi_OE'..
+EQY 12:40:53 [top] run: Proved equivalence of partition 'top.c_mosi_OE' using strategy 'sat'
+EQY 12:40:53 [top] run: Running strategy 'sat' on 'top.c_mosi_OUT'..
+EQY 12:40:54 [top] run: Could not prove equivalence of partition 'top.c_mosi_OUT' using strategy 'sat'
+EQY 12:40:54 [top] run: Running strategy 'sby' on 'top.c_mosi_OUT'..
+EQY 12:40:56 [top] run: Could not prove equivalence of partition 'top.c_mosi_OUT' using strategy 'sby': equivalence unknown
+EQY 12:40:56 [top] run: Running strategy 'sat' on 'top.c_mosi_PD'..
+EQY 12:40:56 [top] run: Proved equivalence of partition 'top.c_mosi_PD' using strategy 'sat'
+EQY 12:40:56 [top] run: Running strategy 'sat' on 'top.c_mosi_PU'..
+EQY 12:40:56 [top] run: Proved equivalence of partition 'top.c_mosi_PU' using strategy 'sat'
+EQY 12:40:56 [top] run: Running strategy 'sat' on 'top.c_mosi_SL'..
+EQY 12:40:56 [top] run: Proved equivalence of partition 'top.c_mosi_SL' using strategy 'sat'
+EQY 12:40:56 [top] run: Running strategy 'sat' on 'top.c_sclk_CS'..
+EQY 12:40:56 [top] run: Proved equivalence of partition 'top.c_sclk_CS' using strategy 'sat'
+EQY 12:40:56 [top] run: Running strategy 'sat' on 'top.c_sclk_IE'..
+EQY 12:40:56 [top] run: Proved equivalence of partition 'top.c_sclk_IE' using strategy 'sat'
+EQY 12:40:56 [top] run: Running strategy 'sat' on 'top.c_sclk_OE'..
+EQY 12:40:56 [top] run: Proved equivalence of partition 'top.c_sclk_OE' using strategy 'sat'
+EQY 12:40:56 [top] run: Running strategy 'sat' on 'top.c_sclk_OUT'..
+EQY 12:40:57 [top] run: Could not prove equivalence of partition 'top.c_sclk_OUT' using strategy 'sat'
+EQY 12:40:57 [top] run: Running strategy 'sby' on 'top.c_sclk_OUT'..
+EQY 12:40:59 [top] run: Could not prove equivalence of partition 'top.c_sclk_OUT' using strategy 'sby': equivalence unknown
+EQY 12:40:59 [top] run: Running strategy 'sat' on 'top.c_sclk_PD'..
+EQY 12:40:59 [top] run: Proved equivalence of partition 'top.c_sclk_PD' using strategy 'sat'
+EQY 12:40:59 [top] run: Running strategy 'sat' on 'top.c_sclk_PU'..
+EQY 12:40:59 [top] run: Proved equivalence of partition 'top.c_sclk_PU' using strategy 'sat'
+EQY 12:40:59 [top] run: Running strategy 'sat' on 'top.c_sclk_SL'..
+EQY 12:40:59 [top] run: Proved equivalence of partition 'top.c_sclk_SL' using strategy 'sat'
+EQY 12:40:59 [top] run: Running strategy 'sat' on 'top.cfg_fault_clear'..
+EQY 12:41:03 [top] run: Could not prove equivalence of partition 'top.cfg_fault_clear' using strategy 'sat'
+EQY 12:41:03 [top] run: Running strategy 'sby' on 'top.cfg_fault_clear'..
+EQY 12:41:06 [top] run: Could not prove equivalence of partition 'top.cfg_fault_clear' using strategy 'sby': equivalence unknown
+EQY 12:41:06 [top] run: Running strategy 'sat' on 'top.clk_PD'..
+EQY 12:41:07 [top] run: Proved equivalence of partition 'top.clk_PD' using strategy 'sat'
+EQY 12:41:07 [top] run: Running strategy 'sat' on 'top.clk_PU'..
+EQY 12:41:07 [top] run: Proved equivalence of partition 'top.clk_PU' using strategy 'sat'
+EQY 12:41:07 [top] run: Running strategy 'sat' on 'top.cmd_apb_master.req_done'..
+EQY 12:41:07 [top] run: Could not prove equivalence of partition 'top.cmd_apb_master.req_done' using strategy 'sat'
+EQY 12:41:07 [top] run: Running strategy 'sby' on 'top.cmd_apb_master.req_done'..
+EQY 12:41:09 [top] run: Could not prove equivalence of partition 'top.cmd_apb_master.req_done' using strategy 'sby': equivalence unknown
+EQY 12:41:09 [top] run: Running strategy 'sat' on 'top.cmd_apb_master.req_valid'..
+EQY 12:41:10 [top] run: Could not prove equivalence of partition 'top.cmd_apb_master.req_valid' using strategy 'sat'
+EQY 12:41:10 [top] run: Running strategy 'sby' on 'top.cmd_apb_master.req_valid'..
+EQY 12:41:11 [top] run: Could not prove equivalence of partition 'top.cmd_apb_master.req_valid' using strategy 'sby': equivalence unknown
+EQY 12:41:11 [top] run: Running strategy 'sat' on 'top.cmd_csn_PD'..
+EQY 12:41:11 [top] run: Proved equivalence of partition 'top.cmd_csn_PD' using strategy 'sat'
+EQY 12:41:11 [top] run: Running strategy 'sat' on 'top.cmd_csn_PU'..
+EQY 12:41:11 [top] run: Proved equivalence of partition 'top.cmd_csn_PU' using strategy 'sat'
+EQY 12:41:11 [top] run: Running strategy 'sat' on 'top.cmd_mosi_PD'..
+EQY 12:41:11 [top] run: Proved equivalence of partition 'top.cmd_mosi_PD' using strategy 'sat'
+EQY 12:41:11 [top] run: Running strategy 'sat' on 'top.cmd_mosi_PU'..
+EQY 12:41:11 [top] run: Proved equivalence of partition 'top.cmd_mosi_PU' using strategy 'sat'
+EQY 12:41:11 [top] run: Running strategy 'sat' on 'top.cmd_sclk_PD'..
+EQY 12:41:11 [top] run: Proved equivalence of partition 'top.cmd_sclk_PD' using strategy 'sat'
+EQY 12:41:11 [top] run: Running strategy 'sat' on 'top.cmd_sclk_PU'..
+EQY 12:41:11 [top] run: Proved equivalence of partition 'top.cmd_sclk_PU' using strategy 'sat'
+EQY 12:41:11 [top] run: Running strategy 'sat' on 'top.cmd_spi_inst.csn_d'..
+EQY 12:41:12 [top] run: Proved equivalence of partition 'top.cmd_spi_inst.csn_d' using strategy 'sat'
+EQY 12:41:12 [top] run: Running strategy 'sat' on 'top.cmd_spi_inst.csn_s'..
+EQY 12:41:12 [top] run: Proved equivalence of partition 'top.cmd_spi_inst.csn_s' using strategy 'sat'
+EQY 12:41:12 [top] run: Running strategy 'sat' on 'top.cmd_spi_inst.mosi_s'..
+EQY 12:41:12 [top] run: Proved equivalence of partition 'top.cmd_spi_inst.mosi_s' using strategy 'sat'
+EQY 12:41:12 [top] run: Running strategy 'sat' on 'top.cmd_spi_inst.sclk_d'..
+EQY 12:41:12 [top] run: Proved equivalence of partition 'top.cmd_spi_inst.sclk_d' using strategy 'sat'
+EQY 12:41:12 [top] run: Running strategy 'sat' on 'top.cmd_spi_inst.sclk_s'..
+EQY 12:41:12 [top] run: Proved equivalence of partition 'top.cmd_spi_inst.sclk_s' using strategy 'sat'
+EQY 12:41:12 [top] run: Running strategy 'sat' on 'top.cmd_spi_inst.sync_csn.q1'..
+EQY 12:41:12 [top] run: Proved equivalence of partition 'top.cmd_spi_inst.sync_csn.q1' using strategy 'sat'
+EQY 12:41:12 [top] run: Running strategy 'sat' on 'top.cmd_spi_inst.sync_mosi.q1'..
+EQY 12:41:12 [top] run: Proved equivalence of partition 'top.cmd_spi_inst.sync_mosi.q1' using strategy 'sat'
+EQY 12:41:12 [top] run: Running strategy 'sat' on 'top.cmd_spi_inst.sync_sclk.q1'..
+EQY 12:41:12 [top] run: Proved equivalence of partition 'top.cmd_spi_inst.sync_sclk.q1' using strategy 'sat'
+EQY 12:41:12 [top] run: Running strategy 'sat' on 'top.fault_flag_out_CS'..
+EQY 12:41:12 [top] run: Proved equivalence of partition 'top.fault_flag_out_CS' using strategy 'sat'
+EQY 12:41:12 [top] run: Running strategy 'sat' on 'top.fault_flag_out_IE'..
+EQY 12:41:12 [top] run: Proved equivalence of partition 'top.fault_flag_out_IE' using strategy 'sat'
+EQY 12:41:12 [top] run: Running strategy 'sat' on 'top.fault_flag_out_OE'..
+EQY 12:41:12 [top] run: Proved equivalence of partition 'top.fault_flag_out_OE' using strategy 'sat'
+EQY 12:41:12 [top] run: Running strategy 'sat' on 'top.fault_flag_out_OUT'..
+EQY 12:56:47 [top] run: Could not prove equivalence of partition 'top.fault_flag_out_OUT' using strategy 'sat'
+EQY 12:56:47 [top] run: Running strategy 'sby' on 'top.fault_flag_out_OUT'..
+EQY 12:57:35 [top] run: Could not prove equivalence of partition 'top.fault_flag_out_OUT' using strategy 'sby': equivalence unknown
+EQY 12:57:35 [top] run: Running strategy 'sat' on 'top.fault_flag_out_PD'..
+EQY 12:57:35 [top] run: Proved equivalence of partition 'top.fault_flag_out_PD' using strategy 'sat'
+EQY 12:57:35 [top] run: Running strategy 'sat' on 'top.fault_flag_out_PU'..
+EQY 12:57:35 [top] run: Proved equivalence of partition 'top.fault_flag_out_PU' using strategy 'sat'
+EQY 12:57:35 [top] run: Running strategy 'sat' on 'top.fault_flag_out_SL'..
+EQY 12:57:35 [top] run: Proved equivalence of partition 'top.fault_flag_out_SL' using strategy 'sat'
+EQY 12:57:35 [top] run: Running strategy 'sat' on 'top.ff_inst.block_boundary'..
+EQY 12:57:36 [top] run: Could not prove equivalence of partition 'top.ff_inst.block_boundary' using strategy 'sat'
+EQY 12:57:36 [top] run: Running strategy 'sby' on 'top.ff_inst.block_boundary'..
+EQY 12:57:38 [top] run: Could not prove equivalence of partition 'top.ff_inst.block_boundary' using strategy 'sby': equivalence unknown
+EQY 12:57:38 [top] run: Running strategy 'sat' on 'top.ff_inst.mag_in_valid'..
+EQY 12:57:39 [top] run: Could not prove equivalence of partition 'top.ff_inst.mag_in_valid' using strategy 'sat'
+EQY 12:57:39 [top] run: Running strategy 'sby' on 'top.ff_inst.mag_in_valid'..
+EQY 12:57:41 [top] run: Could not prove equivalence of partition 'top.ff_inst.mag_in_valid' using strategy 'sby': equivalence unknown
+EQY 12:57:41 [top] run: Running strategy 'sat' on 'top.ff_inst.sample_done'..
+EQY 12:57:42 [top] run: Could not prove equivalence of partition 'top.ff_inst.sample_done' using strategy 'sat'
+EQY 12:57:42 [top] run: Running strategy 'sby' on 'top.ff_inst.sample_done'..
+EQY 12:57:43 [top] run: Could not prove equivalence of partition 'top.ff_inst.sample_done' using strategy 'sby': equivalence unknown
+EQY 12:57:43 [top] run: Running strategy 'sat' on 'top.sensor_drdy_PD'..
+EQY 12:57:43 [top] run: Proved equivalence of partition 'top.sensor_drdy_PD' using strategy 'sat'
+EQY 12:57:43 [top] run: Running strategy 'sat' on 'top.sensor_drdy_PU'..
+EQY 12:57:43 [top] run: Proved equivalence of partition 'top.sensor_drdy_PU' using strategy 'sat'
+EQY 12:57:43 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.apb_inst.req_done'..
+EQY 12:57:44 [top] run: Could not prove equivalence of partition 'top.spi_apb_inst.apb_inst.req_done' using strategy 'sat'
+EQY 12:57:44 [top] run: Running strategy 'sby' on 'top.spi_apb_inst.apb_inst.req_done'..
+EQY 12:57:46 [top] run: Could not prove equivalence of partition 'top.spi_apb_inst.apb_inst.req_done' using strategy 'sby': equivalence unknown
+EQY 12:57:46 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.data_ready'..
+EQY 12:57:49 [top] run: Could not prove equivalence of partition 'top.spi_apb_inst.data_ready' using strategy 'sat'
+EQY 12:57:49 [top] run: Running strategy 'sby' on 'top.spi_apb_inst.data_ready'..
+EQY 12:57:51 [top] run: Could not prove equivalence of partition 'top.spi_apb_inst.data_ready' using strategy 'sby': equivalence unknown
+EQY 12:57:51 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.fresh_sample_pending'..
+EQY 12:57:51 [top] run: Proved equivalence of partition 'top.spi_apb_inst.fresh_sample_pending' using strategy 'sat'
+EQY 12:57:51 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.fwd_done'..
+EQY 12:57:52 [top] run: Could not prove equivalence of partition 'top.spi_apb_inst.fwd_done' using strategy 'sat'
+EQY 12:57:52 [top] run: Running strategy 'sby' on 'top.spi_apb_inst.fwd_done'..
+EQY 12:57:53 [top] run: Could not prove equivalence of partition 'top.spi_apb_inst.fwd_done' using strategy 'sby': equivalence unknown
+EQY 12:57:53 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.fwd_req_valid'..
+EQY 12:57:54 [top] run: Could not prove equivalence of partition 'top.spi_apb_inst.fwd_req_valid' using strategy 'sat'
+EQY 12:57:54 [top] run: Running strategy 'sby' on 'top.spi_apb_inst.fwd_req_valid'..
+EQY 12:57:55 [top] run: Could not prove equivalence of partition 'top.spi_apb_inst.fwd_req_valid' using strategy 'sby': partitions not equivalent
+EQY 12:57:55 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.req_valid_d'..
+EQY 12:57:55 [top] run: Proved equivalence of partition 'top.spi_apb_inst.req_valid_d' using strategy 'sat'
+EQY 12:57:55 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.req_valid_pulse'..
+EQY 12:57:55 [top] run: Proved equivalence of partition 'top.spi_apb_inst.req_valid_pulse' using strategy 'sat'
+EQY 12:57:55 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.sm_core_ack'..
+EQY 12:57:55 [top] run: Proved equivalence of partition 'top.spi_apb_inst.sm_core_ack' using strategy 'sat'
+EQY 12:57:55 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.sm_data_out_valid'..
+EQY 12:57:56 [top] run: Could not prove equivalence of partition 'top.spi_apb_inst.sm_data_out_valid' using strategy 'sat'
+EQY 12:57:56 [top] run: Running strategy 'sby' on 'top.spi_apb_inst.sm_data_out_valid'..
+EQY 12:57:58 [top] run: Could not prove equivalence of partition 'top.spi_apb_inst.sm_data_out_valid' using strategy 'sby': equivalence unknown
+EQY 12:57:58 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.spi_master_inst.boot_active'..
+EQY 12:57:59 [top] run: Could not prove equivalence of partition 'top.spi_apb_inst.spi_master_inst.boot_active' using strategy 'sat'
+EQY 12:57:59 [top] run: Running strategy 'sby' on 'top.spi_apb_inst.spi_master_inst.boot_active'..
+EQY 12:58:00 [top] run: Could not prove equivalence of partition 'top.spi_apb_inst.spi_master_inst.boot_active' using strategy 'sby': equivalence unknown
+EQY 12:58:00 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.spi_master_inst.ff_s_miso.q1'..
+EQY 12:58:00 [top] run: Proved equivalence of partition 'top.spi_apb_inst.spi_master_inst.ff_s_miso.q1' using strategy 'sat'
+EQY 12:58:00 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.spi_master_inst.ff_s_miso.sync_out'..
+EQY 12:58:00 [top] run: Proved equivalence of partition 'top.spi_apb_inst.spi_master_inst.ff_s_miso.sync_out' using strategy 'sat'
+EQY 12:58:00 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.spi_master_inst.ff_sync_drdy.q1'..
+EQY 12:58:00 [top] run: Proved equivalence of partition 'top.spi_apb_inst.spi_master_inst.ff_sync_drdy.q1' using strategy 'sat'
+EQY 12:58:00 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.spi_master_inst.ff_sync_drdy.sync_out'..
+EQY 12:58:01 [top] run: Proved equivalence of partition 'top.spi_apb_inst.spi_master_inst.ff_sync_drdy.sync_out' using strategy 'sat'
+EQY 12:58:01 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.spi_master_inst.s_clk_inst.clk_out'..
+EQY 12:58:01 [top] run: Could not prove equivalence of partition 'top.spi_apb_inst.spi_master_inst.s_clk_inst.clk_out' using strategy 'sat'
+EQY 12:58:01 [top] run: Running strategy 'sby' on 'top.spi_apb_inst.spi_master_inst.s_clk_inst.clk_out'..
+EQY 12:58:01 [top] run: Proved equivalence of partition 'top.spi_apb_inst.spi_master_inst.s_clk_inst.clk_out' using strategy 'sby'
+EQY 12:58:01 [top] run: Running strategy 'sat' on 'top.spi_apb_inst.spi_master_inst.spc_raw_d'..
+EQY 12:58:02 [top] run: Proved equivalence of partition 'top.spi_apb_inst.spi_master_inst.spc_raw_d' using strategy 'sat'
+EQY 12:58:02 [top] run: Running strategy 'sat' on 'top.sys_rst_n_PD'..
+EQY 12:58:02 [top] run: Proved equivalence of partition 'top.sys_rst_n_PD' using strategy 'sat'
+EQY 12:58:02 [top] run: Running strategy 'sat' on 'top.sys_rst_n_PU'..
+EQY 12:58:02 [top] run: Proved equivalence of partition 'top.sys_rst_n_PU' using strategy 'sat'
+EQY 12:58:02 [top] run: Running strategy 'sat' on 'top.tmr_forward_en_PD'..
+EQY 12:58:02 [top] run: Proved equivalence of partition 'top.tmr_forward_en_PD' using strategy 'sat'
+EQY 12:58:02 [top] run: Running strategy 'sat' on 'top.tmr_forward_en_PU'..
+EQY 12:58:02 [top] run: Proved equivalence of partition 'top.tmr_forward_en_PU' using strategy 'sat'
+EQY 12:58:02 [top] run: make -f strategies.mk summary
+EQY 12:58:02 [top] run: make[1]: Entering directory '/tmp/v/top'
+EQY 12:58:02 [top] run: make[1]: Leaving directory '/tmp/v/top'
+EQY 12:58:02 [top] run: make: Leaving directory '/tmp/v/top'
+EQY 12:58:02 [top] run: finished (returncode=0)
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.tmr_forward_en_PU
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.tmr_forward_en_PD
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.sys_rst_n_PU
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.sys_rst_n_PD
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.spi_apb_inst.spi_master_inst.spc_raw_d
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.spi_apb_inst.spi_master_inst.s_clk_inst.clk_out
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.spi_apb_inst.spi_master_inst.ff_sync_drdy.sync_out
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.spi_apb_inst.spi_master_inst.ff_sync_drdy.q1
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.spi_apb_inst.spi_master_inst.ff_s_miso.sync_out
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.spi_apb_inst.spi_master_inst.ff_s_miso.q1
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.spi_apb_inst.sm_core_ack
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.spi_apb_inst.req_valid_pulse
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.spi_apb_inst.req_valid_d
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.spi_apb_inst.fresh_sample_pending
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.sensor_drdy_PU
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.sensor_drdy_PD
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.fault_flag_out_SL
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.fault_flag_out_PU
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.fault_flag_out_PD
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.fault_flag_out_OE
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.fault_flag_out_IE
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.fault_flag_out_CS
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.cmd_spi_inst.sync_sclk.q1
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.cmd_spi_inst.sync_mosi.q1
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.cmd_spi_inst.sync_csn.q1
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.cmd_spi_inst.sclk_s
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.cmd_spi_inst.sclk_d
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.cmd_spi_inst.mosi_s
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.cmd_spi_inst.csn_s
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.cmd_spi_inst.csn_d
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.cmd_sclk_PU
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.cmd_sclk_PD
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.cmd_mosi_PU
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.cmd_mosi_PD
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.cmd_csn_PU
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.cmd_csn_PD
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.clk_PU
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.clk_PD
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_sclk_SL
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_sclk_PU
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_sclk_PD
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_sclk_OE
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_sclk_IE
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_sclk_CS
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_mosi_SL
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_mosi_PU
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_mosi_PD
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_mosi_OE
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_mosi_IE
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_mosi_CS
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_miso_PU
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_miso_PD
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_csn_SL
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_csn_PU
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_csn_PD
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_csn_OE
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_csn_IE
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.c_csn_CS
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.block_clear
+EQY 12:58:02 [top] Successfully proved equivalence of partition top.axseq_inst.req_done
+EQY 12:58:02 [top] Warning: Failed to prove equivalence for 26/86 partitions:
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.spi_apb_inst.spi_master_inst.boot_active
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.spi_apb_inst.sm_data_out_valid
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.spi_apb_inst.fwd_req_valid
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.spi_apb_inst.fwd_done
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.spi_apb_inst.data_ready
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.spi_apb_inst.apb_inst.req_done
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.ff_inst.sample_done
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.ff_inst.mag_in_valid
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.ff_inst.block_boundary
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.fault_flag_out_OUT
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.cmd_apb_master.req_valid
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.cmd_apb_master.req_done
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.cfg_fault_clear
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.c_sclk_OUT
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.c_mosi_OUT
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.c_csn_OUT
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.axseq_inst.run_enable
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.axseq_inst.req_valid
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.axseq_inst.core_data_ready
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.apb_arb_inst.s_pready
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.apb_arb_inst.m1_pwrite
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.apb_arb_inst.m1_psel
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.apb_arb_inst.m1_penable
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.apb_arb_inst.m0_pwrite
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.apb_arb_inst.m0_psel
+EQY 12:58:02 [top] Failed to prove equivalence of partition top.apb_arb_inst.m0_penable
+EQY 12:58:02 [top] summary: Elapsed clock time [H:MM:SS (secs)]: 0:17:59 (1079)
+EQY 12:58:02 [top] summary: Elapsed process time [H:MM:SS (secs)]: 0:09:21 (561)
+EQY 12:58:02 [top] DONE (FAIL, rc=2)

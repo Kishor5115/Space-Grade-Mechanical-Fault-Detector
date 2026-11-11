@@ -1,0 +1,130 @@
+Group                  Internal  Switching    Leakage      Total
+                          Power      Power      Power      Power (Watts)
+----------------------------------------------------------------
+Sequential             2.31e-02   1.94e-03   9.20e-07   2.50e-02   5.8%
+Combinational          1.43e-01   2.35e-01   2.11e-06   3.77e-01  88.2%
+Clock                  1.51e-02   1.04e-02   2.52e-06   2.55e-02   6.0%
+Macro                  0.00e+00   0.00e+00   0.00e+00   0.00e+00   0.0%
+Pad                    0.00e+00   0.00e+00   0.00e+00   0.00e+00   0.0%
+----------------------------------------------------------------
+Total                  1.81e-01   2.47e-01   5.55e-06   4.28e-01 100.0%
+                          42.3%      57.7%       0.0%
+QUIET
+reset drivers 6
+Group                  Internal  Switching    Leakage      Total
+                          Power      Power      Power      Power (Watts)
+----------------------------------------------------------------
+Sequential             1.85e-02   2.10e-05   9.26e-07   1.86e-02  42.0%
+Combinational          4.55e-05   5.64e-05   2.07e-06   1.04e-04   0.2%
+Clock                  1.51e-02   1.04e-02   2.52e-06   2.55e-02  57.7%
+Macro                  0.00e+00   0.00e+00   0.00e+00   0.00e+00   0.0%
+Pad                    0.00e+00   0.00e+00   0.00e+00   0.00e+00   0.0%
+----------------------------------------------------------------
+Total                  3.37e-02   1.05e-02   5.52e-06   4.42e-02 100.0%
+                          76.3%      23.7%       0.0%
+=== bumps
+[INFO PSM-0040] All shapes on net VDD are connected.
+########## IR report #################
+Net              : VDD
+Corner           : max_ff_n40C_5v50
+Total power      : 4.42e-02 W
+Supply voltage   : 5.50e+00 V
+Worstcase voltage: 5.50e+00 V
+Average voltage  : 5.50e+00 V
+Average IR drop  : 1.27e-05 V
+Worstcase IR drop: 1.68e-04 V
+Percentage drop  : 0.00 %
+######################################
+[INFO PSM-0040] All shapes on net VSS are connected.
+########## IR report #################
+Net              : VSS
+Corner           : max_ff_n40C_5v50
+Total power      : 4.42e-02 W
+Supply voltage   : 0.00e+00 V
+Worstcase voltage: 6.87e-05 V
+Average voltage  : 1.28e-05 V
+Average IR drop  : 1.28e-05 V
+Worstcase IR drop: 6.87e-05 V
+Percentage drop  : 0.00 %
+######################################
+=== both
+[INFO PSM-0040] All shapes on net VDD are connected.
+[INFO PSM-0015] Reading location of sources from: VDD_both.txt.
+########## IR report #################
+Net              : VDD
+Corner           : max_ff_n40C_5v50
+Total power      : 4.42e-02 W
+Supply voltage   : 5.50e+00 V
+Worstcase voltage: 5.50e+00 V
+Average voltage  : 5.50e+00 V
+Average IR drop  : 8.72e-04 V
+Worstcase IR drop: 1.55e-03 V
+Percentage drop  : 0.03 %
+######################################
+[INFO PSM-0040] All shapes on net VSS are connected.
+[INFO PSM-0015] Reading location of sources from: VSS_both.txt.
+########## IR report #################
+Net              : VSS
+Corner           : max_ff_n40C_5v50
+Total power      : 4.42e-02 W
+Supply voltage   : 0.00e+00 V
+Worstcase voltage: 1.53e-03 V
+Average voltage  : 8.52e-04 V
+Average IR drop  : 8.52e-04 V
+Worstcase IR drop: 1.53e-03 V
+Percentage drop  : 0.03 %
+######################################
+=== bottom
+[INFO PSM-0040] All shapes on net VDD are connected.
+[INFO PSM-0015] Reading location of sources from: VDD_bottom.txt.
+########## IR report #################
+Net              : VDD
+Corner           : max_ff_n40C_5v50
+Total power      : 4.42e-02 W
+Supply voltage   : 5.50e+00 V
+Worstcase voltage: 5.49e+00 V
+Average voltage  : 5.50e+00 V
+Average IR drop  : 3.33e-03 V
+Worstcase IR drop: 5.22e-03 V
+Percentage drop  : 0.09 %
+######################################
+[INFO PSM-0040] All shapes on net VSS are connected.
+[INFO PSM-0015] Reading location of sources from: VSS_bottom.txt.
+########## IR report #################
+Net              : VSS
+Corner           : max_ff_n40C_5v50
+Total power      : 4.42e-02 W
+Supply voltage   : 0.00e+00 V
+Worstcase voltage: 5.22e-03 V
+Average voltage  : 3.29e-03 V
+Average IR drop  : 3.29e-03 V
+Worstcase IR drop: 5.22e-03 V
+Percentage drop  : 0.09 %
+######################################
+=== one
+[INFO PSM-0040] All shapes on net VDD are connected.
+[INFO PSM-0015] Reading location of sources from: VDD_one.txt.
+########## IR report #################
+Net              : VDD
+Corner           : max_ff_n40C_5v50
+Total power      : 4.42e-02 W
+Supply voltage   : 5.50e+00 V
+Worstcase voltage: 5.49e+00 V
+Average voltage  : 5.49e+00 V
+Average IR drop  : 9.80e-03 V
+Worstcase IR drop: 1.17e-02 V
+Percentage drop  : 0.21 %
+######################################
+[INFO PSM-0040] All shapes on net VSS are connected.
+[INFO PSM-0015] Reading location of sources from: VSS_one.txt.
+########## IR report #################
+Net              : VSS
+Corner           : max_ff_n40C_5v50
+Total power      : 4.42e-02 W
+Supply voltage   : 0.00e+00 V
+Worstcase voltage: 1.13e-02 V
+Average voltage  : 9.40e-03 V
+Average IR drop  : 9.40e-03 V
+Worstcase IR drop: 1.13e-02 V
+Percentage drop  : 0.21 %
+######################################

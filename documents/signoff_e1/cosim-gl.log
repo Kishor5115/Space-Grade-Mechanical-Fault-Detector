@@ -1,0 +1,34 @@
+make -f Makefile.cocotb \
+    TOPLEVEL=top \
+    MODULE=test_cosim \
+    COMPILE_ARGS="-g2012 -DFUNCTIONAL -DUNIT_DELAY=\#1" \
+    VERILOG_SOURCES="timescale.v /foss/pdks/gf180mcuD/libs.ref/gf180mcu_fd_sc_mcu7t5v0/verilog/primitives.v /foss/pdks/gf180mcuD/libs.ref/gf180mcu_fd_sc_mcu7t5v0/verilog/gf180mcu_fd_sc_mcu7t5v0.v ../build/top/nl/top.nl.v" \
+    SIM_BUILD=sim_build_top_gl
+make[1]: Entering directory '/tmp/fe/tb'
+rm -f results.xml
+"make" -f Makefile.cocotb results.xml
+make[2]: Entering directory '/tmp/fe/tb'
+mkdir -p sim_build_top_gl
+/foss/tools/bin/iverilog -o sim_build_top_gl/sim.vvp -s top -g2012 -g2012 -DFUNCTIONAL -DUNIT_DELAY=\#1  timescale.v /foss/pdks/gf180mcuD/libs.ref/gf180mcu_fd_sc_mcu7t5v0/verilog/primitives.v /foss/pdks/gf180mcuD/libs.ref/gf180mcu_fd_sc_mcu7t5v0/verilog/gf180mcu_fd_sc_mcu7t5v0.v ../build/top/nl/top.nl.v
+/usr/local/lib/python3.12/dist-packages/cocotb_tools/makefiles/simulators/Makefile.icarus:66: Using MODULE is deprecated, please use COCOTB_TEST_MODULES instead.
+rm -f results.xml
+COCOTB_TEST_MODULES=test_cosim COCOTB_TESTCASE= COCOTB_TEST_FILTER= COCOTB_TOPLEVEL=top TOPLEVEL_LANG=verilog \
+         /foss/tools/bin/vvp -M /usr/local/lib/python3.12/dist-packages/cocotb/libs -m libcocotbvpi_icarus   sim_build_top_gl/sim.vvp   
+     -.--ns INFO     gpi                                ..mbed/gpi_embed.cpp:93   in _embed_init_python              Using Python 3.12.3 interpreter at /usr/bin/python3
+     -.--ns INFO     gpi                                ../gpi/GpiCommon.cpp:79   in gpi_print_registered_impl       VPI registered
+     0.00ns INFO     cocotb                             Running on Icarus Verilog version 14.0 (devel)
+     0.00ns INFO     cocotb                             Seeding Python random module with 1793707166
+     0.00ns INFO     cocotb                             Initialized cocotb v2.0.1 from /usr/local/lib/python3.12/dist-packages/cocotb
+     0.00ns INFO     cocotb                             Running tests
+     0.00ns INFO     cocotb.regression                  running test_cosim.t (1/1)
+41379062.50ns INFO     cocotb.top                         COSIM clocks=660055 strap_events=41 flagrises=1 sha=f22a375b15e3af45
+41379062.50ns INFO     cocotb.regression                  test_cosim.t passed
+41379062.50ns INFO     cocotb.regression                  **************************************************************************************
+                                                          ** TEST                          STATUS  SIM TIME (ns)  REAL TIME (s)  RATIO (ns/s) **
+                                                          **************************************************************************************
+                                                          ** test_cosim.t                   PASS    41379062.50         302.55     136768.99  **
+                                                          **************************************************************************************
+                                                          ** TESTS=1 PASS=1 FAIL=0 SKIP=0           41379062.50         302.55     136766.83  **
+                                                          **************************************************************************************
+make[2]: Leaving directory '/tmp/fe/tb'
+make[1]: Leaving directory '/tmp/fe/tb'

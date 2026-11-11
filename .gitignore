@@ -4,6 +4,9 @@
 *.fst
 *.wlf
 *.log
+# Signoff evidence cited by documents/signoff_summary.md
+!documents/signoff_e1/*.log
+!documents/signoff_block_a/*.log
 
 # GTKWave
 

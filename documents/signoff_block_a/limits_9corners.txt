@@ -1,0 +1,9 @@
+min_ff_n40C_5v50: u_sclk_buf0/I 2.6000 0.6043 1.9957 (MET);clk 0.2000 0.1605 0.0395 (MET);
+min_ss_125C_4v50: u_sclk_buf0/I 3.0000 1.6172 1.3828 (MET);clk 0.2000 0.1611 0.0389 (MET);
+min_tt_025C_5v00: u_sclk_buf0/I 3.0000 0.9265 2.0735 (MET);clk 0.2000 0.1606 0.0394 (MET);
+nom_ff_n40C_5v50: u_sclk_buf0/I 2.6000 0.6436 1.9564 (MET);clk 0.2000 0.1776 0.0224 (MET);
+nom_ss_125C_4v50: u_sclk_buf0/I 3.0000 1.7152 1.2848 (MET);clk 0.2000 0.1781 0.0219 (MET);
+nom_tt_025C_5v00: u_sclk_buf0/I 3.0000 0.9852 2.0148 (MET);clk 0.2000 0.1777 0.0223 (MET);
+max_ff_n40C_5v50: u_sclk_buf0/I 2.6000 0.6901 1.9099 (MET);clk 0.2000 0.1981 0.0019 (MET);
+max_ss_125C_4v50: u_sclk_buf0/I 3.0000 1.8311 1.1689 (MET);clk 0.2000 0.1986 0.0014 (MET);
+max_tt_025C_5v00: u_sclk_buf0/I 3.0000 1.0547 1.9453 (MET);clk 0.2000 0.1982 0.0018 (MET);

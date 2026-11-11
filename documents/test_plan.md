@@ -5,7 +5,7 @@ SSCS Chipathon 2026, Track B, Team B22 Space Jam
 | Item | Value |
 |---|---|
 | Device | `top` macro in the `slot_1x1` pad ring, 800 µm x 800 µm |
-| Layout | LibreLane run `PADCTRL_800_e1`, GDS SHA-256 begins `98c1cf55f44048e0edd15632`. Signoff: `documents/signoff_summary.md`. |
+| Layout | Block A `B22_A` (run `BA7`, GDS SHA-256 begins `e373be44e35b7777d1c0b2e7`), holding macro run `PADCTRL_800_e1` (GDS SHA-256 begins `98c1cf55f44048e0edd15632`). Signoff: `documents/signoff_summary.md`. |
 | Supply and clock | Single 5 V supply, 16 MHz system clock |
 | Audience | Whoever runs the bench bring-up |
 | Status | Draft, written before silicon. No step here has been run. |

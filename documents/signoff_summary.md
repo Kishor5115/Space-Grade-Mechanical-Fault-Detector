@@ -13,6 +13,8 @@ SSCS Chipathon 2026, Track B, Team B22 Space Jam. Results dated 2026-11-03.
 | Cells and flops | 23,298 standard cells, 1,742 flops, 65.4% utilization |
 | Raw logs | `documents/signoff_e1/` |
 
+**Submission top cell is `B22_A`** (Block A), which holds this macro unchanged. See section 7.
+
 **Open item: formal equivalence is partial.** EQY proved 60 of 86 partitions. See section 3.
 
 **Do not use `power__total` from this run's `metrics.json`.** It reports 490 mW, which is a tool artifact. Real core
@@ -156,7 +158,47 @@ fork at 1.8.0. The macro inside has the GDS hash at the top of this document.
 - **KLayout DRC was not run at chip level.** The template flow disables it, and Magic DRC is the DRC used here.
 - **The flow's chip-level power and IR figures are not valid**, because the macro is a black box. Use sections 4 and 5.
 
-## 7. Still open
+## 7. Block A submission (`B22_A`)
+
+The organizers assigned Block A in issue #65 (`B22.def.tgz`, 2026-11-06). `B22_A` is a 1110 µm x 1110 µm wrapper. It
+contains the `top` macro above, unchanged, at (60, 200) µm, and connects its pins and power to the fixed Metal2 positions
+in `block_a/def/B22_A.def`. Results dated 2026-11-11, run `BA7`.
+
+| Item | Value |
+|---|---|
+| Layout | `gds/B22_A.gds` |
+| GDS SHA-256 | `e373be44e35b7777d1c0b2e7594ff4cee8d79d16ab7c8d5311da482567b16fdf` |
+| Netlists | `verilog/gl/B22_A.nl.v`, and powered `verilog/gl/B22_A.pnl.v` |
+| LVS setup | `lvs_config.json`: top `B22_A`, with `B22_A.pnl.v` and `ip/top/top.pnl.v` |
+| Settings | `block_a/config.yaml`, SDCs in `block_a/` |
+| Raw logs | `documents/signoff_block_a/` |
+
+| Check | Result |
+|---|---|
+| Magic DRC, routing DRC, flow | 0, 0 |
+| KLayout DRC, main deck | Clean, 0 violations |
+| Flat LVS, Magic and Netgen | `Netlists match uniquely` |
+| LVS, XOR, antenna, flow | 0, 0, 0 |
+| Power grid violations, disconnected pins | 0, 0 |
+| PDK slew and cap limits, 9 corners | No violations. Worst slew margin 1.17 ns at `max_ss_125C_4v50` |
+| Setup / hold, 9 corners at 62.5 ns | +24.69 ns / +22.37 ns |
+| Gate-level simulation, wrapper and macro netlists | 8 of 8 pass |
+
+**How it is built**
+
+- **Power.** The template's VDD and VSS terminals sit on the west and north edges, where the power grid does not reach
+  them. A LibreLane plugin step, `B22.PowerBridges` in `block_a/plugin/`, adds Metal2 to Metal5 bridges from each terminal
+  to the nearest stripe of the same net.
+- **Long wires.** The macro's outputs are driven by weak `dlyb_1` cells, and wires to the edge pins run up to about 740 µm.
+  The wrapper repairs them with buffers every 200 µm.
+- **`c_sclk_OUT`.** The flow's repair step leaves this one net unbuffered, so `block_a/src/B22_A.v` adds three `buf_4`
+  cells in series on it. The wrapper SDCs also drop the `c_sclk` generated clock, which no constraint uses.
+- **Function.** Logically the wrapper only passes signals through. The gate-level suite ran on the wrapper and macro
+  netlists together, with `B22_A` as the top level.
+
+**Not covered.** The extended LVS checks in the organizers' `extra_be_checks` were not run here.
+
+## 8. Still open
 
 1. **Formal equivalence** is partial, and the `tmr_forward_en` counterexample is unexplained (section 3).
 2. **KLayout density checks:** the run reports its main deck. Whether density is included has not been confirmed.

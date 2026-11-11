@@ -308,7 +308,11 @@ The top-level testbench exercises axis attribution end-to-end and verifies the I
 │                               #   (launched, not yet complete; see docs/verification/GATE_LEVEL_VERIFICATION_GAPS.md)
 ├── librelane/runs/            # Prior LibreLane synthesis/PnR run logs
 ├── info.yaml                   # Chipathon 2026 submission metadata (project, team, 14 pins)
-├── lvs_config.json             # Chipathon 2026 LVS config for the `top` macro
+├── lvs_config.json             # Chipathon 2026 LVS config for submission top cell `B22_A`
+├── block_a/                    # Organizers' Block A (1110×1110 µm) wrapper around `top`: config, DEF, plugin, RTL
+├── gds/B22_A.gds               # Submission layout: Block A with the `top` macro unchanged inside (Git LFS)
+├── verilog/gl/B22_A.nl.v       # Matching Block A netlist (Git LFS)
+├── verilog/gl/B22_A.pnl.v      # Matching powered Block A netlist, for LVS (Git LFS)
 ├── gds/chip_top.gds            # Chip-top signed-off layout with macro run PADCTRL_800_e1 (Git LFS)
 ├── verilog/gl/chip_top.nl.v    # Matching post-PnR gate-level netlist (Git LFS)
 ├── verilog/gl/chip_top.pnl.v   # Matching powered netlist with VDD/VSS, for chip-level LVS (Git LFS)
@@ -367,6 +371,7 @@ SSCS Chipathon 2026, Track B (Sensor Circuits)
 - [x] SEU / TMR fault-injection test — [`tb/test_seu.py`](tb/test_seu.py) (`make test-seu`, **3/3 PASS**): voter masks a single-bit upset, self-scrubs within one clock, illegal FSM encoding recovers to `S_IDLE` within one clock. RTL-level result, closes the previously structural-only RHBD verification gap
 - [ ] IR drop at chip scale — macro-level static drop is under 12 mV per rail for the feeds tried, but dynamic drop, pads and the chip grid are not analysed. See [`documents/signoff_summary.md`](documents/signoff_summary.md).
 - [x] Max-slew/max-cap DRV violations — **resolved: self-imposed SDC limits, not foundry-rule violations.** A liberty-limits-only re-check of the signed-off netlist reports **0 slew / 0 cap / 0 fanout** violators; the reported 2864/196 are measured against the project's own `set_max_transition 3.0` / `set_max_capacitance 0.2`, which are 2.3× tighter than the library's 7 ns / per-pin 0.058–4.9 pF. Waived with evidence — see [`PHYSICAL_IMPLEMENTATION_RESULTS.md` §4.3](docs/architecture/PHYSICAL_IMPLEMENTATION_RESULTS.md)
+- [x] Organizers' Block A (`B22_A`, 1110×1110 µm, issue #65 DEF) — **built 2026-11-11** around the unchanged `PADCTRL_800_e1` macro. Flow checks 0, KLayout DRC clean, flat LVS match, liberty slew/cap clean at 9 corners, gate-level 8/8. See [`documents/signoff_summary.md`](documents/signoff_summary.md).
 - [x] Chip-top padring integration (`slot_1x1`, macro top-left) — **rebuilt 2026-11-03 with macro `PADCTRL_800_e1`.** Magic DRC, LVS, XOR, antenna and routing DRC are all 0. See [`documents/signoff_summary.md`](documents/signoff_summary.md).
 - [x] **Macro re-harden after the pin-placement fix** — done. `librelane/pins.cfg` corrected against the real `slot_1x1` pad map (all 4 outputs on N, all 8 inputs on W, `clk`/`sys_rst_n` at the south end of W); macro re-hardened clean (setup improved to +10.04 ns) and all 12 pins verified on the correct edge. See [`PIN_PLACEMENT_RATIONALE.md` §7](docs/specs/PIN_PLACEMENT_RATIONALE.md)
 - [ ] Physical-level RHBD (guard rings, substrate tapping, routing density constraints) — chip-level, pending padring integration

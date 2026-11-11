@@ -1,0 +1,88 @@
+# B22 Block A: 1110 x 1110 um wrapper around the signed-off `top` macro.
+# Die area, pin positions and the Metal2 power terminals come from the organizers'
+# def/B22_A.def (issue #65, 2026-11-06). Run with block_a/plugin on PYTHONPATH.
+meta:
+  version: 3
+  flow: Classic
+  substituting_steps:
+    "+Odb.ApplyDEFTemplate": "B22.PowerBridges"
+
+DESIGN_NAME: B22_A
+VERILOG_FILES: dir::src/B22_A.v
+
+CLOCK_PORT: clk
+CLOCK_PERIOD: 62.5
+PNR_SDC_FILE: dir::pnr_constraints.sdc
+SIGNOFF_SDC_FILE: dir::signoff_constraints.sdc
+
+FP_SIZING: absolute
+DIE_AREA: [0, 0, 1110, 1110]
+CORE_AREA: [30, 30, 1080, 1080]
+FP_DEF_TEMPLATE: dir::def/B22_A.def
+# permissive: with FP_TEMPLATE_COPY_POWER_PINS, strict mode always flags VDD/VSS as
+# missing from the template. The run log is checked for all 58 pins instead.
+FP_TEMPLATE_MATCH_MODE: permissive
+FP_TEMPLATE_COPY_POWER_PINS: true
+
+VDD_NETS: [VDD]
+GND_NETS: [VSS]
+
+MACROS:
+  top:
+    gds:
+    - dir::../ip/top/top.gds
+    lef:
+    - dir::../ip/top/top.lef
+    vh:
+    - dir::../ip/top/top.vh
+    pnl:
+    - dir::../ip/top/top.pnl.v
+    lib:
+      nom_tt_025C_5v00:
+      - dir::../ip/top/lib/top__nom_tt_025C_5v00.lib
+      nom_ss_125C_4v50:
+      - dir::../ip/top/lib/top__nom_ss_125C_4v50.lib
+      nom_ff_n40C_5v50:
+      - dir::../ip/top/lib/top__nom_ff_n40C_5v50.lib
+      min_tt_025C_5v00:
+      - dir::../ip/top/lib/top__min_tt_025C_5v00.lib
+      min_ss_125C_4v50:
+      - dir::../ip/top/lib/top__min_ss_125C_4v50.lib
+      min_ff_n40C_5v50:
+      - dir::../ip/top/lib/top__min_ff_n40C_5v50.lib
+      max_tt_025C_5v00:
+      - dir::../ip/top/lib/top__max_tt_025C_5v00.lib
+      max_ss_125C_4v50:
+      - dir::../ip/top/lib/top__max_ss_125C_4v50.lib
+      max_ff_n40C_5v50:
+      - dir::../ip/top/lib/top__max_ff_n40C_5v50.lib
+    instances:
+      u_top:
+        location: [60, 200]
+        orientation: N
+
+# Macro power pins are Metal4 straps; Metal5 stripes cross the macro and connect to them.
+PDN_MACRO_CONNECTIONS: ["u_top VDD VSS VDD VSS"]
+PDN_MULTILAYER: true
+PDN_EXTEND_TO: boundary
+PDN_VWIDTH: 5
+PDN_HWIDTH: 5
+PDN_VSPACING: 1
+PDN_HSPACING: 1
+PDN_VPITCH: 75
+PDN_HPITCH: 75
+RT_MAX_LAYER: Metal5
+
+# Buffers the long wires between the macro and the edge pins. 200 um, not e1's 300,
+# because the macro outputs are driven by weak dlyb_1 cells.
+MAX_TRANSITION_CONSTRAINT: 3
+MAX_CAPACITANCE_CONSTRAINT: 0.2
+RUN_POST_GRT_DESIGN_REPAIR: true
+DESIGN_REPAIR_MAX_WIRE_LENGTH: 200
+GRT_DESIGN_REPAIR_MAX_WIRE_LENGTH: 200
+DESIGN_REPAIR_MAX_SLEW_PCT: 50
+DESIGN_REPAIR_MAX_CAP_PCT: 60
+GRT_DESIGN_REPAIR_MAX_SLEW_PCT: 45
+GRT_DESIGN_REPAIR_MAX_CAP_PCT: 60
+
+PRIMARY_GDSII_STREAMOUT_TOOL: klayout

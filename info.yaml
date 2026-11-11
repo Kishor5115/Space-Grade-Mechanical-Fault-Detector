@@ -17,7 +17,7 @@ project:
   gf_def_ready: false           # data ready for def generation with global foundries' pad frame
   ws_def_ready: false           # data ready for def generation with wafer space pad frame
   drc_ready: true               # data ready for integration and DRC
-  lvs_ready: true               # powered netlist is ip/top/top.pnl.v; GDS LVS passes on run PADCTRL_800_r10
+  lvs_ready: true               # top cell B22_A (Block A): verilog/gl/B22_A.pnl.v + ip/top/top.pnl.v, layout gds/B22_A.gds
   export_control: "documents/Export_Control_GF_Rev8.2.docx"   # Required export control document
 
 # Pad types follow padring/src/chip_core.sv.

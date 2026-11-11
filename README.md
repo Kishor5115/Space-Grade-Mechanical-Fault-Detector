@@ -2,6 +2,8 @@
 
 > **SSCS Chipathon 2026 — Track B (Sensor Circuits)**
 > Radiation-hardened-by-design (RHBD) ASIC for autonomous spacecraft vibration and mechanical fault detection, built around a 3-bin **Interleaved Tri-Axis Goertzel (ITAG)** DSP core targeting the GlobalFoundries GF180MCU node via the open-source LibreLane RTL-to-GDS flow.
+>
+> **Submission files** (Block A GDS `B22_A`, netlists, signoff reports): [Google Drive folder](https://drive.google.com/drive/folders/1k3GnVCPEhi4orNpUXt6c0gG_t0igKml3?usp=sharing)
 
 ---
 
